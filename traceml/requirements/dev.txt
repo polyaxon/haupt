@@ -7,6 +7,6 @@ altair==4.1.0
 matplotlib
 moviepy==1.0.2
 plotly==4.6.0
-Pillow==9.0.0
+Pillow==9.0.1
 bokeh==2.0.2
 aiofiles==0.8.0
