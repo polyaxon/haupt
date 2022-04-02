@@ -1,0 +1,42 @@
+version: "3.8"
+
+x-defaults: &defaults
+  env_file:
+  - docker/config.env
+
+services:
+  postgres:
+    image: postgres:14.5-alpine
+    environment:
+      POSTGRES_USER: "haupt"
+      POSTGRES_PASSWORD: "haupt"
+    networks:
+      - haupt
+
+  redis:
+    image: redis:7.0.5-alpine
+    networks:
+      - haupt
+
+  api:
+    <<: *defaults
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    networks:
+      - haupt
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./haupt:/haupt/haupt
+      - ./public:/haupt/public
+      - ./pydist:/haupt/pydist
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "postgres://haupt:haupt@postgres:5432/haupt"
+
+networks:
+  haupt:
+

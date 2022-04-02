@@ -1,0 +1,21 @@
+version: "3.8"
+
+x-defaults: &defaults
+  env_file:
+  - docker/config.env
+
+services:
+  api:
+    <<: *defaults
+    image: haupt:dev
+    volumes:
+      - ./haupt:/haupt/haupt
+      - ./public:/haupt/public
+      - ./pydist:/haupt/pydist
+    ports:
+      - "8000:8000"
+    environment:
+      POLYAXON_DB_ENGINE: "sqlite"
+      POLYAXON_DB_HOST: "/tmp/db"
+      TESTING: "1"
+

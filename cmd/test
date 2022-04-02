@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PYTESTOPT="--reuse-db -v"
+
+if [ $? -eq 0 ]; then
+    if [ "$1" = "local-sqlite" ]; then
+        cd haupt; POLYAXON_DB_ENGINE="sqlite" TESTING="1" POLYAXON_TIME_ZONE="Europe/Berlin" DJANGO_SETTINGS_MODULE="polyconf.settings" POLYAXON_SECRET_KEY="secret" POLYAXON_K8S_NAMESPACE="" POLYAXON_STATIC_ROOT="" POLYAXON_DB_HOST="/tmp/db" py.test $PYTESTOPT ${@:2}
+    elif [ "$1" = "container-sqlite" ]; then
+        docker-compose -f docker-compose.test.sqlite.yml run -w /haupt/haupt api py.test $PYTESTOPT ${@:2}
+    elif [ "$1" = "container-pgsql" ]; then
+        docker-compose -f docker-compose.test.pgsql.yml run -w /haupt/haupt api py.test $PYTESTOPT ${@:2}
+    fi
+fi

@@ -1,0 +1,57 @@
+#!/usr/bin/python
+#
+# Copyright 2018-2022 Polyaxon, Inc.
+# This file and its contents are licensed under the AGPLv3 License.
+# Please see the included NOTICE for copyright information and
+# LICENSE-AGPL for a copy of the license.
+
+from typing import List
+
+from django.contrib import admin
+from django.urls import include, re_path
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+from common import conf
+from common.apis.index.errors import Handler50xView, Handler403View, Handler404View
+from common.apis.index.health import HealthView
+from common.apis.index.views import IndexView
+from common.options.registry.core import UI_ADMIN_ENABLED
+from polyaxon.api import ADMIN_V1, UI_V1
+
+
+def _handler500(request):
+    return Handler50xView.as_view()(request)
+
+
+handler404 = Handler404View.as_view()
+handler403 = Handler403View.as_view()
+handler500 = _handler500
+
+
+def get_ui_urlpatterns(ui_urlpatterns):
+    ui_patterns = [
+        re_path(pattern, ensure_csrf_cookie(IndexView.as_view()), name="index")
+        for pattern in ui_urlpatterns
+    ]
+    return [
+        re_path(r"^$", ensure_csrf_cookie(IndexView.as_view()), name="index"),
+        re_path(
+            r"^{}$".format(UI_V1), ensure_csrf_cookie(IndexView.as_view()), name="ui"
+        ),
+        re_path(
+            r"^{}/".format(UI_V1), include((ui_patterns, "ui_v1"), namespace="ui_v1")
+        ),
+    ]
+
+
+def get_urlpatterns(app_patterns: List, ui_urlpatterns: List = None):
+    if conf.get(UI_ADMIN_ENABLED):
+        app_patterns += [re_path(r"^{}/".format(ADMIN_V1), admin.site.urls)]
+
+    urlpatterns = app_patterns + [
+        re_path(r"^healthz/?$", HealthView.as_view(), name="health_check"),
+    ]
+    if ui_urlpatterns:
+        urlpatterns += get_ui_urlpatterns(ui_urlpatterns)
+
+    return urlpatterns

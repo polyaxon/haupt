@@ -1,0 +1,35 @@
+version: "3.8"
+
+x-defaults: &defaults
+  env_file:
+  - docker/config.env
+
+services:
+  postgres:
+    image: postgres:14.5-alpine
+    environment:
+      POSTGRES_USER: "haupt"
+      POSTGRES_PASSWORD: "haupt"
+    networks:
+      - haupt
+  api:
+    <<: *defaults
+    image: haupt:dev
+    networks:
+      - haupt
+    depends_on:
+      - postgres
+    volumes:
+      - ./haupt:/haupt/haupt
+      - ./public:/haupt/public
+      - ./pydist:/haupt/pydist
+    ports:
+      - "8000:8000"
+    environment:
+      POLYAXON_DB_ENGINE: "pgsql"
+      POLYAXON_DB_HOST: "postgres"
+      TESTING: "1"
+
+networks:
+  haupt:
+

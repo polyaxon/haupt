@@ -1,0 +1,17 @@
+#!/bin/bash
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+ROOT_DIR=$( cd $DIR/.. && pwd )
+
+if [ $? -eq 0 ]; then
+    if [ -z "$1" ]; then
+        echo "Coming soon"
+    elif [ "$1" = "container-pgsql" ]; then
+        docker-compose -f docker-compose.test.pgsql.yml run --publish 8000:8000 -w /haupt/haupt api "cd haupt && uvicorn polyconf.asgi:application --port 8000 --host 0.0.0.0"
+    elif [ "$1" = "nginx-sqlite" ]; then
+        echo "Coming soon"
+    elif [ "$1" = "nginx-pgsql" ]; then
+        echo "Coming soon"
+    elif [ "$1" = "streams-nginx" ]; then
+        echo "Coming soon"
+    fi
+fi

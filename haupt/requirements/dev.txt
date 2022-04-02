@@ -1,0 +1,3 @@
+numpy<=1.24
+pandas
+django-debug-toolbar

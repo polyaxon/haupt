@@ -1,0 +1,48 @@
+#!/usr/bin/python
+#
+# Copyright 2018-2022 Polyaxon, Inc.
+# This file and its contents are licensed under the AGPLv3 License.
+# Please see the included NOTICE for copyright information and
+# LICENSE-AGPL for a copy of the license.
+
+from unittest import TestCase
+
+from common import conf
+from common.options.registry import (
+    containers,
+    core,
+    installation,
+    k8s,
+    scheduler,
+    stats,
+)
+
+
+class TestConfSubscriptions(TestCase):
+    def setUp(self):
+        super().setUp()
+        conf.validate_and_setup()
+        # load subscriptions
+        import common.options.conf_subscriptions  # noqa
+
+    def _assert_options_subscriptions(self, options):
+        for option in options:
+            assert conf.option_manager.knows(option)
+
+    def test_core_subscriptions(self):
+        self._assert_options_subscriptions(core.OPTIONS)
+
+    def test_installation_subscriptions(self):
+        self._assert_options_subscriptions(installation.OPTIONS)
+
+    def test_k8s_subscriptions(self):
+        self._assert_options_subscriptions(k8s.OPTIONS)
+
+    def test_scheduler_subscriptions(self):
+        self._assert_options_subscriptions(scheduler.OPTIONS)
+
+    def test_containers_subscriptions(self):
+        self._assert_options_subscriptions(containers.OPTIONS)
+
+    def test_stats_subscriptions(self):
+        self._assert_options_subscriptions(stats.OPTIONS)

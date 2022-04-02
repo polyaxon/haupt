@@ -1,0 +1,42 @@
+{% extends "common/root.html" %}
+{% load static %}
+
+{% block styles %}
+    {% if frontend_debug %}
+    <link href="{% static 'css/global_modal.css' %}?version={{ ui_assets_version }}" media="all" rel="stylesheet" type="text/css"/>
+    {% else %}
+    <link href="{% static 'dist/css/global_modal.min.css' %}?version={{ ui_assets_version }}" media="all" rel="stylesheet" type="text/css"/>
+    {%  endif %}
+{% endblock %}
+
+
+{% block bodyclass %}modal{% endblock %}
+
+<!-- Header -->
+{% block header %}
+<div id="header">
+    <div id="branding">
+        {% block branding %}
+        <h1 id="site-name">
+            <a class="brand" href="{% url 'index' %}">
+                <img src="{% static 'images/logo_white.svg' %}?version={{ ui_assets_version }}" alt="Polyaxon"> Polyaxon
+            </a>
+        </h1>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
+<!-- END Header -->
+
+<!-- Content -->
+{% block index %}
+<div id="content" class="{% block coltype %}colM{% endblock %}">
+    {% block content %}{% endblock %}
+    <br class="clear"/>
+</div>
+{% endblock %}
+<!-- END Content -->
+
+{% block footer %}
+    <div id="footer"></div>
+{% endblock %}
