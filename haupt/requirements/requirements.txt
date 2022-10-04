@@ -1,6 +1,6 @@
-Django==4.1.1
+Django==4.1.2
 djangorestframework==3.14.0
 django-cors-headers==3.11.0
 numpy<=1.24
-uvicorn[standard]==0.18.2
+uvicorn[standard]==0.18.3
 uvloop==0.16.0
