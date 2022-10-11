@@ -14,21 +14,21 @@ from rest_framework import status
 
 from django.conf import settings
 
-from db.api.artifacts.serializers import (
+from haupt.db.api.artifacts.serializers import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
 )
-from db.api.project_resources.serializers import (
+from haupt.db.api.project_resources.serializers import (
     OfflineRunSerializer,
     OperationCreateSerializer,
     RunSerializer,
 )
-from db.factories.artifacts import ArtifactFactory
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.models.artifacts import Artifact, ArtifactLineage
-from db.models.runs import Run
-from db.queries.artifacts import project_runs_artifacts
+from haupt.db.factories.artifacts import ArtifactFactory
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.models.artifacts import Artifact, ArtifactLineage
+from haupt.db.models.runs import Run
+from haupt.db.queries.artifacts import project_runs_artifacts
 from polyaxon.api import API_V1
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.parser import parser
@@ -111,7 +111,7 @@ class TestProjectRunsStopViewV1(BaseTest):
             API_V1, self.user.username, self.project.name
         )
 
-    @patch("common.workers.send")
+    @patch("haupt.common.workers.send")
     def test_stop(self, _):
         for obj in self.objects:
             obj.status = V1Statuses.RUNNING
@@ -120,7 +120,7 @@ class TestProjectRunsStopViewV1(BaseTest):
         assert set(Run.objects.only("status").values_list("status", flat=True)) == {
             V1Statuses.RUNNING
         }
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert set(Run.objects.only("status").values_list("status", flat=True)) == {
@@ -130,7 +130,7 @@ class TestProjectRunsStopViewV1(BaseTest):
 
         assert auditor_record.call_count == 2
 
-    @patch("common.workers.send")
+    @patch("haupt.common.workers.send")
     def test_safe_stop(self, _):
         self.objects[0].status = V1Statuses.QUEUED
         self.objects[0].save()
@@ -142,7 +142,7 @@ class TestProjectRunsStopViewV1(BaseTest):
             V1Statuses.COMPILED,
             V1Statuses.CREATED,
         }
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert set(Run.objects.only("status").values_list("status", flat=True)) == {
@@ -192,7 +192,7 @@ class TestProjectRunsApproveViewV1(BaseTest):
             API_V1, self.user.username, self.project.name
         )
 
-    @patch("common.workers.send")
+    @patch("haupt.common.workers.send")
     def test_approve(self, _):
         assert Run.objects.filter(pending__isnull=True).count() == 0
         data = {
@@ -210,7 +210,7 @@ class TestProjectRunsApproveViewV1(BaseTest):
             V1RunPending.UPLOAD,
             V1RunPending.BUILD,
         }
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert Run.objects.filter(pending__isnull=True).count() == 3
@@ -248,7 +248,7 @@ class TestProjectRunsDeleteViewV1(BaseTest):
     def test_delete_non_managed_auditor(self):
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert Run.objects.count() == 3
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.delete(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert Run.objects.count() == 1
@@ -259,7 +259,7 @@ class TestProjectRunsDeleteViewV1(BaseTest):
         Run.objects.all().update(is_managed=True)
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert Run.objects.count() == 3
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.delete(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert Run.objects.count() == 1
@@ -270,7 +270,7 @@ class TestProjectRunsDeleteViewV1(BaseTest):
         Run.objects.all().update(is_managed=True)
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert Run.objects.count() == 3
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.delete(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert Run.objects.count() == 1
@@ -1099,7 +1099,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
         data = {"is_managed": False}
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
 
         assert resp.status_code == status.HTTP_201_CREATED
@@ -1128,7 +1128,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
                 }
             )
         }
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
 
         assert resp.status_code == status.HTTP_201_CREATED
@@ -1141,7 +1141,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         # Meta and pending
         data["pending"] = V1RunPending.APPROVAL
         data["meta_info"] = {"test": "works"}
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
 
         assert resp.status_code == status.HTTP_201_CREATED
@@ -1157,7 +1157,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         data["is_approved"] = False
         data.pop("pending")
         data["meta_info"] = {"test": "works"}
-        with patch("common.auditor.record") as auditor_record:
+        with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
 
         assert resp.status_code == status.HTTP_201_CREATED

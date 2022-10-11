@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.abstracts.projects import BaseProject
+from haupt.db.abstracts.projects import BaseProject
 
 
 class Project(BaseProject):

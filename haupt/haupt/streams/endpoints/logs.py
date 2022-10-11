@@ -6,6 +6,8 @@
 # LICENSE-AGPL for a copy of the license.
 import logging
 
+from typing import Dict
+
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -13,6 +15,16 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
 
+from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.connections.fs import AppFS
+from haupt.streams.controllers.k8s_crd import get_k8s_operation
+from haupt.streams.controllers.logs import (
+    get_archived_operation_logs,
+    get_operation_logs,
+    get_tmp_operation_logs,
+)
+from haupt.streams.endpoints.base import UJSONResponse
+from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
 from polyaxon import settings
 from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
@@ -20,21 +32,20 @@ from polyaxon.utils.bool_utils import to_bool
 from polyaxon.utils.date_utils import parse_datetime
 from polyaxon.utils.fqn_utils import get_resource_name, get_resource_name_for_kind
 from polyaxon.utils.serialization import datetime_serialize
-from streams.connections.fs import AppFS
-from streams.controllers.k8s_crd import get_k8s_operation
-from streams.controllers.logs import (
-    get_archived_operation_logs,
-    get_operation_logs,
-    get_tmp_operation_logs,
-)
-from streams.endpoints.base import UJSONResponse
-from streams.tasks.logs import clean_tmp_logs, upload_logs
 
 logger = logging.getLogger("polyaxon.streams.logs")
 
 
 @transaction.non_atomic_requests
-async def get_logs(request: ASGIRequest, run_uuid: str) -> UJSONResponse:
+async def get_logs(
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
+) -> UJSONResponse:
+    validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
     last_time = request.GET.get("last_time")
     if last_time:
@@ -85,8 +96,9 @@ async def get_logs(request: ASGIRequest, run_uuid: str) -> UJSONResponse:
 
 @transaction.non_atomic_requests
 async def collect_logs(
-    request: ASGIRequest, run_uuid: str, run_kind: str
+    request: ASGIRequest, run_uuid: str, run_kind: str, methods: Dict = None
 ) -> HttpResponse:
+    validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid, run_kind=run_kind)
     k8s_manager = AsyncK8SManager(
         namespace=settings.CLIENT_CONFIG.namespace,
@@ -143,13 +155,13 @@ logs_routes = [
     path(
         URLS_RUNS_INTERNAL_LOGS,
         collect_logs,
-        # name="logs",
-        # methods=["POST"],
+        name="collect_logs",
+        kwargs=dict(methods=["POST"]),
     ),
     path(
         URLS_RUNS_LOGS,
         get_logs,
-        # name="logs",
-        # methods=["GET"],
+        name="logs",
+        kwargs=dict(methods=["GET"]),
     ),
 ]

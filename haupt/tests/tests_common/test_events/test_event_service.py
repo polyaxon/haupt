@@ -7,9 +7,9 @@
 
 from unittest import TestCase
 
-from common.events.event import Attribute, Event
-from common.events.event_manager import EventManager
-from common.events.event_service import EventService
+from haupt.common.events.event import Attribute, Event
+from haupt.common.events.event_manager import EventManager
+from haupt.common.events.event_service import EventService
 
 
 class DummyEventService(EventService):

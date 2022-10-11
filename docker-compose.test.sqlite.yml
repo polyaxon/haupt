@@ -16,6 +16,6 @@ services:
       - "8000:8000"
     environment:
       POLYAXON_DB_ENGINE: "sqlite"
-      POLYAXON_DB_HOST: "/tmp/db"
+      POLYAXON_DB_NAME: "/tmp/db"
       TESTING: "1"
 

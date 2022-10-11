@@ -8,7 +8,7 @@
 from django.core.validators import validate_slug
 from django.db import models
 
-from common.validation.blacklist import validate_blacklist_name
+from haupt.common.validation.blacklist import validate_blacklist_name
 
 
 class NameableModel(models.Model):

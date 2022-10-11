@@ -11,12 +11,16 @@ from typing import List, Optional, Tuple
 
 import aiofiles
 
+from haupt.streams.tasks.logs import (
+    content_to_logs,
+    download_logs_file,
+    download_tmp_logs,
+)
 from polyaxon.fs.async_manager import list_files
 from polyaxon.fs.types import FSSystem
 from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
 from polyaxon.types import AwareDT
-from streams.tasks.logs import content_to_logs, download_logs_file, download_tmp_logs
 from traceml.logging import V1Log
 
 

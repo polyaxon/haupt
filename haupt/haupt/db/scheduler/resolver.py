@@ -10,9 +10,9 @@ from typing import List, Optional
 from marshmallow import ValidationError as MarshmallowValidationError
 from rest_framework.exceptions import ValidationError
 
-from common.exceptions import AccessNotAuthorized, AccessNotFound
-from db.abstracts.runs import BaseRun
-from db.managers.artifacts import set_artifacts
+from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
+from haupt.db.abstracts.runs import BaseRun
+from haupt.db.managers.artifacts import set_artifacts
 from polyaxon.constants.metadata import (
     META_COPY_ARTIFACTS,
     META_DESTINATION_IMAGE,

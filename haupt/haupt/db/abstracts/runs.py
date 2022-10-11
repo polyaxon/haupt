@@ -8,17 +8,17 @@ from django.conf import settings
 from django.core.validators import validate_slug
 from django.db import models
 
-from db.abstracts.describable import DescribableModel
-from db.abstracts.diff import DiffModel
-from db.abstracts.duration import DurationModel
-from db.abstracts.getter import get_db_model_name
-from db.abstracts.live_state import LiveStateModel
-from db.abstracts.nameable import NameableModel
-from db.abstracts.readme import ReadmeModel
-from db.abstracts.spec import SpecModel
-from db.abstracts.status import StatusModel
-from db.abstracts.tag import TagModel
-from db.abstracts.uid import UuidModel
+from haupt.db.abstracts.describable import DescribableModel
+from haupt.db.abstracts.diff import DiffModel
+from haupt.db.abstracts.duration import DurationModel
+from haupt.db.abstracts.getter import get_db_model_name
+from haupt.db.abstracts.live_state import LiveStateModel
+from haupt.db.abstracts.nameable import NameableModel
+from haupt.db.abstracts.readme import ReadmeModel
+from haupt.db.abstracts.spec import SpecModel
+from haupt.db.abstracts.status import StatusModel
+from haupt.db.abstracts.tag import TagModel
+from haupt.db.abstracts.uid import UuidModel
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending

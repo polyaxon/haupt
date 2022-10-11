@@ -7,7 +7,7 @@
 
 from rest_framework import fields, serializers
 
-from db.abstracts.getter import get_lineage_model
+from haupt.db.abstracts.getter import get_lineage_model
 
 
 class RunArtifactLightSerializer(serializers.ModelSerializer):

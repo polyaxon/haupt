@@ -8,10 +8,10 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from common import user_system
-from common.events import event_context
-from common.events.event import Attribute, Event
-from common.events.event_context import EventItemContextSpec
+from haupt.common import user_system
+from haupt.common.events import event_context
+from haupt.common.events.event import Attribute, Event
+from haupt.common.events.event_context import EventItemContextSpec
 from polyaxon.utils.urls_utils import get_fqn_run_url, get_project_url
 
 

@@ -6,6 +6,8 @@
 # LICENSE-AGPL for a copy of the license.
 import logging
 
+from typing import Dict
+
 import ujson
 
 from rest_framework import status
@@ -15,18 +17,25 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
 
+from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.endpoints.base import UJSONResponse
+from haupt.streams.tasks.notification import notify_run
 from polyaxon import settings
 from polyaxon.lifecycle import V1StatusCondition
-from streams.endpoints.base import UJSONResponse
-from streams.tasks.notification import notify_run
 
 logger = logging.getLogger("haupt.streams.notifications")
 
 
 @transaction.non_atomic_requests
 async def notify(
-    request: ASGIRequest, namespace: str, owner: str, project: str, run_uuid: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> HttpResponse:
+    validate_methods(request, methods)
     body = ujson.loads(request.body)
     run_name = body.get("name")
     condition = body.get("condition")
@@ -76,7 +85,7 @@ notifications_routes = [
     path(
         URLS_RUNS_NOTIFY,
         notify,
-        # name="notify",
-        # methods=["POST"],
+        name="notify",
+        kwargs=dict(methods=["POST"]),
     ),
 ]

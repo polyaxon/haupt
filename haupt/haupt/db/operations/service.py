@@ -8,10 +8,10 @@
 from collections import namedtuple
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-from common.service_interface import Service
-from db.abstracts.getter import get_run_model
-from db.abstracts.runs import BaseRun
-from db.managers.statuses import new_run_status
+from haupt.common.service_interface import Service
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.abstracts.runs import BaseRun
+from haupt.db.managers.statuses import new_run_status
 from polyaxon.constants.metadata import (
     META_COPY_ARTIFACTS,
     META_DESTINATION_IMAGE,

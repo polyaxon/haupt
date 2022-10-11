@@ -9,9 +9,9 @@ from unittest import TestCase
 
 from django.conf import settings
 
-from common.options.exceptions import OptionException
-from common.options.feature import Feature
-from common.options.option import NAMESPACE_DB_OPTION_MARKER, OptionStores
+from haupt.common.options.exceptions import OptionException
+from haupt.common.options.feature import Feature
+from haupt.common.options.option import NAMESPACE_DB_OPTION_MARKER, OptionStores
 
 
 class DummyFeature(Feature):

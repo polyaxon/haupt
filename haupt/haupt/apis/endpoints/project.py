@@ -9,15 +9,15 @@ from rest_framework.generics import get_object_or_404
 
 from django.http import HttpRequest
 
-from common.apis.regex import (
+from haupt.common.apis.regex import (
     NAME_KEY,
     OWNER_NAME_KEY,
     PROJECT_NAME_KEY,
     PROJECT_OWNER_NAME_KEY,
     UUID_KEY,
 )
-from common.endpoints.base import BaseEndpoint
-from db.queries import projects as projects_queries
+from haupt.common.endpoints.base import BaseEndpoint
+from haupt.db.queries import projects as projects_queries
 
 
 class ProjectEndpoint(BaseEndpoint):

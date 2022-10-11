@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.options.option import Option, OptionScope, OptionStores
+from haupt.common.options.option import Option, OptionScope, OptionStores
 from polyaxon import types
 
 POLYAXON_ENVIRONMENT = "POLYAXON_ENVIRONMENT"

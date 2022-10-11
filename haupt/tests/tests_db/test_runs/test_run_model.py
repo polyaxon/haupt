@@ -9,12 +9,12 @@ from rest_framework.exceptions import ValidationError
 
 from django.test import TestCase
 
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
-from db.managers.deleted import ArchivedManager, LiveManager
-from db.managers.statuses import new_run_status
-from db.models.runs import Run
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.managers.deleted import ArchivedManager, LiveManager
+from haupt.db.managers.statuses import new_run_status
+from haupt.db.models.runs import Run
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 
 

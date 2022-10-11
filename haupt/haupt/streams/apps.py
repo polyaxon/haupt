@@ -9,11 +9,11 @@
 
 from django.apps import AppConfig
 
-from streams.connections.fs import AppFS
+from haupt.streams.connections.fs import AppFS
 
 
 class StreamsConfig(AppConfig):
-    name = "streams"
+    name = "haupt.streams"
     verbose_name = "Streams"
 
     # async def ready(self): TODO

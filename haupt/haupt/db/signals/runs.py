@@ -10,9 +10,9 @@ from rest_framework.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from common import auditor
-from common.events.registry.run import RUN_CREATED
-from db.abstracts.getter import get_run_model
+from haupt.common import auditor
+from haupt.common.events.registry.run import RUN_CREATED
+from haupt.db.abstracts.getter import get_run_model
 from polyaxon.utils.signal_decorators import ignore_raw, ignore_updates
 
 

@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 from polyaxon.api import STATIC_V1
 from polyaxon.env_vars.keys import EV_KEYS_STATIC_URL
 

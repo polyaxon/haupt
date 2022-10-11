@@ -7,9 +7,9 @@
 
 from django.conf import settings
 
-from common.options import option_namespaces, option_subjects
-from common.options.cache import LONG_CACHE_TTL
-from common.options.option import (
+from haupt.common.options import option_namespaces, option_subjects
+from haupt.common.options.cache import LONG_CACHE_TTL
+from haupt.common.options.option import (
     NAMESPACE_DB_OPTION_MARKER,
     Option,
     OptionScope,

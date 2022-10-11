@@ -11,8 +11,8 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from db.managers.runs import base_approve_run
-from db.managers.statuses import new_run_status, new_run_stopping_status
+from haupt.db.managers.runs import base_approve_run
+from haupt.db.managers.statuses import new_run_status, new_run_stopping_status
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.lifecycle import V1StatusCondition
 

@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common import conf
-from common.celeryp.tasks import CoreSchedulerCeleryTasks
-from common.options.registry.core import SCHEDULER_ENABLED
-from db.scheduler import manager
+from haupt.common import conf
+from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.common.options.registry.core import SCHEDULER_ENABLED
+from haupt.db.scheduler import manager
 from polyaxon.constants.metadata import META_EAGER_MODE
 from polyaxon.lifecycle import V1Statuses
 

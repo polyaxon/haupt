@@ -8,16 +8,16 @@
 # isort: skip_file
 
 # Default configs
-from common.celeryp.routes import get_routes
-from common.settings.api import set_api
-from common.settings.assets import set_assets
-from common.settings.celery import set_celery
-from common.settings.cors import set_cors
-from common.settings.logging import set_logging
-from common.settings.admin import set_admin
-from common.settings.middlewares import set_middlewares
-from common.settings.secrets import set_secrets
-from polyconf.config_manager import ROOT_DIR, config
+from haupt.common.celeryp.routes import get_routes
+from haupt.common.settings.api import set_api
+from haupt.common.settings.assets import set_assets
+from haupt.common.settings.celery import set_celery
+from haupt.common.settings.cors import set_cors
+from haupt.common.settings.logging import set_logging
+from haupt.common.settings.admin import set_admin
+from haupt.common.settings.middlewares import set_middlewares
+from haupt.common.settings.secrets import set_secrets
+from haupt.polyconf.config_manager import ROOT_DIR, config
 
 context = locals()
 set_logging(
@@ -42,7 +42,7 @@ set_assets(context=context, root_dir=ROOT_DIR, config=config)
 if config.scheduler_enabled:
     set_celery(context=context, config=config, routes=get_routes())
 
-from common.settings.defaults import *
+from haupt.common.settings.defaults import *
 
 # Service configs
 from .rest import *

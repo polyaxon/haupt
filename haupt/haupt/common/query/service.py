@@ -7,7 +7,7 @@
 
 from typing import Any, Optional, Tuple
 
-from common.service_interface import Service
+from haupt.common.service_interface import Service
 from polyaxon.exceptions import PQLException
 from polyaxon.pql.manager import PQLManager
 from polyaxon.pql.parser import parse_field

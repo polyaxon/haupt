@@ -11,14 +11,14 @@ from django.apps import AppConfig
 
 
 class APIsConfig(AppConfig):
-    name = "apis"
+    name = "haupt.apis"
     verbose_name = "APIs"
 
     def ready(self):
-        from common import conf
-        from common import auditor
-        from db import executor, operations
-        from common import query
+        from haupt.common import conf
+        from haupt.common import auditor
+        from haupt.db import executor, operations
+        from haupt.common import query
 
         conf.validate_and_setup()
         query.validate_and_setup()
@@ -26,8 +26,8 @@ class APIsConfig(AppConfig):
         executor.validate_and_setup()
         auditor.validate_and_setup()
 
-        import db.signals.runs  # noqa
+        import haupt.db.signals.runs  # noqa
 
-        import common.options.conf_subscriptions  # noqa
-        from common.events import auditor_subscriptions  # noqa
-        from db.administration import register  # noqa
+        import haupt.common.options.conf_subscriptions  # noqa
+        from haupt.common.events import auditor_subscriptions  # noqa
+        from haupt.db.administration import register  # noqa

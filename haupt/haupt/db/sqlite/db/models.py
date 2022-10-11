@@ -5,4 +5,4 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.models import *  # noqa
+from haupt.db.models import *  # noqa

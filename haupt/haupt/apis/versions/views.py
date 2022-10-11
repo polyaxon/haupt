@@ -8,15 +8,15 @@
 from rest_framework import status
 from rest_framework.response import Response
 
-from common import conf
-from common.apis.regex import INSTALLATION_KEY, NAME_KEY, VERSION_KEY
-from common.endpoints.base import BaseEndpoint, RetrieveEndpoint
-from common.options.registry.installation import (
+from haupt.common import conf
+from haupt.common.apis.regex import INSTALLATION_KEY, NAME_KEY, VERSION_KEY
+from haupt.common.endpoints.base import BaseEndpoint, RetrieveEndpoint
+from haupt.common.options.registry.installation import (
     ORGANIZATION_KEY,
     PLATFORM_DIST,
     PLATFORM_VERSION,
 )
-from db.managers.dummy_key import get_dummy_key
+from haupt.db.managers.dummy_key import get_dummy_key
 from polyaxon.cli.session import get_compatibility
 
 

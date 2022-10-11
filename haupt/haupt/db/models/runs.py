@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.abstracts.runs import BaseRun
+from haupt.db.abstracts.runs import BaseRun
 
 
 class Run(BaseRun):

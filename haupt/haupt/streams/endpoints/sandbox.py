@@ -6,20 +6,26 @@
 # LICENSE-AGPL for a copy of the license.
 import os
 
+from typing import Dict
+
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.http import HttpResponse
 from django.urls import path
 
+from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.endpoints.base import ConfigResponse, UJSONResponse
 from polyaxon import settings
 from polyaxon.api import API_V1_LOCATION
 from polyaxon.contexts import paths as ctx_paths
 from polyaxon.lifecycle import V1ProjectFeature
-from streams.endpoints.base import ConfigResponse, UJSONResponse
 
 
-async def get_run_details(request: ASGIRequest, run_uuid: str) -> HttpResponse:
+async def get_run_details(
+    request: ASGIRequest, run_uuid: str, methods: Dict = None
+) -> HttpResponse:
+    validate_methods(request, methods)
     subpath = os.path.join(run_uuid, ctx_paths.CONTEXT_LOCAL_RUN)
     data_path = settings.SANDBOX_CONFIG.get_store_path(
         subpath=subpath, entity=V1ProjectFeature.RUNTIME
@@ -32,7 +38,10 @@ async def get_run_details(request: ASGIRequest, run_uuid: str) -> HttpResponse:
     return ConfigResponse(config_str)
 
 
-async def get_run_artifact_lineage(request: ASGIRequest, run_uuid: str) -> HttpResponse:
+async def get_run_artifact_lineage(
+    request: ASGIRequest, run_uuid: str, methods: Dict = None
+) -> HttpResponse:
+    validate_methods(request, methods)
     subpath = os.path.join(run_uuid, ctx_paths.CONTEXT_LOCAL_LINEAGES)
     data_path = settings.SANDBOX_CONFIG.get_store_path(
         subpath=subpath, entity=V1ProjectFeature.RUNTIME
@@ -47,7 +56,8 @@ async def get_run_artifact_lineage(request: ASGIRequest, run_uuid: str) -> HttpR
     return ConfigResponse(config_str)
 
 
-async def list_runs(request: ASGIRequest) -> HttpResponse:
+async def list_runs(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
+    validate_methods(request, methods)
     # project = request.path_params["project"]
     data_path = settings.SANDBOX_CONFIG.get_store_path(
         subpath="", entity=V1ProjectFeature.RUNTIME
@@ -68,7 +78,10 @@ async def list_runs(request: ASGIRequest) -> HttpResponse:
     return ConfigResponse(config_str)
 
 
-async def get_project_details(request: ASGIRequest, project: str) -> HttpResponse:
+async def get_project_details(
+    request: ASGIRequest, project: str, methods: Dict = None
+) -> HttpResponse:
+    validate_methods(request, methods)
     data_path = settings.SANDBOX_CONFIG.get_store_path(
         subpath=project, entity="project"
     )
@@ -85,7 +98,8 @@ async def get_project_details(request: ASGIRequest, project: str) -> HttpRespons
     return UJSONResponse({"name": project})
 
 
-async def list_projects(request: ASGIRequest) -> HttpResponse:
+async def list_projects(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
+    validate_methods(request, methods)
     data_path = settings.SANDBOX_CONFIG.get_store_path(subpath="", entity="project")
     if not os.path.exists(data_path) or not os.path.isdir(data_path):
         return HttpResponse(status=status.HTTP_404_NOT_FOUND)
@@ -121,37 +135,37 @@ sandbox_routes = [
     path(
         URLS_RUNS_DETAILS,
         get_run_details,
-        # name="get_run_details",
-        # methods=["GET"],
+        name="run_details",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_STATUSES,
         get_run_details,
-        # name="get_run_details",
-        # methods=["GET"],
+        name="run_details",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_LINEAGE_ARTIFACTS,
         get_run_artifact_lineage,
-        # name="get_run_artifact_lineage",
-        # methods=["GET"],
+        name="run_artifact_lineage",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_LIST,
         list_runs,
-        # name="list_runs",
-        # methods=["GET"],
+        name="list_runs",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_PROJECTS_LIST,
         list_projects,
-        # name="get_project_details",
-        # methods=["GET"],
+        name="project_details",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_PROJECTS_DETAILS,
         get_project_details,
-        # name="get_project_details",
-        # methods=["GET"],
+        name="project_details",
+        kwargs=dict(methods=["GET"]),
     ),
 ]

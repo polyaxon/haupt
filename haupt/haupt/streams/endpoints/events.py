@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from typing import Set, Union
+from typing import Dict, Set, Union
 
 from rest_framework import status
 
@@ -14,16 +14,17 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
 
-from polyaxon.utils.bool_utils import to_bool
-from streams.connections.fs import AppFS
-from streams.controllers.events import (
+from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.connections.fs import AppFS
+from haupt.streams.controllers.events import (
     get_archived_operation_events,
     get_archived_operation_events_and_assets,
     get_archived_operation_resources,
     get_archived_operations_events,
 )
-from streams.endpoints.base import UJSONResponse
-from streams.endpoints.utils import redirect_file
+from haupt.streams.endpoints.base import UJSONResponse
+from haupt.streams.endpoints.utils import redirect_file
+from polyaxon.utils.bool_utils import to_bool
 from traceml.artifacts import V1ArtifactKind
 from traceml.events import V1Events
 from traceml.processors.importance_processors import calculate_importance_correlation
@@ -31,8 +32,14 @@ from traceml.processors.importance_processors import calculate_importance_correl
 
 @transaction.non_atomic_requests
 async def get_multi_run_events(
-    request: ASGIRequest, namespace: str, owner: str, project: str, event_kind: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    event_kind: str,
+    methods: Dict = None,
 ) -> Union[UJSONResponse, HttpResponse]:
+    validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
     if event_kind not in V1ArtifactKind.allowable_values:
         return HttpResponse(
@@ -84,7 +91,9 @@ async def get_run_events(
     project: str,
     run_uuid: str,
     event_kind: str,
+    methods: Dict = None,
 ) -> Union[UJSONResponse, HttpResponse]:
+    validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
     pkg_assets = to_bool(request.GET.get("pkg_assets"), handle_none=True)
     if event_kind not in V1ArtifactKind.allowable_values:
@@ -118,8 +127,14 @@ async def get_run_events(
 
 @transaction.non_atomic_requests
 async def get_run_resources(
-    request: ASGIRequest, namespace: str, owner: str, project: str, run_uuid: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> UJSONResponse:
+    validate_methods(request, methods)
     event_names = request.GET.get("names")
     orient = request.GET.get("orient")
     force = to_bool(request.GET.get("force"), handle_none=True)
@@ -140,8 +155,14 @@ async def get_run_resources(
 
 @transaction.non_atomic_requests
 async def get_run_importance_correlation(
-    request: ASGIRequest, namespace: str, owner: str, project: str, run_uuid: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> UJSONResponse:
+    validate_methods(request, methods)
     body = await request.json()
     data = body.get("data")
     data = data or {}
@@ -171,25 +192,25 @@ events_routes = [
     path(
         URLS_RUNS_MULTI_EVENTS,
         get_multi_run_events,
-        # name="multi_run_events",
-        # methods=["GET"],
+        name="multi_run_events",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_RESOURCES,
         get_run_resources,
-        # name="resources",
-        # methods=["GET"],
+        name="resources",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_IMPORTANCE_CORRELATION,
         get_run_importance_correlation,
-        # name="resources",
-        # methods=["POST"],
+        name="importance",
+        kwargs=dict(methods=["POST"]),
     ),
     path(
         URLS_RUNS_EVENTS,
         get_run_events,
-        # name="events",
-        # methods=["GET"],
+        name="events",
+        kwargs=dict(methods=["GET"]),
     ),
 ]

@@ -7,10 +7,10 @@
 
 from django.test import TestCase
 
-from db.factories.projects import ProjectFactory
-from db.factories.users import UserFactory
-from db.managers.deleted import ArchivedManager, LiveManager
-from db.models.projects import Project
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.managers.deleted import ArchivedManager, LiveManager
+from haupt.db.models.projects import Project
 
 
 class TestProjectModel(TestCase):

@@ -11,10 +11,10 @@ from unittest import TestCase
 
 from django.conf import settings
 
-from common.conf.exceptions import ConfException
-from common.conf.service import ConfService
-from common.options.option import Option, OptionScope, OptionStores
-from common.options.option_manager import OptionManager
+from haupt.common.conf.exceptions import ConfException
+from haupt.common.conf.service import ConfService
+from haupt.common.options.option import Option, OptionScope, OptionStores
+from haupt.common.options.option_manager import OptionManager
 from polyaxon import types
 
 

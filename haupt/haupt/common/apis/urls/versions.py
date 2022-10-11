@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from common.apis.regex import INSTALLATION_PATTERN, NAME_PATTERN, VERSION_PATTERN
+from haupt.common.apis.regex import INSTALLATION_PATTERN, NAME_PATTERN, VERSION_PATTERN
 
 URLS_VERSIONS_INSTALLED = r"^installation/?$"
 URLS_VERSIONS_LOG_HANDLER = r"^log_handler/?$"

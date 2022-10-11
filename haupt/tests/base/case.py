@@ -9,9 +9,9 @@ import tempfile
 
 from django.conf import settings
 
-from common.test_cases.base import PolyaxonBaseTest
-from common.test_clients.base import BaseClient
-from db.factories.users import UserFactory
+from haupt.common.test_cases.base import PolyaxonBaseTest
+from haupt.common.test_clients.base import BaseClient
+from haupt.db.factories.users import UserFactory
 from polyaxon.utils.test_utils import patch_settings
 
 

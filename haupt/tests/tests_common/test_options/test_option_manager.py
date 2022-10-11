@@ -7,8 +7,8 @@
 
 from unittest import TestCase
 
-from common.options.option_manager import OptionManager
-from common.options.registry.core import CeleryBrokerUrl, Logging
+from haupt.common.options.option_manager import OptionManager
+from haupt.common.options.registry.core import CeleryBrokerUrl, Logging
 
 
 class TestOptionManager(TestCase):

@@ -6,8 +6,8 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Any, List
 
-from common import auditor
-from common.events.registry.run import (
+from haupt.common import auditor
+from haupt.common.events.registry.run import (
     RUN_DONE,
     RUN_FAILED,
     RUN_NEW_STATUS,
@@ -16,8 +16,8 @@ from common.events.registry.run import (
     RUN_STOPPED,
     RUN_SUCCEEDED,
 )
-from db.abstracts.getter import get_run_model
-from db.abstracts.runs import BaseRun
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.abstracts.runs import BaseRun
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
 from polyaxon.utils.list_utils import to_list
 

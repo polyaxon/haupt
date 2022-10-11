@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.events.event import Attribute
+from haupt.common.events.event import Attribute
 
 OWNER_ATTRIBUTES = (Attribute("id"), Attribute("name"))
 

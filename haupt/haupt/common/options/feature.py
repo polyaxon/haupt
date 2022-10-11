@@ -9,14 +9,14 @@ from typing import Optional, Tuple
 
 from django.conf import settings
 
-from common.options.exceptions import OptionException
-from common.options.option import (
+from haupt.common.options.exceptions import OptionException
+from haupt.common.options.option import (
     NAMESPACE_DB_OPTION_MARKER,
     Option,
     OptionScope,
     OptionStores,
 )
-from common.options.option_namespaces import FEATURES
+from haupt.common.options.option_namespaces import FEATURES
 from polyaxon import types
 
 

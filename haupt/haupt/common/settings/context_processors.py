@@ -5,10 +5,9 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-import pkg
-
-from common import conf
-from common.options.registry.core import (
+from haupt import pkg
+from haupt.common import conf
+from haupt.common.options.registry.core import (
     UI_ASSETS_VERSION,
     UI_BASE_URL,
     UI_ENABLED,

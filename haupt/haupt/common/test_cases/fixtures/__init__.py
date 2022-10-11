@@ -4,12 +4,12 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from common.test_cases.fixtures.bo import (
+from haupt.common.test_cases.fixtures.bo import (
     get_fxt_bo_with_inputs_outputs,
     get_fxt_bo_with_run_patch,
 )
-from common.test_cases.fixtures.grid import get_fxt_grid_with_inputs_outputs
-from common.test_cases.fixtures.jobs import (
+from haupt.common.test_cases.fixtures.grid import get_fxt_grid_with_inputs_outputs
+from haupt.common.test_cases.fixtures.jobs import (
     get_fxt_job,
     get_fxt_job_with_inputs,
     get_fxt_job_with_inputs_and_conditions,
@@ -17,11 +17,11 @@ from common.test_cases.fixtures.jobs import (
     get_fxt_job_with_inputs_outputs,
     get_fxt_tf_job,
 )
-from common.test_cases.fixtures.mapping import (
+from haupt.common.test_cases.fixtures.mapping import (
     get_fxt_mapping_with_inputs_outputs,
     get_fxt_mapping_with_run_patch,
 )
-from common.test_cases.fixtures.pipelines import (
+from haupt.common.test_cases.fixtures.pipelines import (
     get_fxt_build_run_pipeline,
     get_fxt_build_run_pipeline_with_inputs,
     get_fxt_map_reduce,
@@ -30,8 +30,10 @@ from common.test_cases.fixtures.pipelines import (
     get_fxt_templated_pipeline_without_params,
     get_fxt_train_tensorboard_events_pipeline,
 )
-from common.test_cases.fixtures.schedule import get_fxt_schedule_with_inputs_outputs
-from common.test_cases.fixtures.services import (
+from haupt.common.test_cases.fixtures.schedule import (
+    get_fxt_schedule_with_inputs_outputs,
+)
+from haupt.common.test_cases.fixtures.services import (
     get_fxt_job_with_hub_ref,
     get_fxt_service,
     get_fxt_service_with_inputs,

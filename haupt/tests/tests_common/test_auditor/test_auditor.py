@@ -8,8 +8,8 @@
 from mock import MagicMock
 from unittest import TestCase
 
-from common.auditor.service import AuditorService
-from common.events.registry.run import RUN_SUCCEEDED, RunSucceededEvent
+from haupt.common.auditor.service import AuditorService
+from haupt.common.events.registry.run import RUN_SUCCEEDED, RunSucceededEvent
 
 
 class States:

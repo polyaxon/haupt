@@ -5,24 +5,24 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from apis.endpoints.run import RunArtifactEndpoint, RunResourceListEndpoint
-from common.apis.filters import OrderingFilter, QueryFilter
-from common.apis.paginator import LargeLimitOffsetPagination
-from common.apis.regex import RUN_UUID_KEY
-from common.endpoints.base import (
+from haupt.apis.endpoints.run import RunArtifactEndpoint, RunResourceListEndpoint
+from haupt.common.apis.filters import OrderingFilter, QueryFilter
+from haupt.common.apis.paginator import LargeLimitOffsetPagination
+from haupt.common.apis.regex import RUN_UUID_KEY
+from haupt.common.endpoints.base import (
     CreateEndpoint,
     DestroyEndpoint,
     ListEndpoint,
     RetrieveEndpoint,
 )
-from common.events.registry.run import RUN_NEW_ARTIFACTS
-from db.api.artifacts import methods
-from db.api.artifacts.serializers import (
+from haupt.common.events.registry.run import RUN_NEW_ARTIFACTS
+from haupt.db.api.artifacts import methods
+from haupt.db.api.artifacts.serializers import (
     RunArtifactNameSerializer,
     RunArtifactSerializer,
 )
-from db.queries import artifacts as artifacts_queries
-from db.query_managers.artifact import ArtifactQueryManager
+from haupt.db.queries import artifacts as artifacts_queries
+from haupt.db.query_managers.artifact import ArtifactQueryManager
 
 
 class RunArtifactListView(RunResourceListEndpoint, ListEndpoint, CreateEndpoint):

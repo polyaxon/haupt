@@ -7,9 +7,9 @@
 
 from unittest import TestCase
 
-from common.conf.exceptions import ConfException
-from common.conf.handlers.env_handler import EnvConfHandler
-from common.options.option import Option, OptionScope, OptionStores
+from haupt.common.conf.exceptions import ConfException
+from haupt.common.conf.handlers.env_handler import EnvConfHandler
+from haupt.common.options.option import Option, OptionScope, OptionStores
 from polyaxon import types
 
 

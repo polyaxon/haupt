@@ -12,7 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models import F
 from django.db.models.fields.json import KeyTransform
 
-from common import query
+from haupt.common import query
 from polyaxon.exceptions import PQLException
 from polyaxon.utils.string_utils import strip_spaces
 

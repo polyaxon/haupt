@@ -8,15 +8,15 @@
 import pytest
 import random
 
-from common.test_cases.base import PolyaxonBaseTestSerializer
-from db.api.artifacts.serializers import (
+from haupt.common.test_cases.base import PolyaxonBaseTestSerializer
+from haupt.db.api.artifacts.serializers import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
 )
-from db.factories.artifacts import ArtifactFactory
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.models.artifacts import Artifact, ArtifactLineage
+from haupt.db.factories.artifacts import ArtifactFactory
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.models.artifacts import Artifact, ArtifactLineage
 
 
 @pytest.mark.serializers_mark

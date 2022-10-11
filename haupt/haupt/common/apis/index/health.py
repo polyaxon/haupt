@@ -9,11 +9,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import pkg
-
-from common import conf
-from common.options.registry.installation import ORGANIZATION_KEY
-from db.managers.dummy_key import get_dummy_key
+from haupt import pkg
+from haupt.common import conf
+from haupt.common.options.registry.installation import ORGANIZATION_KEY
+from haupt.db.managers.dummy_key import get_dummy_key
 from polyaxon.cli.session import get_compatibility
 from polyaxon.schemas.cli.cli_config import CliConfig
 from polyaxon.services.values import PolyaxonServices

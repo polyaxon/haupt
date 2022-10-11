@@ -7,7 +7,7 @@
 
 from unittest import TestCase
 
-from common.options.registry import core, scheduler
+from haupt.common.options.registry import core, scheduler
 
 
 class TestOptions(TestCase):

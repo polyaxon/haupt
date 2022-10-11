@@ -5,8 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common import auditor
-from common.events.registry import run
+from haupt.common import auditor
+from haupt.common.events.registry import run
 
 auditor.subscribe(run.RunCreatedEvent)
 auditor.subscribe(run.RunSyncedActorEvent)

@@ -11,11 +11,15 @@ from django.contrib import admin
 from django.urls import include, re_path
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from common import conf
-from common.apis.index.errors import Handler50xView, Handler403View, Handler404View
-from common.apis.index.health import HealthView
-from common.apis.index.views import IndexView
-from common.options.registry.core import UI_ADMIN_ENABLED
+from haupt.common import conf
+from haupt.common.apis.index.errors import (
+    Handler50xView,
+    Handler403View,
+    Handler404View,
+)
+from haupt.common.apis.index.health import HealthView
+from haupt.common.apis.index.views import IndexView
+from haupt.common.options.registry.core import UI_ADMIN_ENABLED
 from polyaxon.api import ADMIN_V1, UI_V1
 
 

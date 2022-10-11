@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import List
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 from polyaxon.env_vars.keys import (
     EV_KEYS_PLATFORM_HOST,
     EV_KEYS_UI_ADMIN_ENABLED,
@@ -18,7 +18,7 @@ from polyaxon.env_vars.keys import (
 
 
 def set_api(context, config: ConfigManager, processors: List[str] = None):
-    context["ROOT_URLCONF"] = "polyconf.urls"
+    context["ROOT_URLCONF"] = "haupt.polyconf.urls"
     platform_host = config.get_string(EV_KEYS_PLATFORM_HOST, is_optional=True)
     context["PLATFORM_HOST"] = platform_host
 
@@ -51,11 +51,11 @@ def set_api(context, config: ConfigManager, processors: List[str] = None):
         "django.template.context_processors.static",
         "django.template.context_processors.tz",
         "django.contrib.messages.context_processors.messages",
-        "common.settings.context_processors.version",
-        "common.settings.context_processors.ui_assets_version",
-        "common.settings.context_processors.ui_base_url",
-        "common.settings.context_processors.ui_offline",
-        "common.settings.context_processors.ui_enabled",
+        "haupt.common.settings.context_processors.version",
+        "haupt.common.settings.context_processors.ui_assets_version",
+        "haupt.common.settings.context_processors.ui_base_url",
+        "haupt.common.settings.context_processors.ui_offline",
+        "haupt.common.settings.context_processors.ui_enabled",
     ] + processors
 
     context["FRONTEND_DEBUG"] = config.get_boolean("POLYAXON_FRONTEND_DEBUG")

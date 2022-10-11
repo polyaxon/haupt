@@ -9,8 +9,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from django.urls import re_path
 
-from apis.project_resources import views
-from common.apis.urls import projects
+from haupt.apis.project_resources import views
+from haupt.common.apis.urls import projects
 
 projects_urlpatterns = [
     re_path(

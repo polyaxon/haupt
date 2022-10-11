@@ -7,7 +7,7 @@
 
 import factory
 
-from db.abstracts.getter import get_artifact_model
+from haupt.db.abstracts.getter import get_artifact_model
 from polyaxon_sdk import V1ArtifactKind
 
 

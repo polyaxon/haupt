@@ -8,7 +8,7 @@ from typing import Dict, List
 
 from django.conf import settings
 
-from db.abstracts.getter import get_lineage_model
+from haupt.db.abstracts.getter import get_lineage_model
 
 lineage_model = get_lineage_model()
 

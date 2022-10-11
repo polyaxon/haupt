@@ -5,6 +5,6 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.memory_manager import MemoryCacheManager
+from haupt.common.memory_manager import MemoryCacheManager
 
 conf_cache_manager = MemoryCacheManager()

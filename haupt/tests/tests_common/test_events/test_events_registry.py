@@ -7,7 +7,7 @@
 
 from unittest import TestCase
 
-from common.events.registry import run
+from haupt.common.events.registry import run
 
 
 class TestEventsRegistry(TestCase):

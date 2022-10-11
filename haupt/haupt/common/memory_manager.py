@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 from django.utils import timezone
 
-from common.options.option_owners import OptionOwners
+from haupt.common.options.option_owners import OptionOwners
 from polyaxon.types import AwareDT
 
 

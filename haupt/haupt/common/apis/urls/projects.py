@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
+from haupt.common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 
 # Projects
 URLS_PROJECTS_CREATE = r"^{}/projects/create/?$".format(OWNER_NAME_PATTERN)

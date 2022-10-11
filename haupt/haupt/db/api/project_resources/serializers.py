@@ -10,14 +10,14 @@ from rest_framework.exceptions import ValidationError
 
 from django.db import IntegrityError
 
-from db import operations
-from db.abstracts.getter import get_run_model
-from db.api.base.cloning import CloningMixin
-from db.api.base.is_managed import IsManagedMixin
-from db.api.base.pipeline import PipelineMixin
-from db.api.base.settings import SettingsMixin
-from db.api.base.tags import TagsMixin
-from db.managers.runs import create_run
+from haupt.db import operations
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.api.base.cloning import CloningMixin
+from haupt.db.api.base.is_managed import IsManagedMixin
+from haupt.db.api.base.pipeline import PipelineMixin
+from haupt.db.api.base.settings import SettingsMixin
+from haupt.db.api.base.tags import TagsMixin
+from haupt.db.managers.runs import create_run
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.schemas import V1RunPending

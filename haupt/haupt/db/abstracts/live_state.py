@@ -9,7 +9,7 @@ import random
 
 from django.db import models
 
-from db.managers.deleted import ArchivedManager, LiveManager, RestorableManager
+from haupt.db.managers.deleted import ArchivedManager, LiveManager, RestorableManager
 from polyaxon import live_state
 
 

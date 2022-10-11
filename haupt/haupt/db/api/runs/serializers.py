@@ -7,10 +7,10 @@
 
 from rest_framework import fields, serializers
 
-from db.abstracts.getter import get_run_model
-from db.api.base.is_managed import IsManagedMixin
-from db.api.base.project import ProjectMixin
-from db.api.project_resources.serializers import RunSerializer
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.api.base.is_managed import IsManagedMixin
+from haupt.db.api.base.project import ProjectMixin
+from haupt.db.api.project_resources.serializers import RunSerializer
 
 
 class RunStatusSerializer(serializers.ModelSerializer):

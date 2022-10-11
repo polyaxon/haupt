@@ -7,8 +7,7 @@
 
 # Setting values to None means using defaults
 
-import pkg
-
+from haupt import pkg
 from polyaxon import dist
 
 ENCRYPTION_BACKEND = None
@@ -16,12 +15,12 @@ CONF_CHECK_OWNERSHIP = False
 AUDITOR_BACKEND = None
 AUDITOR_EVENTS_TASK = None
 WORKERS_BACKEND = None
-EXECUTOR_BACKEND = "db.executor.service.ExecutorService"
-WORKERS_SERVICE = "common.workers"
-EXECUTOR_SERVICE = "db.executor"
+EXECUTOR_BACKEND = "haupt.db.executor.service.ExecutorService"
+WORKERS_SERVICE = "haupt.common.workers"
+EXECUTOR_SERVICE = "haupt.db.executor"
 OPERATIONS_BACKEND = None
 PLATFORM_VERSION = pkg.VERSION
 PLATFORM_DIST = dist.CE
-CONF_BACKEND = "common.conf.service.ConfService"
+CONF_BACKEND = "haupt.common.conf.service.ConfService"
 STORE_OPTION = "env"
 K8S_IN_CLUSTER = True

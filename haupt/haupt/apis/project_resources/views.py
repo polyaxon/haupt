@@ -6,31 +6,31 @@
 # LICENSE-AGPL for a copy of the license.
 from django.conf import settings
 
-from apis.endpoints.project import ProjectResourceListEndpoint
-from common.apis.filters import OrderingFilter, QueryFilter
-from common.apis.paginator import LargeLimitOffsetPagination
-from common.endpoints.base import (
+from haupt.apis.endpoints.project import ProjectResourceListEndpoint
+from haupt.common.apis.filters import OrderingFilter, QueryFilter
+from haupt.common.apis.paginator import LargeLimitOffsetPagination
+from haupt.common.endpoints.base import (
     CreateEndpoint,
     DestroyEndpoint,
     ListEndpoint,
     PostEndpoint,
 )
-from db.api.artifacts.serializers import (
+from haupt.db.api.artifacts.serializers import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
 )
-from db.api.project_resources import methods
-from db.api.project_resources.serializers import (
+from haupt.db.api.project_resources import methods
+from haupt.db.api.project_resources.serializers import (
     OfflineRunSerializer,
     OperationCreateSerializer,
     RunSerializer,
 )
-from db.queries import artifacts as artifacts_queries
-from db.queries import runs as runs_queries
-from db.queries.artifacts import clean_sqlite_distinct_artifacts
-from db.queries.runs import DEFAULT_COLUMNS_DEFER
-from db.query_managers.artifact import ArtifactQueryManager
-from db.query_managers.run import RunQueryManager
+from haupt.db.queries import artifacts as artifacts_queries
+from haupt.db.queries import runs as runs_queries
+from haupt.db.queries.artifacts import clean_sqlite_distinct_artifacts
+from haupt.db.queries.runs import DEFAULT_COLUMNS_DEFER
+from haupt.db.query_managers.artifact import ArtifactQueryManager
+from haupt.db.query_managers.run import RunQueryManager
 
 
 class ProjectRunsTagView(ProjectResourceListEndpoint, PostEndpoint):

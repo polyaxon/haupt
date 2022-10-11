@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 
 
 def set_secrets(context, config: ConfigManager):

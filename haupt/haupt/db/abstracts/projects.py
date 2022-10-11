@@ -10,9 +10,9 @@ import uuid
 from django.core.validators import validate_slug
 from django.db import models
 
-from common.validation.blacklist import validate_blacklist_name
-from db.abstracts.catalogs import BaseLiveStateCatalog
-from db.abstracts.readme import ReadmeModel
+from haupt.common.validation.blacklist import validate_blacklist_name
+from haupt.db.abstracts.catalogs import BaseLiveStateCatalog
+from haupt.db.abstracts.readme import ReadmeModel
 from polyaxon.constants.globals import DEFAULT
 
 

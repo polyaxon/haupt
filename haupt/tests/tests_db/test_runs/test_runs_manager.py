@@ -9,12 +9,12 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from common.events.registry import run as run_events
-from common.test_cases.fixtures import get_fxt_job_with_inputs
-from db import operations
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
+from haupt.common.events.registry import run as run_events
+from haupt.common.test_cases.fixtures import get_fxt_job_with_inputs
+from haupt.db import operations
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
 from polyaxon.constants.metadata import META_COPY_ARTIFACTS, META_UPLOAD_ARTIFACTS
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification
@@ -32,7 +32,7 @@ class TestRunManager(TestCase):
             project_id=self.project.id, op_spec=op_spec, user_id=self.user.id
         )
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_create_run(self, auditor_record):
         run = RunFactory(project=self.project, user=self.user)
         assert auditor_record.call_count == 1
@@ -49,7 +49,7 @@ class TestRunManager(TestCase):
         assert run.cloning_kind is None
         assert run.original is None
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_copy_run(self, auditor_record):
         run = operations.copy_run(run=self.run)
         assert auditor_record.call_count == 1
@@ -158,7 +158,7 @@ class TestRunManager(TestCase):
         assert run.cloning_kind == V1CloningKind.COPY
         assert run.original == self.run
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_resume_run(self, auditor_record):
         run = operations.resume_run(run=self.run)
         assert auditor_record.call_count == 2
@@ -202,7 +202,7 @@ class TestRunManager(TestCase):
         assert run.cloning_kind is None
         assert run.original is None
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_restart_run(self, auditor_record):
         run = operations.restart_run(run=self.run)
         assert auditor_record.call_count == 1

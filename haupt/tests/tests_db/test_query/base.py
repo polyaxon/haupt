@@ -7,9 +7,9 @@
 
 from django.test import TestCase
 
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
 
 
 class BaseTestQuery(TestCase):

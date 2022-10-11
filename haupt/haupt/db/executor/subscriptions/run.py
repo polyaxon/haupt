@@ -5,8 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.events.registry import run
-from db import executor
+from haupt.common.events.registry import run
+from haupt.db import executor
 
 executor.subscribe(run.RunCreatedEvent)
 executor.subscribe(run.RunResumedActorEvent)

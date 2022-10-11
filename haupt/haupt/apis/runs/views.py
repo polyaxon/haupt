@@ -9,16 +9,16 @@ from rest_framework.response import Response
 
 from django.http import Http404
 
-from apis.endpoints.run import RunEndpoint
-from common import conf
-from common.apis.regex import RUN_UUID_KEY
-from common.endpoints.base import (
+from haupt.apis.endpoints.run import RunEndpoint
+from haupt.common import conf
+from haupt.common.apis.regex import RUN_UUID_KEY
+from haupt.common.endpoints.base import (
     CreateEndpoint,
     DestroyEndpoint,
     RetrieveEndpoint,
     UpdateEndpoint,
 )
-from common.events.registry.run import (
+from haupt.common.events.registry.run import (
     RUN_APPROVED_ACTOR,
     RUN_COPIED_ACTOR,
     RUN_DELETED_ACTOR,
@@ -26,16 +26,16 @@ from common.events.registry.run import (
     RUN_RESUMED_ACTOR,
     RUN_STOPPED_ACTOR,
 )
-from common.options.registry.k8s import K8S_NAMESPACE
-from db import operations
-from db.api.runs import methods
-from db.api.runs.serializers import (
+from haupt.common.options.registry.k8s import K8S_NAMESPACE
+from haupt.db import operations
+from haupt.db.api.runs import methods
+from haupt.db.api.runs.serializers import (
     RunDetailSerializer,
     RunSerializer,
     RunStatusSerializer,
 )
-from db.queries import runs as runs_queries
-from db.queries.runs import STATUS_UPDATE_COLUMNS_DEFER
+from haupt.db.queries import runs as runs_queries
+from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_DEFER
 from polyaxon.lifecycle import LifeCycle
 
 

@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.abstracts.artifacts import BaseArtifact, BaseArtifactLineage
+from haupt.db.abstracts.artifacts import BaseArtifact, BaseArtifactLineage
 
 
 class Artifact(BaseArtifact):

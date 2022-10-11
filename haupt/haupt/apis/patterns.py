@@ -7,32 +7,39 @@
 
 from django.urls import include, re_path
 
-from common.apis.index import get_urlpatterns, handler403, handler404, handler500
-from common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
+from haupt.common.apis.index import get_urlpatterns, handler403, handler404, handler500
+from haupt.common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
+from haupt.streams.endpoints.artifacts import artifacts_routes
+from haupt.streams.endpoints.events import events_routes
+from haupt.streams.endpoints.k8s import k8s_routes
+from haupt.streams.endpoints.logs import logs_routes
+from haupt.streams.endpoints.notifications import notifications_routes
 from polyaxon.api import API_V1, STREAMS_V1
-from streams.endpoints.artifacts import artifacts_routes
-from streams.endpoints.events import events_routes
-from streams.endpoints.k8s import k8s_routes
-from streams.endpoints.logs import logs_routes
-from streams.endpoints.notifications import notifications_routes
 
 api_patterns = [
-    re_path(r"", include(("apis.versions.urls", "versions"), namespace="versions")),
+    re_path(
+        r"", include(("haupt.apis.versions.urls", "versions"), namespace="versions")
+    ),
 ]
 
 api_patterns += [
     re_path(
         r"",
         include(
-            ("apis.project_resources.urls", "project_resources"),
+            ("haupt.apis.project_resources.urls", "project_resources"),
             namespace="project_resources",
         ),
     ),
     re_path(
-        r"", include(("apis.run_lineage.urls", "run_lineage"), namespace="run_lineage")
+        r"",
+        include(
+            ("haupt.apis.run_lineage.urls", "run_lineage"), namespace="run_lineage"
+        ),
     ),
-    re_path(r"", include(("apis.runs.urls", "runs"), namespace="runs")),
-    re_path(r"", include(("apis.projects.urls", "projects"), namespace="projects")),
+    re_path(r"", include(("haupt.apis.runs.urls", "runs"), namespace="runs")),
+    re_path(
+        r"", include(("haupt.apis.projects.urls", "projects"), namespace="projects")
+    ),
 ]
 
 

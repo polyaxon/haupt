@@ -5,4 +5,4 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from polyconf.config_settings import *  # noqa
+from haupt.polyconf.config_settings import *  # noqa

@@ -7,7 +7,7 @@
 
 from typing import Tuple
 
-from common.options.option import Option
+from haupt.common.options.option import Option
 from polyaxon.utils.manager_interface import ManagerInterface
 
 

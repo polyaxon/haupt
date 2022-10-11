@@ -11,15 +11,15 @@ from flaky import flaky
 
 from rest_framework import status
 
-from db.api.projects.serializers import (
+from haupt.db.api.projects.serializers import (
     ProjectDetailSerializer,
     ProjectNameSerializer,
     ProjectSerializer,
 )
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.models.projects import Project
-from db.models.runs import Run
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.models.projects import Project
+from haupt.db.models.runs import Run
 from polyaxon.api import API_V1
 from tests.base.case import BaseTest
 from tests.test_apis.test_projects.base import BaseTestProjectApi

@@ -18,7 +18,7 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
-import common.validation.blacklist
+import haupt.common.validation.blacklist
 
 
 class Migration(migrations.Migration):
@@ -260,7 +260,7 @@ class Migration(migrations.Migration):
                                 "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens.",
                                 "invalid",
                             ),
-                            common.validation.blacklist.validate_blacklist_name,
+                            haupt.common.validation.blacklist.validate_blacklist_name,
                         ],
                     ),
                 ),

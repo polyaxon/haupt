@@ -12,8 +12,8 @@ from flaky import flaky
 from django.conf import settings
 from django.db.models import Q
 
-from db.models.runs import Run
-from db.query_managers.run import RunQueryManager
+from haupt.db.models.runs import Run
+from haupt.db.query_managers.run import RunQueryManager
 from polyaxon.exceptions import PQLException
 from polyaxon.pql.builder import (
     ArrayCondition,

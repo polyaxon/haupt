@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.apis.regex import (
+from haupt.common.apis.regex import (
     ARTIFACT_NAME_PATTERN,
     OWNER_NAME_PATTERN,
     PROJECT_NAME_PATTERN,

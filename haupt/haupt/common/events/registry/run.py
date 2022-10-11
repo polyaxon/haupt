@@ -5,9 +5,9 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.events import event_actions, event_subjects
-from common.events.event import ActorEvent, Attribute, Event
-from common.events.registry.attributes import (
+from haupt.common.events import event_actions, event_subjects
+from haupt.common.events.event import ActorEvent, Attribute, Event
+from haupt.common.events.registry.attributes import (
     PROJECT_RESOURCE_ATTRIBUTES,
     PROJECT_RESOURCE_OWNER_ATTRIBUTES,
     PROJECT_RUN_EXECUTOR_ATTRIBUTES,

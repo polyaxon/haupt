@@ -5,8 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common import conf
-from common.options.registry import installation
+from haupt.common import conf
+from haupt.common.options.registry import installation
 
 conf.subscribe(installation.PlatformEnvironmentVersion)
 conf.subscribe(installation.PlatformVersion)

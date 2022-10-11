@@ -8,7 +8,7 @@
 from enum import Enum
 from typing import Optional, Tuple
 
-from common.options.exceptions import OptionException
+from haupt.common.options.exceptions import OptionException
 from polyaxon.parser import parser
 
 NAMESPACE_DB_OPTION_MARKER = ":"

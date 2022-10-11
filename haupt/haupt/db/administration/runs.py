@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.administration.utils import DiffModelAdmin, ReadOnlyAdmin
+from haupt.db.administration.utils import DiffModelAdmin, ReadOnlyAdmin
 
 
 class RunLightAdmin(DiffModelAdmin, ReadOnlyAdmin):

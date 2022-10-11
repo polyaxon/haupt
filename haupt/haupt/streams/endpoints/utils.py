@@ -14,7 +14,7 @@ from django.core.handlers.asgi import ASGIRequest
 from django.http import FileResponse, HttpResponse
 
 from aiofiles.os import stat as aio_stat
-from common.endpoints.files import FilePathResponse
+from haupt.common.endpoints.files import FilePathResponse
 from polyaxon.services.values import PolyaxonServices
 
 

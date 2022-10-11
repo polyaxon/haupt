@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.query_managers.manager import BaseQueryManager
+from haupt.db.query_managers.manager import BaseQueryManager
 from polyaxon.pql.builder import BoolCondition, SearchCondition, ValueCondition
 from polyaxon.pql.parser import parse_search_operation, parse_value_operation
 

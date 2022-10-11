@@ -9,7 +9,7 @@ from unittest import TestCase
 
 from django.utils.functional import lazy
 
-from common.validation.slugs import slugify
+from haupt.common.validation.slugs import slugify
 
 
 class TestSlugify(TestCase):

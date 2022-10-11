@@ -7,11 +7,11 @@
 
 from django.test import TestCase
 
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
-from db.managers.artifacts import set_artifacts
-from db.models.artifacts import Artifact
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.managers.artifacts import set_artifacts
+from haupt.db.models.artifacts import Artifact
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 
 

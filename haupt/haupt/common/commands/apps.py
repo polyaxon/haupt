@@ -9,5 +9,5 @@ from django.apps import AppConfig
 
 
 class CommandsConfig(AppConfig):
-    name = "common.commands"
+    name = "haupt.common.commands"
     verbose_name = "commands"

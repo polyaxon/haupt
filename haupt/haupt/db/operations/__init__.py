@@ -7,12 +7,14 @@
 
 from django.conf import settings
 
-from common.service_interface import LazyServiceWrapper
-from db.operations.service import OperationInitSpec, OperationsService
+from haupt.common.service_interface import LazyServiceWrapper
+from haupt.db.operations.service import OperationInitSpec, OperationsService
 
 
 def get_operation_backend_path():
-    return settings.OPERATIONS_BACKEND or "db.operations.service.OperationsService"
+    return (
+        settings.OPERATIONS_BACKEND or "haupt.db.operations.service.OperationsService"
+    )
 
 
 backend = LazyServiceWrapper(

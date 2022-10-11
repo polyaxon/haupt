@@ -6,24 +6,24 @@
 # LICENSE-AGPL for a copy of the license.
 from rest_framework.generics import CreateAPIView
 
-from apis.endpoints.project import ProjectEndpoint
-from common.apis.filters import OrderingFilter, QueryFilter
-from common.apis.paginator import LargeLimitOffsetPagination
-from common.endpoints.base import (
+from haupt.apis.endpoints.project import ProjectEndpoint
+from haupt.common.apis.filters import OrderingFilter, QueryFilter
+from haupt.common.apis.paginator import LargeLimitOffsetPagination
+from haupt.common.endpoints.base import (
     BaseEndpoint,
     DestroyEndpoint,
     ListEndpoint,
     RetrieveEndpoint,
     UpdateEndpoint,
 )
-from db.api.projects.serializers import (
+from haupt.db.api.projects.serializers import (
     ProjectCreateSerializer,
     ProjectDetailSerializer,
     ProjectNameSerializer,
     ProjectSerializer,
 )
-from db.queries import projects as projects_queries
-from db.query_managers.project import ProjectQueryManager
+from haupt.db.queries import projects as projects_queries
+from haupt.db.query_managers.project import ProjectQueryManager
 
 
 class ProjectCreateView(BaseEndpoint, CreateAPIView):

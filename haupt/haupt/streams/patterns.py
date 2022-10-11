@@ -7,19 +7,21 @@
 
 from django.urls import include, re_path
 
-from common.apis.index import get_urlpatterns, handler403, handler404, handler500
+from haupt.common.apis.index import get_urlpatterns, handler403, handler404, handler500
+from haupt.streams.endpoints.artifacts import artifacts_routes
+from haupt.streams.endpoints.base import base_routes
+from haupt.streams.endpoints.events import events_routes
+from haupt.streams.endpoints.index import home_routes
+from haupt.streams.endpoints.k8s import k8s_routes
+from haupt.streams.endpoints.logs import logs_routes
+from haupt.streams.endpoints.notifications import notifications_routes
+from haupt.streams.endpoints.sandbox import sandbox_routes
 from polyaxon.api import STREAMS_V1
-from streams.endpoints.artifacts import artifacts_routes
-from streams.endpoints.base import base_routes
-from streams.endpoints.events import events_routes
-from streams.endpoints.index import home_routes
-from streams.endpoints.k8s import k8s_routes
-from streams.endpoints.logs import logs_routes
-from streams.endpoints.notifications import notifications_routes
-from streams.endpoints.sandbox import sandbox_routes
 
 api_patterns = [
-    re_path(r"", include(("apis.versions.urls", "versions"), namespace="versions")),
+    re_path(
+        r"", include(("haupt.apis.versions.urls", "versions"), namespace="versions")
+    ),
 ]
 
 streams_routes = (

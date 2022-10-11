@@ -8,8 +8,8 @@
 from collections import namedtuple
 from typing import Any, Optional
 
-from common import user_system
-from common.events import event_subjects
+from haupt.common import user_system
+from haupt.common.events import event_subjects
 from polyaxon.utils.http_utils import absolute_uri
 from polyaxon.utils.urls_utils import get_fqn_run_url, get_owner_url, get_project_url
 

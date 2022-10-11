@@ -7,13 +7,13 @@
 
 from django.conf import settings
 
-from common.service_interface import LazyServiceWrapper
-from db.executor.manager import event_manager
-from db.executor.service import ExecutorService
+from haupt.common.service_interface import LazyServiceWrapper
+from haupt.db.executor.manager import event_manager
+from haupt.db.executor.service import ExecutorService
 
 
 def get_executor_backend_path():
-    return settings.EXECUTOR_BACKEND or "db.executor.service.ExecutorService"
+    return settings.EXECUTOR_BACKEND or "haupt.db.executor.service.ExecutorService"
 
 
 def get_executor_options():

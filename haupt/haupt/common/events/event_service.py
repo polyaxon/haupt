@@ -7,8 +7,8 @@
 
 from typing import Any, Mapping, Optional
 
-from common.events.event import Event
-from common.service_interface import Service
+from haupt.common.events.event import Event
+from haupt.common.service_interface import Service
 
 
 class EventService(Service):

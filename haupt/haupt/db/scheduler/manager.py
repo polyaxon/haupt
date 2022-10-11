@@ -12,13 +12,13 @@ from typing import Dict, List, Optional
 
 from django.utils.timezone import now
 
-from common import conf
-from common.options.registry.k8s import K8S_IN_CLUSTER, K8S_NAMESPACE
-from db.abstracts.getter import get_run_model
-from db.abstracts.runs import BaseRun
-from db.managers.artifacts import atomic_set_artifacts
-from db.managers.statuses import new_run_status, new_run_stop_status
-from db.scheduler import resolver
+from haupt.common import conf
+from haupt.common.options.registry.k8s import K8S_IN_CLUSTER, K8S_NAMESPACE
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.abstracts.runs import BaseRun
+from haupt.db.managers.artifacts import atomic_set_artifacts
+from haupt.db.managers.statuses import new_run_status, new_run_stop_status
+from haupt.db.scheduler import resolver
 from kubernetes.client.rest import ApiException
 from polyaxon import operations, settings
 from polyaxon.agents import manager

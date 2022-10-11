@@ -8,8 +8,8 @@
 from django.conf import settings
 from django.db.models import Q
 
-from db.factories.runs import RunFactory
-from db.models.runs import Run
+from haupt.db.factories.runs import RunFactory
+from haupt.db.models.runs import Run
 from polyaxon.pql.builder import ComparisonCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 

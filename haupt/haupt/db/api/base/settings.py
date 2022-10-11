@@ -7,8 +7,8 @@
 
 from rest_framework import serializers
 
-from common import conf
-from common.options.registry.k8s import K8S_NAMESPACE
+from haupt.common import conf
+from haupt.common.options.registry.k8s import K8S_NAMESPACE
 
 
 class SettingsMixin:

@@ -9,10 +9,10 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from uuid import uuid1
 
-from common import user_system
-from common.events.event import Attribute, Event
-from common.events.registry import run
-from common.json_utils import loads
+from haupt.common import user_system
+from haupt.common.events.event import Attribute, Event
+from haupt.common.events.registry import run
+from haupt.common.json_utils import loads
 
 
 class TestEvents(TestCase):

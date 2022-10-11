@@ -7,13 +7,13 @@
 
 from django.conf import settings
 
-from common.conf.option_manager import option_manager
-from common.conf.option_service import OptionService
-from common.service_interface import LazyServiceWrapper
+from haupt.common.conf.option_manager import option_manager
+from haupt.common.conf.option_service import OptionService
+from haupt.common.service_interface import LazyServiceWrapper
 
 
 def get_conf_backend_path():
-    return settings.CONF_BACKEND or "common.conf.service.ConfService"
+    return settings.CONF_BACKEND or "haupt.common.conf.service.ConfService"
 
 
 def get_conf_options():

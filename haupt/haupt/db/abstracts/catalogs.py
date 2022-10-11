@@ -7,12 +7,12 @@
 
 from django.db import models
 
-from db.abstracts.describable import DescribableModel
-from db.abstracts.diff import DiffModel
-from db.abstracts.live_state import LiveStateModel
-from db.abstracts.nameable import RequiredNameableModel
-from db.abstracts.tag import TagModel
-from db.abstracts.uid import UuidModel
+from haupt.db.abstracts.describable import DescribableModel
+from haupt.db.abstracts.diff import DiffModel
+from haupt.db.abstracts.live_state import LiveStateModel
+from haupt.db.abstracts.nameable import RequiredNameableModel
+from haupt.db.abstracts.tag import TagModel
+from haupt.db.abstracts.uid import UuidModel
 
 
 class BaseCatalog(

@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+from typing import Dict
 
 from rest_framework import status
 
@@ -12,17 +13,19 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
 
+from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
+from haupt.streams.controllers.k8s_crd import get_k8s_operation
+from haupt.streams.controllers.k8s_pods import get_pods
+from haupt.streams.endpoints.base import UJSONResponse
 from polyaxon import settings
 from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.utils.fqn_utils import get_resource_name_for_kind
-from streams.controllers.k8s_check import k8s_check, reverse_k8s
-from streams.controllers.k8s_crd import get_k8s_operation
-from streams.controllers.k8s_pods import get_pods
-from streams.endpoints.base import UJSONResponse
 
 
 @transaction.non_atomic_requests
-async def k8s_auth(request: ASGIRequest) -> HttpResponse:
+async def k8s_auth(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
+    validate_methods(request, methods)
     uri = request.headers.get("x-origin-uri")
     if not uri:
         return HttpResponse(
@@ -40,7 +43,10 @@ async def k8s_auth(request: ASGIRequest) -> HttpResponse:
 
 
 @transaction.non_atomic_requests
-async def k8s_inspect(request: ASGIRequest, run_uuid: str) -> HttpResponse:
+async def k8s_inspect(
+    request: ASGIRequest, run_uuid: str, methods: Dict = None
+) -> HttpResponse:
+    validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)
     k8s_manager = AsyncK8SManager(
         namespace=settings.CLIENT_CONFIG.namespace,
@@ -68,13 +74,13 @@ k8s_routes = [
     path(
         URLS_RUNS_K8S_AUTH,
         k8s_auth,
-        # name="k8s",
-        # methods=["GET"],
+        name="k8s_auth",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_K8S_INSPECT,
         k8s_inspect,
-        # name="k8s",
-        # methods=["GET"],
+        name="k8s_inspect",
+        kwargs=dict(methods=["GET"]),
     ),
 ]

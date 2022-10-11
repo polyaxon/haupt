@@ -7,8 +7,8 @@
 
 from unittest import TestCase
 
-from common.options.exceptions import OptionException
-from common.options.option import (
+from haupt.common.options.exceptions import OptionException
+from haupt.common.options.option import (
     NAMESPACE_DB_CONFIG_MARKER,
     NAMESPACE_DB_OPTION_MARKER,
     NAMESPACE_ENV_MARKER,

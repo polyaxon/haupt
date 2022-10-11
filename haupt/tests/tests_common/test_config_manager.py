@@ -9,7 +9,7 @@ import os
 
 from unittest import TestCase
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 from polyaxon.exceptions import PolyaxonSchemaError
 
 

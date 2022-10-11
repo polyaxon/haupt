@@ -8,9 +8,9 @@
 from django.conf import settings
 from django.db.models import Q
 
-from db.factories.runs import RunFactory
-from db.managers.statuses import new_run_status
-from db.models.runs import Run
+from haupt.db.factories.runs import RunFactory
+from haupt.db.managers.statuses import new_run_status
+from haupt.db.models.runs import Run
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from polyaxon.pql.builder import ValueCondition
 from tests.tests_db.test_query.base import BaseTestQuery

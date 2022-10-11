@@ -8,9 +8,9 @@ import uuid
 
 from django.contrib.auth import get_user_model
 
-from common import conf
-from common.options.registry.installation import ORGANIZATION_KEY
-from db.abstracts.projects import Owner
+from haupt.common import conf
+from haupt.common.options.registry.installation import ORGANIZATION_KEY
+from haupt.db.abstracts.projects import Owner
 
 
 def get_dummy_key():

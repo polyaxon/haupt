@@ -5,6 +5,6 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.options.option_manager import OptionManager
+from haupt.common.options.option_manager import OptionManager
 
 option_manager = OptionManager()

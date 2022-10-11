@@ -7,12 +7,12 @@
 
 from typing import Any, Optional
 
-from common.conf.conf_manager import conf_cache_manager
-from common.conf.exceptions import ConfException
-from common.conf.option_manager import option_manager
-from common.options.option import Option
-from common.options.option_owners import OptionOwners
-from common.service_interface import Service
+from haupt.common.conf.conf_manager import conf_cache_manager
+from haupt.common.conf.exceptions import ConfException
+from haupt.common.conf.option_manager import option_manager
+from haupt.common.options.option import Option
+from haupt.common.options.option_owners import OptionOwners
+from haupt.common.service_interface import Service
 from polyaxon.exceptions import PolyaxonException
 
 

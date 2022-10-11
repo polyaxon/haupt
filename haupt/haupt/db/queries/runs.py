@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from db.abstracts.getter import get_run_model
+from haupt.db.abstracts.getter import get_run_model
 
 STATUS_UPDATE_COLUMNS_ONLY = [
     "id",

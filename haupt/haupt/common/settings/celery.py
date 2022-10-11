@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 
 
 def set_celery(context, config: ConfigManager, routes: Dict):

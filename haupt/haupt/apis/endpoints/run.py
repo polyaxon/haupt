@@ -8,8 +8,8 @@
 from django.http import Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 
-from apis.endpoints.project import ProjectResourceEndpoint
-from common.apis.regex import (
+from haupt.apis.endpoints.project import ProjectResourceEndpoint
+from haupt.common.apis.regex import (
     ARTIFACT_NAME_KEY,
     NAME_KEY,
     OWNER_NAME_KEY,
@@ -17,8 +17,8 @@ from common.apis.regex import (
     RUN_UUID_KEY,
     UUID_KEY,
 )
-from db.queries import artifacts as artifacts_queries
-from db.queries import runs as runs_queries
+from haupt.db.queries import artifacts as artifacts_queries
+from haupt.db.queries import runs as runs_queries
 
 
 class RunEndpoint(ProjectResourceEndpoint):

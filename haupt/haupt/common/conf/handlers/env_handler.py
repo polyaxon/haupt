@@ -9,9 +9,9 @@ import os
 
 from typing import Any
 
-from common.conf.exceptions import ConfException
-from common.conf.handler import BaseConfHandler
-from common.options.option import Option
+from haupt.common.conf.exceptions import ConfException
+from haupt.common.conf.handler import BaseConfHandler
+from haupt.common.options.option import Option
 
 
 class EnvConfHandler(BaseConfHandler):

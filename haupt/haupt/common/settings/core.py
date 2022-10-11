@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 
 
 def set_core(context, config: ConfigManager, use_db: bool = True):
@@ -18,7 +18,8 @@ def set_core(context, config: ConfigManager, use_db: bool = True):
 
     context["FILE_UPLOAD_PERMISSIONS"] = 0o644
 
-    context["WSGI_APPLICATION"] = "polyconf.wsgi.application"
+    context["WSGI_APPLICATION"] = "haupt.polyconf.wsgi.application"
+    context["ASGI_APPLICATION"] = "haupt.polyconf.asgi.application"
     context["TIME_ZONE"] = config.timezone
     context["LANGUAGE_CODE"] = "en"
     context["LANGUAGES"] = (("en", "English"),)
@@ -46,8 +47,8 @@ def set_core(context, config: ConfigManager, use_db: bool = True):
             "NAME": config.get_string("POLYAXON_DB_NAME"),
             "USER": config.get_string("POLYAXON_DB_USER"),
             "PASSWORD": config.get_string("POLYAXON_DB_PASSWORD", is_secret=True),
-            "HOST": config.get_string("POLYAXON_DB_HOST"),
-            "PORT": config.get_string("POLYAXON_DB_PORT"),
+            "HOST": config.get_string("POLYAXON_DB_HOST", is_optional=True),
+            "PORT": config.get_string("POLYAXON_DB_PORT", is_optional=True),
             "ATOMIC_REQUESTS": True,
             "CONN_MAX_AGE": config.get_int(
                 "POLYAXON_DB_CONN_MAX_AGE", is_optional=True, default=None

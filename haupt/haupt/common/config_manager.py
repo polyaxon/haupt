@@ -10,8 +10,7 @@ import os
 from pathlib import Path
 from typing import List
 
-import pkg
-
+from haupt import pkg
 from polyaxon.config_reader.manager import ConfigManager as BaseConfigManager
 from polyaxon.env_vars.keys import EV_KEYS_DEBUG, EV_KEYS_LOG_LEVEL, EV_KEYS_TIME_ZONE
 from polyaxon.parser import parser

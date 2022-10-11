@@ -13,12 +13,11 @@ from django.urls import path
 # from starlette.templating import Jinja2Templates
 from django.views.generic import TemplateView
 
-import pkg
-
+from haupt import pkg
+from haupt.streams.endpoints.base import UJSONResponse
 from polyaxon import dist
 from polyaxon.api import API_V1_LOCATION
 from polyaxon.env_vars.keys import EV_KEYS_STATIC_ROOT
-from streams.endpoints.base import UJSONResponse
 
 static_root = os.environ.get(EV_KEYS_STATIC_ROOT, os.path.dirname(__file__))
 templates_path = os.path.join(static_root, "templates")

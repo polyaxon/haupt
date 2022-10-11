@@ -7,7 +7,7 @@
 
 from typing import Optional, Tuple
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 
 
 def set_apps(
@@ -39,9 +39,9 @@ def set_apps(
     model_apps = ()
     if use_db_apps:
         if config.is_sqlite_db_engine:
-            model_apps = ("db.sqlite.db.apps.DBConfig",)
+            model_apps = ("haupt.db.sqlite.db.apps.DBConfig",)
         else:
-            model_apps = ("db.pgsql.db.apps.DBConfig",)
+            model_apps = ("haupt.db.pgsql.db.apps.DBConfig",)
 
     third_party_apps = third_party_apps or ()
     project_apps = project_apps or ()

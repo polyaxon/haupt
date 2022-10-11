@@ -7,8 +7,8 @@
 
 from typing import Dict, List
 
-from db.abstracts.getter import get_run_model
-from db.abstracts.runs import BaseRun
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.abstracts.runs import BaseRun
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1CompiledOperation, V1RunKind
 from polyaxon.schemas import V1RunPending

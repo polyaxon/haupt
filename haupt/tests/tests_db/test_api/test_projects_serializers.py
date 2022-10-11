@@ -7,7 +7,7 @@
 
 import pytest
 
-from db.api.projects.serializers import (
+from haupt.db.api.projects.serializers import (
     ProjectDetailSerializer,
     ProjectNameSerializer,
     ProjectSerializer,

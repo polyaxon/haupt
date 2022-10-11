@@ -18,7 +18,7 @@ def start(
     uds: str = None,
 ):
     start_app(
-        app="deploy.apps.streams:app",
+        app="haupt.polyconf.asgi:application",
         app_name=PolyaxonServices.STREAMS,
         host=host,
         port=port,

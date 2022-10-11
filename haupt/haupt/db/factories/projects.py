@@ -7,7 +7,7 @@
 
 import factory
 
-from db.abstracts.getter import get_project_model
+from haupt.db.abstracts.getter import get_project_model
 
 
 class ProjectFactory(factory.django.DjangoModelFactory):

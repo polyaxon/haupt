@@ -5,8 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.celeryp.queues import CeleryCoreQueues
-from common.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.common.celeryp.queues import CeleryCoreQueues
+from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
 
 SCHEDULER_CORE_ROUTES = {
     # Scheduler health

@@ -7,9 +7,9 @@
 
 import factory
 
-from db.abstracts.getter import get_run_model
-from db.factories.projects import ProjectFactory
-from db.factories.users import UserFactory
+from haupt.db.abstracts.getter import get_run_model
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.users import UserFactory
 
 
 class RunFactory(factory.django.DjangoModelFactory):

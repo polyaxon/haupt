@@ -8,7 +8,7 @@
 from django.conf import settings
 from django.db.models import Q
 
-from db.models.runs import Run
+from haupt.db.models.runs import Run
 from polyaxon.pql.builder import ArrayCondition, KeysCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 

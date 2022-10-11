@@ -7,8 +7,8 @@
 
 from unittest import TestCase
 
-from common import auditor
-from common.events.registry import run
+from haupt.common import auditor
+from haupt.common.events.registry import run
 
 
 class TestEventsSubscriptions(TestCase):
@@ -16,7 +16,7 @@ class TestEventsSubscriptions(TestCase):
         super().setUp()
         auditor.validate_and_setup()
         # load subscriptions
-        from common.events import auditor_subscriptions  # noqa
+        from haupt.common.events import auditor_subscriptions  # noqa
 
     def _assert_events_subscription(self, events):
         for event in events:

@@ -5,10 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from django.apps import AppConfig
 
+from polyaxon.main import main
 
-class DBConfig(AppConfig):
-    default_auto_field = "django.db.models.AutoField"
-    name = "haupt.db.pgsql.db"
-    verbose_name = "DB"
+main()

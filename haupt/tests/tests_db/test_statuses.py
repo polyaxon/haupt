@@ -7,10 +7,10 @@
 
 from django.test import TestCase
 
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
-from db.managers.statuses import new_run_status
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.managers.statuses import new_run_status
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 
 

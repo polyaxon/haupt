@@ -5,6 +5,6 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.abstracts.getter import get_project_model
+from haupt.db.abstracts.getter import get_project_model
 
 project_model = get_project_model()

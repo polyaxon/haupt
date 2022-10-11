@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.events.event_service import EventService
-from common.events.registry import run
-from db.executor.handlers import run as run_handlers
-from db.executor.manager import event_manager
+from haupt.common.events.event_service import EventService
+from haupt.common.events.registry import run
+from haupt.db.executor.handlers import run as run_handlers
+from haupt.db.executor.manager import event_manager
 from polyaxon.utils.imports import import_string
 
 
@@ -37,7 +37,7 @@ class ExecutorService(EventService):
     def setup(self) -> None:
         super().setup()
         # Load default event types
-        import db.executor.subscriptions  # noqa
+        import haupt.db.executor.subscriptions  # noqa
 
         if self.workers_service:
             self.workers = import_string(self.workers_service)

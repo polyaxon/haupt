@@ -6,9 +6,9 @@
 # LICENSE-AGPL for a copy of the license.
 import copy
 
-from common.auditor.manager import event_manager
-from common.events.event import Event
-from common.events.event_service import EventService
+from haupt.common.auditor.manager import event_manager
+from haupt.common.events.event import Event
+from haupt.common.events.event_service import EventService
 from polyaxon.utils.imports import import_string
 
 

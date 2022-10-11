@@ -11,14 +11,14 @@ from unittest.mock import patch
 
 from rest_framework import status
 
-from common.celeryp.tasks import CoreSchedulerCeleryTasks
-from db import operations
-from db.api.project_resources.serializers import RunSerializer
-from db.api.runs.serializers import RunDetailSerializer, RunStatusSerializer
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.managers.statuses import new_run_status, new_run_stop_status
-from db.models.runs import Run
+from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.db import operations
+from haupt.db.api.project_resources.serializers import RunSerializer
+from haupt.db.api.runs.serializers import RunDetailSerializer, RunStatusSerializer
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.managers.statuses import new_run_status, new_run_stop_status
+from haupt.db.models.runs import Run
 from polyaxon import live_state
 from polyaxon.api import API_V1
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
@@ -182,7 +182,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
 
     def test_delete_from_created_schedule_archives_and_schedules_stop(self):
         assert self.model_class.objects.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.delete(self.url)
         assert workers_send.call_count == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
@@ -201,7 +201,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
             ),
         )
         assert self.model_class.objects.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.delete(self.url)
         assert workers_send.call_count == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
@@ -254,7 +254,7 @@ class TestRestartRunViewV1(BaseRerunRunApi):
     def test_restart(self):
         data = {}
         assert self.queryset.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "restart/", data)
         assert resp.status_code == status.HTTP_201_CREATED
         assert self.queryset.count() == 2
@@ -272,7 +272,7 @@ class TestRestartRunViewV1(BaseRerunRunApi):
 
     def test_restart_patch_config(self):
         data = {"content": '{"trigger": "all_succeeded"}'}
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "restart/", data)
         assert resp.status_code == status.HTTP_201_CREATED
         assert self.queryset.count() == 2
@@ -290,7 +290,7 @@ class TestRestartRunViewV1(BaseRerunRunApi):
 
     def test_restart_patch_wrong_config_raises(self):
         data = {"content": "sdf"}
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "restart/", data)
 
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -314,7 +314,7 @@ class TestResumeRunViewV1(BaseRerunRunApi):
     def test_resume(self):
         data = {}
         assert self.queryset.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "resume/", data)
         assert resp.status_code == status.HTTP_201_CREATED
         assert self.queryset.count() == 1
@@ -332,7 +332,7 @@ class TestResumeRunViewV1(BaseRerunRunApi):
 
     def test_resume_patch_config(self):
         data = {"content": '{"trigger": "all_succeeded"}'}
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "resume/", data)
 
         assert resp.status_code == status.HTTP_201_CREATED
@@ -351,7 +351,7 @@ class TestResumeRunViewV1(BaseRerunRunApi):
 
     def test_resume_patch_wrong_config_raises(self):
         data = {"content": "d"}
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "resume/", data)
 
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -368,7 +368,7 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         )
         data = {}
         assert self.queryset.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "resume/", data)
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
         assert workers_send.call_count == 0
@@ -382,7 +382,7 @@ class TestCopyRunViewV1(BaseRerunRunApi):
     def test_copy(self):
         data = {}
         assert self.queryset.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "copy/", data)
         assert resp.status_code == status.HTTP_201_CREATED
         assert len(workers_send.call_args_list) == 1
@@ -401,7 +401,7 @@ class TestCopyRunViewV1(BaseRerunRunApi):
     def test_copy_patch_config(self):
         data = {"content": '{"trigger": "all_succeeded"}'}
         assert self.queryset.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "copy/", data)
 
         assert resp.status_code == status.HTTP_201_CREATED
@@ -421,7 +421,7 @@ class TestCopyRunViewV1(BaseRerunRunApi):
     def test_resume_patch_wrong_config_raises(self):
         data = {"content": "sdf"}
         assert self.queryset.count() == 1
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "copy/", data)
 
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -601,7 +601,7 @@ class TestStopRunViewV1(BaseTestRunApi):
         last_run.is_managed = True
         last_run.save()
         assert self.queryset.last().status == V1Statuses.CREATED
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -614,7 +614,7 @@ class TestStopRunViewV1(BaseTestRunApi):
         last_run.is_managed = True
         last_run.status = V1Statuses.QUEUED
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -627,7 +627,7 @@ class TestStopRunViewV1(BaseTestRunApi):
         last_run.is_managed = False
         last_run.save()
         assert self.queryset.last().status == V1Statuses.CREATED
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 0
@@ -646,7 +646,7 @@ class TestApproveRunViewV1(BaseTestRunApi):
         last_run = self.queryset.last()
         last_run.pending = V1RunPending.APPROVAL
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -659,7 +659,7 @@ class TestApproveRunViewV1(BaseTestRunApi):
         last_run.pending = V1RunPending.APPROVAL
         last_run.status = V1Statuses.COMPILED
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -672,7 +672,7 @@ class TestApproveRunViewV1(BaseTestRunApi):
         last_run.pending = V1RunPending.BUILD
         last_run.content = None
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -707,7 +707,7 @@ class TestApproveRunViewV1(BaseTestRunApi):
         last_run.content = instance.content
         last_run.pending = V1RunPending.BUILD
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -720,7 +720,7 @@ class TestApproveRunViewV1(BaseTestRunApi):
         last_run.pending = V1RunPending.UPLOAD
         last_run.content = None
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
@@ -755,7 +755,7 @@ class TestApproveRunViewV1(BaseTestRunApi):
         last_run.content = instance.content
         last_run.pending = V1RunPending.UPLOAD
         last_run.save()
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1

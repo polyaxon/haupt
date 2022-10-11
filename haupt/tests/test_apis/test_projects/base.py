@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
-from db.models.projects import Project
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.models.projects import Project
 from polyaxon.api import API_V1
 from tests.base.case import BaseTest
 

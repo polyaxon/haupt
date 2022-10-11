@@ -10,8 +10,8 @@ import uuid
 from datetime import datetime
 from unittest import TestCase
 
-from common.events.event import Attribute
 from dateutil.tz import UTC
+from haupt.common.events.event import Attribute
 
 
 class TestAttribute(TestCase):

@@ -8,11 +8,11 @@ from rest_framework.generics import GenericAPIView
 
 from django.http import HttpRequest, HttpResponse
 
-from common import auditor
-from common.apis.gzip import gzip
-from common.apis.regex import OWNER_NAME_KEY, PROJECT_NAME_KEY, UUID_KEY
-from common.endpoints import mixins
-from common.endpoints.exceptions import EndpointError
+from haupt.common import auditor
+from haupt.common.apis.gzip import gzip
+from haupt.common.apis.regex import OWNER_NAME_KEY, PROJECT_NAME_KEY, UUID_KEY
+from haupt.common.endpoints import mixins
+from haupt.common.endpoints.exceptions import EndpointError
 
 
 class BaseEndpoint(

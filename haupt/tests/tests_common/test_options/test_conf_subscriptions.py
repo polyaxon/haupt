@@ -7,8 +7,8 @@
 
 from unittest import TestCase
 
-from common import conf
-from common.options.registry import (
+from haupt.common import conf
+from haupt.common.options.registry import (
     containers,
     core,
     installation,
@@ -23,7 +23,7 @@ class TestConfSubscriptions(TestCase):
         super().setUp()
         conf.validate_and_setup()
         # load subscriptions
-        import common.options.conf_subscriptions  # noqa
+        import haupt.common.options.conf_subscriptions  # noqa
 
     def _assert_options_subscriptions(self, options):
         for option in options:

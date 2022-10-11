@@ -7,15 +7,15 @@
 
 import pytest
 
-from common import conf
-from common.options.registry.k8s import K8S_NAMESPACE
-from db.api.project_resources.serializers import (
+from haupt.common import conf
+from haupt.common.options.registry.k8s import K8S_NAMESPACE
+from haupt.db.api.project_resources.serializers import (
     OfflineRunSerializer,
     OperationCreateSerializer,
     RunSerializer,
 )
-from db.factories.runs import RunFactory
-from db.models.runs import Run
+from haupt.db.factories.runs import RunFactory
+from haupt.db.models.runs import Run
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyflow import V1CloningKind
 from tests.tests_db.test_api.base import BaseTestRunSerializer

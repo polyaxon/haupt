@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from django.test import RequestFactory, TestCase
 
-from common.apis.gzip import gzip
+from haupt.common.apis.gzip import gzip
 
 
 class TestGZip(TestCase):

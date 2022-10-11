@@ -7,8 +7,8 @@
 
 from unittest import TestCase
 
-from common.events.event_manager import EventManager
-from common.events.registry.run import (
+from haupt.common.events.event_manager import EventManager
+from haupt.common.events.registry.run import (
     RunCreatedActorEvent,
     RunCreatedEvent,
     RunDeletedActorEvent,

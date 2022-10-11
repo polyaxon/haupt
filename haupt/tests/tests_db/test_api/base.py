@@ -5,12 +5,12 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.test_cases.base import PolyaxonBaseTestSerializer
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
-from db.models.projects import Project
-from db.models.runs import Run
+from haupt.common.test_cases.base import PolyaxonBaseTestSerializer
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.models.projects import Project
+from haupt.db.models.runs import Run
 
 
 class BaseTestProjectSerializer(PolyaxonBaseTestSerializer):

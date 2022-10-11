@@ -7,9 +7,9 @@
 
 from django.db import models
 
-from db.abstracts.diff import DiffModel
-from db.abstracts.getter import get_db_model_name
-from db.abstracts.state import StateModel
+from haupt.db.abstracts.diff import DiffModel
+from haupt.db.abstracts.getter import get_db_model_name
+from haupt.db.abstracts.state import StateModel
 from polyaxon.utils.enums_utils import values_to_choices
 from traceml.artifacts import V1ArtifactKind
 

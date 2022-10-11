@@ -15,16 +15,16 @@ from rest_framework import status
 
 from django.db import IntegrityError
 
-from common.celeryp.tasks import CoreSchedulerCeleryTasks
-from db.api.artifacts.serializers import (
+from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.db.api.artifacts.serializers import (
     RunArtifactNameSerializer,
     RunArtifactSerializer,
 )
-from db.factories.artifacts import ArtifactFactory
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.models.artifacts import Artifact, ArtifactLineage
-from db.queries import artifacts as artifacts_queries
+from haupt.db.factories.artifacts import ArtifactFactory
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.models.artifacts import Artifact, ArtifactLineage
+from haupt.db.queries import artifacts as artifacts_queries
 from polyaxon.api import API_V1
 from tests.base.case import BaseTest
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
@@ -206,7 +206,7 @@ class TestRunArtifactListViewV1(BaseTest):
             summary=dict(last_value=0.8, max_value=0.99, min_value=0.1, max_step=100),
         )
         data = [metric1.to_dict(), metric2.to_dict()]
-        with patch("common.workers.send") as workers_send:
+        with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_201_CREATED
 

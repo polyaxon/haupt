@@ -9,8 +9,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from django.urls import re_path
 
-from apis.run_lineage import views
-from common.apis.urls import runs
+from haupt.apis.run_lineage import views
+from haupt.common.apis.urls import runs
 
 run_lineages_urlpatterns = [
     re_path(

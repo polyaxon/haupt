@@ -12,10 +12,10 @@
 #
 # def pytest_configure():
 #     configure()
-#     import db.signals.runs  # noqa
-#     from common import conf
-#     from db import operations
+#     import haupt.db.signals.runs  # noqa
+#     from haupt.common import conf
+#     from haupt.db import operations
 #
 #     conf.validate_and_setup()
 #     operations.validate_and_setup()
-#     import common.options.conf_subscriptions  # noqa
+#     import haupt.common.options.conf_subscriptions  # noqa

@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.conf.handlers.env_handler import EnvConfHandler
-from common.conf.handlers.settings_handler import SettingsConfHandler
-from common.conf.option_service import OptionService
-from common.options.option import OptionStores
+from haupt.common.conf.handlers.env_handler import EnvConfHandler
+from haupt.common.conf.handlers.settings_handler import SettingsConfHandler
+from haupt.common.conf.option_service import OptionService
+from haupt.common.options.option import OptionStores
 
 
 class ConfService(OptionService):

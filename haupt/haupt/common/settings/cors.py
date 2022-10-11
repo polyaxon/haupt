@@ -7,7 +7,7 @@
 
 from corsheaders.defaults import default_headers
 
-from common.config_manager import ConfigManager
+from haupt.common.config_manager import ConfigManager
 from polyaxon.services.headers import PolyaxonServiceHeaders
 
 

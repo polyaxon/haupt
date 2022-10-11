@@ -4,16 +4,22 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Union
+from typing import Dict, Union
 
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, HttpResponse, HttpResponseBadRequest
 from django.urls import path
 
-from common.endpoints.files import FilePathResponse
+from haupt.common.endpoints.files import FilePathResponse
+from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.connections.fs import AppFS
+from haupt.streams.controllers.notebooks import render_notebook
+from haupt.streams.controllers.uploads import handle_upload
+from haupt.streams.endpoints.base import UJSONResponse
+from haupt.streams.endpoints.utils import redirect_file
 from polyaxon.fs.async_manager import (
     check_is_file,
     delete_file_or_dir,
@@ -22,11 +28,6 @@ from polyaxon.fs.async_manager import (
     list_files,
 )
 from polyaxon.utils.bool_utils import to_bool
-from streams.connections.fs import AppFS
-from streams.controllers.notebooks import render_notebook
-from streams.controllers.uploads import handle_upload
-from streams.endpoints.base import UJSONResponse
-from streams.endpoints.utils import redirect_file
 
 
 def clean_path(filepath: str):
@@ -35,8 +36,14 @@ def clean_path(filepath: str):
 
 @transaction.non_atomic_requests
 async def handle_artifact(
-    request: ASGIRequest, namespace: str, owner: str, project: str, run_uuid: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> HttpResponse:
+    validate_methods(request, methods)
     if request.method == "GET":
         return await download_artifact(request, run_uuid=run_uuid)
     if request.method == "DELETE":
@@ -53,7 +60,9 @@ async def ro_artifact(
     project: str,
     run_uuid: str,
     path: str,
+    methods: Dict = None,
 ) -> HttpResponse:
+    validate_methods(request, methods)
     return await download_artifact(request, run_uuid, path, True)
 
 
@@ -121,8 +130,14 @@ async def delete_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
 
 @transaction.non_atomic_requests
 async def handle_artifacts(
-    request: ASGIRequest, namespace: str, owner: str, project: str, run_uuid: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> HttpResponse:
+    validate_methods(request, methods)
     if request.method == "GET":
         return await download_artifacts(request, run_uuid=run_uuid)
     if request.method == "DELETE":
@@ -174,8 +189,14 @@ async def delete_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
 
 @transaction.non_atomic_requests
 async def tree_artifacts(
-    request: ASGIRequest, namespace: str, owner: str, project: str, run_uuid: str
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> UJSONResponse:
+    validate_methods(request, methods)
     filepath = request.GET.get("path", "")
     ls = await list_files(
         fs=await AppFS.get_fs(),
@@ -192,7 +213,7 @@ URLS_RUNS_ARTIFACT = (
 URLS_RUNS_EMBEDDED_ARTIFACT = (
     "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/embedded_artifact"
 )
-URLS_RUNS_RO_ARTIFACT = "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/ro_artifact/{path:path}"
+URLS_RUNS_RO_ARTIFACT = "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/ro_artifact/<path:path>"
 URLS_RUNS_ARTIFACTS = (
     "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/artifacts"
 )
@@ -205,31 +226,31 @@ artifacts_routes = [
     path(
         URLS_RUNS_ARTIFACT,
         handle_artifact,
-        # name="download_artifact",
-        # methods=["GET", "DELETE", "POST"],
+        name="artifact",
+        kwargs=dict(methods=["GET", "DELETE", "POST"]),
     ),
     path(
         URLS_RUNS_EMBEDDED_ARTIFACT,
         handle_artifact,
-        # name="download_embedded_artifact",
-        # methods=["GET"],
+        name="download_embedded_artifact",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_RO_ARTIFACT,
         ro_artifact,
-        # name="read_only_artifact",
-        # methods=["GET"],
+        name="read_only_artifact",
+        kwargs=dict(methods=["GET"]),
     ),
     path(
         URLS_RUNS_ARTIFACTS,
         handle_artifacts,
-        # name="download_artifacts",
-        # methods=["GET", "DELETE", "POST"],
+        name="download_artifacts",
+        kwargs=dict(methods=["GET", "DELETE", "POST"]),
     ),
     path(
         URLS_RUNS_ARTIFACTS_TREE,
         tree_artifacts,
-        # name="list_artifacts",
-        # methods=["GET"],
+        name="list_artifacts",
+        kwargs=dict(methods=["GET"]),
     ),
 ]

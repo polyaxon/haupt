@@ -98,6 +98,7 @@ setup(
     ],
     install_requires=[requirements],
     extras_require=extra,
+    entry_points={"console_scripts": ["haupt = haupt.main:cli"]},
     python_requires=">=3.5",
     classifiers=[
         "Programming Language :: Python",

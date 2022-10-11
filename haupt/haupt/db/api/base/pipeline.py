@@ -7,7 +7,7 @@
 
 from rest_framework import serializers
 
-from db.abstracts.runs import BaseRun
+from haupt.db.abstracts.runs import BaseRun
 
 
 class PipelineMixin(serializers.Serializer):

@@ -5,6 +5,6 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from common.events.event_manager import EventManager
+from haupt.common.events.event_manager import EventManager
 
 event_manager = EventManager()

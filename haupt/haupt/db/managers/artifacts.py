@@ -14,9 +14,9 @@ from typing import Any, Dict, List, Set
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 
-from db.abstracts.getter import get_artifact_model, get_lineage_model
-from db.abstracts.projects import Owner
-from db.abstracts.runs import BaseRun
+from haupt.db.abstracts.getter import get_artifact_model, get_lineage_model
+from haupt.db.abstracts.projects import Owner
+from haupt.db.abstracts.runs import BaseRun
 from traceml.artifacts import V1RunArtifact
 
 

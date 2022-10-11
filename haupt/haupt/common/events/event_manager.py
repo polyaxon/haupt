@@ -7,8 +7,8 @@
 
 from typing import List, Tuple
 
-from common.events import event_actions
-from common.events.event import Event
+from haupt.common.events import event_actions
+from haupt.common.events.event import Event
 from polyaxon.utils.manager_interface import ManagerInterface
 
 

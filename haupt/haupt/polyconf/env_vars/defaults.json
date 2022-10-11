@@ -1,6 +1,5 @@
 {
   "POLYAXON_PASSWORD_LENGTH": "6",
-  "POLYAXON_DB_NAME": "haupt",
   "POLYAXON_DB_USER": "haupt",
   "POLYAXON_DB_PASSWORD": "haupt",
   "POLYAXON_DB_PORT": "5432",

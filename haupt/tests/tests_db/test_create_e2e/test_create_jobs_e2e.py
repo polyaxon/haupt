@@ -7,11 +7,11 @@
 
 from django.test import TestCase
 
-from common.test_cases.fixtures import get_fxt_job, get_fxt_job_with_inputs
-from db import operations
-from db.factories.projects import ProjectFactory
-from db.factories.users import UserFactory
-from db.models.runs import Run
+from haupt.common.test_cases.fixtures import get_fxt_job, get_fxt_job_with_inputs
+from haupt.db import operations
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.models.runs import Run
 from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification
 from polyaxon.polyflow import V1RunKind
 

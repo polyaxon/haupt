@@ -9,8 +9,8 @@ import pytest
 
 from rest_framework import status
 
-from common import conf
-from common.options.registry.installation import PLATFORM_DIST, PLATFORM_VERSION
+from haupt.common import conf
+from haupt.common.options.registry.installation import PLATFORM_DIST, PLATFORM_VERSION
 from polyaxon.api import API_V1
 from tests.base.case import BaseTest
 

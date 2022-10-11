@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from django.conf import settings
 
-from db.query_managers.manager import BaseQueryManager
+from haupt.db.query_managers.manager import BaseQueryManager
 from polyaxon.pql.builder import (
     ArrayCondition,
     DateTimeCondition,

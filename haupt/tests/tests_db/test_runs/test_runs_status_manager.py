@@ -9,12 +9,12 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from common.events.registry import run as run_events
-from db.factories.projects import ProjectFactory
-from db.factories.runs import RunFactory
-from db.factories.users import UserFactory
-from db.managers.statuses import bulk_new_run_status, new_run_status
-from db.models.runs import Run
+from haupt.common.events.registry import run as run_events
+from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
+from haupt.db.factories.users import UserFactory
+from haupt.db.managers.statuses import bulk_new_run_status, new_run_status
+from haupt.db.models.runs import Run
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1RunKind
 
@@ -26,7 +26,7 @@ class TestRunStatusManager(TestCase):
         self.project = ProjectFactory()
         self.run = RunFactory(project=self.project)
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_new_run_status_created(self, auditor_record):
         new_run_status(
             self.run,
@@ -36,7 +36,7 @@ class TestRunStatusManager(TestCase):
         )
         assert auditor_record.call_count == 0
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_new_run_status_scheduled(self, auditor_record):
         new_run_status(
             self.run,
@@ -49,7 +49,7 @@ class TestRunStatusManager(TestCase):
         assert call_args == ()
         assert call_kwargs["event_type"] == run_events.RUN_NEW_STATUS
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_new_run_status_stopped(self, auditor_record):
         new_run_status(
             self.run,
@@ -66,7 +66,7 @@ class TestRunStatusManager(TestCase):
         assert call_args_list[1][1]["event_type"] == run_events.RUN_STOPPED
         assert call_args_list[2][1]["event_type"] == run_events.RUN_DONE
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_new_run_status_failed(self, auditor_record):
         new_run_status(
             self.run,
@@ -83,7 +83,7 @@ class TestRunStatusManager(TestCase):
         assert call_args_list[1][1]["event_type"] == run_events.RUN_FAILED
         assert call_args_list[2][1]["event_type"] == run_events.RUN_DONE
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_new_run_status_succeeded(self, auditor_record):
         new_run_status(
             self.run,
@@ -100,7 +100,7 @@ class TestRunStatusManager(TestCase):
         assert call_args_list[1][1]["event_type"] == run_events.RUN_SUCCEEDED
         assert call_args_list[2][1]["event_type"] == run_events.RUN_DONE
 
-    @patch("common.auditor.record")
+    @patch("haupt.common.auditor.record")
     def test_new_run_status_skipped(self, auditor_record):
         new_run_status(
             self.run,

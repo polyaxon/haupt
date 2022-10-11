@@ -7,7 +7,7 @@
 
 from typing import Any, Dict, Optional
 
-from common.options.option import Option
+from haupt.common.options.option import Option
 
 
 class BaseConfHandler:
