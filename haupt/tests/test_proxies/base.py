@@ -7,7 +7,7 @@
 
 
 from haupt import settings
-from polyaxon.schemas.cli.proxies_config import ProxiesConfig
+from haupt.schemas.proxies_config import ProxiesConfig
 from polyaxon.utils.test_utils import BaseTestCase
 
 

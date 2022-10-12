@@ -17,7 +17,7 @@ PolyaxonServices.set_service_name()
 
 
 def set_proxies_config():
-    from polyaxon.managers.proxies import ProxiesManager
+    from haupt.managers.proxies import ProxiesManager
 
     global PROXIES_CONFIG
 
@@ -25,8 +25,8 @@ def set_proxies_config():
 
 
 def set_sandbox_config():
+    from haupt.managers.sandbox import SandboxConfigManager
     from polyaxon.contexts.paths import mount_sandbox
-    from polyaxon.managers.agent import SandboxConfigManager
     from polyaxon.settings import set_agent_config
 
     mount_sandbox()
