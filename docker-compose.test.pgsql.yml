@@ -28,6 +28,7 @@ services:
     environment:
       POLYAXON_DB_ENGINE: "pgsql"
       POLYAXON_DB_HOST: "postgres"
+      POLYAXON_DB_NAME: "haupt"
       TESTING: "1"
 
 networks:
