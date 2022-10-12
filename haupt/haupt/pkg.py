@@ -8,7 +8,9 @@
 NAME = "haupt"
 VERSION = "1.0.0-rc0"
 SCHEMA_VERSION = "1.20.0"
-DESC = "Polyaxon deployment and serving tools: streams, sandbox, ML-API, and spaces."
+DESC = (
+    "Lineage metadata API, artifacts streams, sandbox, ML-API, and spaces for Polyaxon."
+)
 URL = "https://github.com/polyaxon/haupt"
 AUTHOR = "Polyaxon, Inc."
 EMAIL = "contact@polyaxon.com"
