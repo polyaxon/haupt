@@ -15,6 +15,7 @@ def set_apps(
     config: ConfigManager,
     third_party_apps: Optional[Tuple],
     project_apps: Tuple,
+    db_app: str = None,
     use_db_apps: bool = True,
     use_staticfiles_app: bool = True,
 ):
@@ -38,7 +39,9 @@ def set_apps(
 
     model_apps = ()
     if use_db_apps:
-        if config.is_sqlite_db_engine:
+        if db_app:
+            model_apps = (db_app,)
+        elif config.is_sqlite_db_engine:
             model_apps = ("haupt.db.sqlite.db.apps.DBConfig",)
         else:
             model_apps = ("haupt.db.pgsql.db.apps.DBConfig",)

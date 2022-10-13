@@ -18,6 +18,7 @@ RUN pip3 install --no-cache-dir -r /requirements/requirements.txt
 RUN pip3 install --no-cache-dir -r /requirements/platform.txt
 RUN pip3 install --no-cache-dir -r /requirements/streams.txt
 RUN pip3 install --no-cache-dir -r /requirements/test.txt
+RUN pip3 install --no-cache-dir -r /requirements/platform-test.txt
 RUN pip3 install --no-cache-dir -r /requirements/master.txt
 
 VOLUME /haupt
