@@ -7,6 +7,7 @@
 
 import click
 
+from haupt.cli.proxies import proxy
 from haupt.cli.sandbox import sandbox
 from haupt.cli.streams import streams
 from polyaxon.logger import clean_outputs, configure_logger
@@ -34,6 +35,7 @@ def cli(verbose):
 
 cli.add_command(sandbox)
 cli.add_command(streams)
+cli.add_command(proxy)
 
 
 def main():
