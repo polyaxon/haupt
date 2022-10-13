@@ -29,7 +29,7 @@ class TestConfigManager(TestCase):
 
     def test_raises_for_non_optional_env_vars(self):
         with self.assertRaises(PolyaxonSchemaError):
-            ConfigManager.read_configs([os.environ])
+            ConfigManager.read_configs({"dummy": "dummy"})
 
     def test_get_broker(self):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"
