@@ -29,7 +29,7 @@ class ConfigManager(BaseConfigManager):
             EV_KEYS_DEBUG, is_optional=True, default=False
         )
         self._db_engine_name = self.get_string("POLYAXON_DB_ENGINE", default="pgsql")
-        self._namespace = self.get_string("POLYAXON_K8S_NAMESPACE")
+        self._namespace = self.get_string("POLYAXON_K8S_NAMESPACE", is_optional=True)
         self._log_level = self.get_string(
             EV_KEYS_LOG_LEVEL, is_local=True, is_optional=True, default="WARNING"
         ).upper()
@@ -48,7 +48,6 @@ class ConfigManager(BaseConfigManager):
         self._broker_backend = self.get_string(
             "POLYAXON_BROKER_BACKEND",
             is_optional=True,
-            default="rabbitmq",
             options=["redis", "rabbitmq"],
         )
         self._redis_password = self.get_string(
@@ -176,9 +175,10 @@ class ConfigManager(BaseConfigManager):
         return "amqp://{url}".format(url=amqp_url)
 
     def get_broker_url(self) -> str:
-        if self.broker_backend == "redis":
+        if self.is_redis_broker:
             return self.get_redis_url("POLYAXON_REDIS_CELERY_BROKER_URL")
-        return self._get_rabbitmq_broker_url()
+        if self.is_rabbitmq_broker:
+            return self._get_rabbitmq_broker_url()
 
 
 def get_config(context, file_path):

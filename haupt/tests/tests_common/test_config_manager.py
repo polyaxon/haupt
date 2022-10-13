@@ -40,10 +40,12 @@ class TestConfigManager(TestCase):
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
             ]
         )
-        assert config.broker_backend == "rabbitmq"
+        assert config.broker_backend is None
         assert config.is_redis_broker is False
-        assert config.is_rabbitmq_broker is True
+        assert config.is_rabbitmq_broker is False
 
+        os.environ["POLYAXON_ENVIRONMENT"] = "testing"
+        os.environ.pop("POLYAXON_BROKER_BACKEND", None)
         config = ConfigManager.read_configs(
             [
                 os.environ,
@@ -52,6 +54,8 @@ class TestConfigManager(TestCase):
             ]
         )
         assert config.broker_backend == "rabbitmq"
+        assert config.is_redis_broker is False
+        assert config.is_rabbitmq_broker is True
 
         config = ConfigManager.read_configs(
             [
