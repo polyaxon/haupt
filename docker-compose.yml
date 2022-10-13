@@ -36,6 +36,9 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: "postgres://haupt:haupt@postgres:5432/haupt"
+      POLYAXON_DB_USER: "haupt"
+      POLYAXON_DB_PASSWORD: "haupt"
+      POLYAXON_DB_PORT: "5432"
 
 networks:
   haupt:

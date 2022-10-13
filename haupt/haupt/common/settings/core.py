@@ -45,13 +45,17 @@ def set_core(context, config: ConfigManager, use_db: bool = True):
         db_definition = {
             "ENGINE": db_engine,
             "NAME": config.get_string("POLYAXON_DB_NAME"),
-            "USER": config.get_string("POLYAXON_DB_USER"),
-            "PASSWORD": config.get_string("POLYAXON_DB_PASSWORD", is_secret=True),
+            "USER": config.get_string("POLYAXON_DB_USER", is_optional=True),
+            "PASSWORD": config.get_string(
+                "POLYAXON_DB_PASSWORD", is_secret=True, is_optional=True
+            ),
             "HOST": config.get_string("POLYAXON_DB_HOST", is_optional=True),
             "PORT": config.get_string("POLYAXON_DB_PORT", is_optional=True),
             "ATOMIC_REQUESTS": True,
             "CONN_MAX_AGE": config.get_int(
-                "POLYAXON_DB_CONN_MAX_AGE", is_optional=True, default=None
+                "POLYAXON_DB_CONN_MAX_AGE",
+                is_optional=True,
+                default=60,
             ),
         }
         db_options = config.get_dict(

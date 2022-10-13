@@ -27,7 +27,7 @@ class GzipDecorator:
                 config
                 and config.is_debug_mode
                 and config.is_monolith_service
-                and not config.is_testing_env
+                and not config.is_test_env
             ):
                 return response
 

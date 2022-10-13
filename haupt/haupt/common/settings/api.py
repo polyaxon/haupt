@@ -58,7 +58,9 @@ def set_api(context, config: ConfigManager, processors: List[str] = None):
         "haupt.common.settings.context_processors.ui_enabled",
     ] + processors
 
-    context["FRONTEND_DEBUG"] = config.get_boolean("POLYAXON_FRONTEND_DEBUG")
+    context["FRONTEND_DEBUG"] = config.get_boolean(
+        "POLYAXON_FRONTEND_DEBUG", is_optional=True, default=False
+    )
 
     template_debug = (
         config.get_boolean("DJANGO_TEMPLATE_DEBUG", is_optional=True)

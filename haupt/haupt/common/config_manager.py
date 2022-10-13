@@ -12,11 +12,11 @@ from typing import List
 
 from haupt import pkg
 from polyaxon.config_reader.manager import ConfigManager as BaseConfigManager
-from polyaxon.env_vars.keys import EV_KEYS_DEBUG, EV_KEYS_LOG_LEVEL, EV_KEYS_TIME_ZONE
-from polyaxon.parser import parser
-
-TESTING = parser.get_boolean(
-    "TESTING", os.getenv("TESTING", "0"), is_optional=True, default=False
+from polyaxon.env_vars.keys import (
+    EV_KEYS_DEBUG,
+    EV_KEYS_LOG_LEVEL,
+    EV_KEYS_PLATFORM_CONFIG,
+    EV_KEYS_TIME_ZONE,
 )
 
 
@@ -100,12 +100,8 @@ class ConfigManager(BaseConfigManager):
         return self._env
 
     @property
-    def is_testing_env(self) -> bool:
-        if TESTING:
-            return True
-        if self.env == "testing":
-            return True
-        return False
+    def is_test_env(self) -> bool:
+        return self.env == "test"
 
     @property
     def is_local_env(self) -> bool:
@@ -192,15 +188,12 @@ def get_config(context, file_path):
         return root.parent.parent.parent
 
     root_dir = base_directory()
-    env_var_dir = root_dir / "haupt" / "polyconf" / "env_vars"
     context["ROOT_DIR"] = root_dir
-    context["ENV_VARS_DIR"] = env_var_dir
 
-    config_values = [str(env_var_dir / "defaults.json"), os.environ]
+    config_values = [os.environ]
 
-    if TESTING:
-        config_values.append(str(env_var_dir / "test.json"))
-    elif os.path.isfile(str(env_var_dir / "local.json")):
-        config_values.append(str(env_var_dir / "local.json"))
+    platform_config = os.getenv(EV_KEYS_PLATFORM_CONFIG)
+    if platform_config and os.path.isfile(platform_config):
+        config_values.append(platform_config)
 
     return ConfigManager.read_configs(config_values)

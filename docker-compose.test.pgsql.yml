@@ -3,6 +3,7 @@ version: "3.8"
 x-defaults: &defaults
   env_file:
   - docker/config.env
+  - docker/test.env
 
 services:
   postgres:
@@ -29,7 +30,9 @@ services:
       POLYAXON_DB_ENGINE: "pgsql"
       POLYAXON_DB_HOST: "postgres"
       POLYAXON_DB_NAME: "haupt"
-      TESTING: "1"
+      POLYAXON_DB_USER: "haupt"
+      POLYAXON_DB_PASSWORD: "haupt"
+      POLYAXON_DB_PORT: "5432"
 
 networks:
   haupt:

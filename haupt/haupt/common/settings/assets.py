@@ -11,8 +11,12 @@ from polyaxon.env_vars.keys import EV_KEYS_STATIC_URL
 
 
 def set_assets(context, root_dir, config: ConfigManager):
-    context["MEDIA_ROOT"] = config.get_string("POLYAXON_MEDIA_ROOT")
-    context["MEDIA_URL"] = config.get_string("POLYAXON_MEDIA_URL")
+    context["MEDIA_ROOT"] = config.get_string(
+        "POLYAXON_MEDIA_ROOT", is_optional=True, default=""
+    )
+    context["MEDIA_URL"] = config.get_string(
+        "POLYAXON_MEDIA_URL", is_optional=True, default=""
+    )
 
     context["STATIC_ROOT"] = config.get_string("POLYAXON_STATIC_ROOT")
     context["STATIC_URL"] = config.get_string(

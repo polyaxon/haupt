@@ -46,7 +46,9 @@ def set_celery(context, config: ConfigManager, routes: Dict):
         "POLYAXON_CELERY_WORKER_PREFETCH_MULTIPLIER", is_optional=True, default=4
     )
 
-    eager_mode = config.get_boolean("POLYAXON_CELERY_TASK_ALWAYS_EAGER")
+    eager_mode = config.get_boolean(
+        "POLYAXON_CELERY_TASK_ALWAYS_EAGER", is_optional=True, default=False
+    )
     context["CELERY_TASK_ALWAYS_EAGER"] = eager_mode
     if eager_mode:
         context["CELERY_BROKER_TRANSPORT"] = "memory"
