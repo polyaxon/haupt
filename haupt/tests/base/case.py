@@ -20,7 +20,6 @@ class BaseTest(PolyaxonBaseTest):
     SET_CLIENT_SETTINGS = True
     SET_CLI_SETTINGS = True
     SET_AGENT_SETTINGS = False
-    SET_PROXIES_SETTINGS = False
 
     def setUp(self):
         super().setUp()
@@ -29,7 +28,6 @@ class BaseTest(PolyaxonBaseTest):
             set_client=self.SET_CLIENT_SETTINGS,
             set_cli=self.SET_CLI_SETTINGS,
             set_agent=self.SET_AGENT_SETTINGS,
-            set_proxies=self.SET_PROXIES_SETTINGS,
         )
 
         settings.ARTIFACTS_ROOT = tempfile.mkdtemp()
