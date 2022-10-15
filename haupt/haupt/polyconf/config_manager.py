@@ -7,4 +7,4 @@
 
 from haupt.common.config_manager import get_config
 
-config = get_config(context=locals(), file_path=__file__)
+config = get_config(context=locals(), file_path=__file__, config_prefix="haupt")

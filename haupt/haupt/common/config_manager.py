@@ -24,6 +24,9 @@ class ConfigManager(BaseConfigManager):
     def __init__(self, **params) -> None:
         super().__init__(**params)
         self._env = self.get_string("POLYAXON_ENVIRONMENT")
+        self._config_module = self.get_string(
+            "POLYAXON_CONFIG_MODULE", is_optional=True, default="polyconf"
+        )
         self._service = self.get_string("POLYAXON_SERVICE", is_local=True)
         self._is_debug_mode = self.get_boolean(
             EV_KEYS_DEBUG, is_optional=True, default=False
@@ -57,6 +60,10 @@ class ConfigManager(BaseConfigManager):
     @property
     def namespace(self) -> str:
         return self._namespace
+
+    @property
+    def config_module(self) -> str:
+        return self._config_module
 
     @property
     def db_engine_name(self) -> str:
@@ -181,7 +188,7 @@ class ConfigManager(BaseConfigManager):
             return self._get_rabbitmq_broker_url()
 
 
-def get_config(context, file_path):
+def get_config(context, file_path, config_prefix: str = None):
     def base_directory():
         root = Path(os.path.abspath(file_path))
         root.resolve()
@@ -190,7 +197,10 @@ def get_config(context, file_path):
     root_dir = base_directory()
     context["ROOT_DIR"] = root_dir
 
-    config_values = [os.environ]
+    config_module = "polyconf"
+    if config_prefix:
+        config_module = "{}.{}".format(config_prefix, config_module)
+    config_values = [os.environ, {"POLYAXON_CONFIG_MODULE": config_module}]
 
     platform_config = os.getenv(EV_KEYS_PLATFORM_CONFIG)
     if platform_config and os.path.isfile(platform_config):

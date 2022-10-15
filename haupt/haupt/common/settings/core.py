@@ -18,8 +18,8 @@ def set_core(context, config: ConfigManager, use_db: bool = True):
 
     context["FILE_UPLOAD_PERMISSIONS"] = 0o644
 
-    context["WSGI_APPLICATION"] = "haupt.polyconf.wsgi.application"
-    context["ASGI_APPLICATION"] = "haupt.polyconf.asgi.application"
+    context["WSGI_APPLICATION"] = "{}.wsgi.application".format(config.config_module)
+    context["ASGI_APPLICATION"] = "{}.asgi.application".format(config.config_module)
     context["TIME_ZONE"] = config.timezone
     context["LANGUAGE_CODE"] = "en"
     context["LANGUAGES"] = (("en", "English"),)

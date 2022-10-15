@@ -33,7 +33,6 @@ def set_sandbox_config():
     PolyaxonServices.set_service_name(PolyaxonServices.SANDBOX)
 
     global SANDBOX_CONFIG
-    global AGENT_CONFIG
 
     try:
         SANDBOX_CONFIG = SandboxConfigManager.get_config_or_default()

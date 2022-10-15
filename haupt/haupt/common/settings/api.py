@@ -18,7 +18,7 @@ from polyaxon.env_vars.keys import (
 
 
 def set_api(context, config: ConfigManager, processors: List[str] = None):
-    context["ROOT_URLCONF"] = "haupt.polyconf.urls"
+    context["ROOT_URLCONF"] = "{}.urls".format(config.config_module)
     platform_host = config.get_string(EV_KEYS_PLATFORM_HOST, is_optional=True)
     context["PLATFORM_HOST"] = platform_host
 
