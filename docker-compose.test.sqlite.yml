@@ -2,8 +2,9 @@ version: "3.8"
 
 x-defaults: &defaults
   env_file:
-  - docker/config.env
-  - docker/test.env
+  - .docker/base.env
+  - .docker/config.env
+  - .docker/test.env
 
 services:
   api:

@@ -2,7 +2,8 @@ version: "3.8"
 
 x-defaults: &defaults
   env_file:
-  - docker/config.env
+  - .docker/base.env
+  - .docker/config.env
 
 services:
   postgres:
@@ -22,7 +23,7 @@ services:
     <<: *defaults
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./.docker/Dockerfile
     networks:
       - haupt
     depends_on:

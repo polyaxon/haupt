@@ -7,6 +7,6 @@ if [ $? -eq 0 ]; then
     echo "========================"
     echo "build base dev"
     echo "========================"
-    docker build -f docker/DockerfileDev -t haupt:dev .
+    docker build -f .docker/DockerfileDev -t haupt:dev .
     echo "========================"
 fi
