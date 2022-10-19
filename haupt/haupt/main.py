@@ -17,13 +17,6 @@ from polyaxon.logger import clean_outputs, configure_logger
 @click.option(
     "-v", "--verbose", is_flag=True, default=False, help="Turn on debug logging"
 )
-@click.option(
-    "--offline",
-    is_flag=True,
-    default=False,
-    help="Run command in offline mode if supported. "
-    "Currently used for run command in --local mode.",
-)
 @clean_outputs
 def cli(verbose):
     """Haupt -  Lineage metadata API, artifacts streams, sandbox, ML-API, and spaces for Polyaxon.
