@@ -7,6 +7,7 @@
 
 from haupt import settings
 from haupt.proxies.schemas.base import get_config
+from haupt.proxies.schemas.urls import get_service_url
 from polyaxon.api import (
     EXTERNAL_V1_LOCATION,
     REWRITE_EXTERNAL_V1_LOCATION,
@@ -145,4 +146,56 @@ def get_services_location_config(
         resolver=resolver,
         auth="" if external else auth,
         dns_cluster_with_port=dns_cluster_with_port,
+    )
+
+
+STREAMS_OPTIONS = r"""
+location /streams/ {{
+    {auth}
+    {resolver}
+    proxy_pass {service};
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}}
+"""  # noqa
+
+
+def get_streams_location_config(resolver: str, auth: str, service: str = None):
+    service = service or get_service_url(
+        host=settings.PROXIES_CONFIG.streams_host,
+        port=settings.PROXIES_CONFIG.streams_port,
+    )
+    return get_config(
+        options=STREAMS_OPTIONS, resolver=resolver, auth=auth, service=service
+    )
+
+
+K8S_OPTIONS = r"""
+location /k8s/ {{
+    {auth}
+    {resolver}
+    proxy_pass {service};
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}}
+"""  # noqa
+
+
+def get_k8s_location_config(resolver: str, auth: str, service: str = None):
+    service = service or get_service_url(
+        host=settings.PROXIES_CONFIG.streams_host,
+        port=settings.PROXIES_CONFIG.streams_port,
+    )
+    return get_config(
+        options=K8S_OPTIONS, resolver=resolver, auth=auth, service=service
     )

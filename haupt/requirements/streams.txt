@@ -1,5 +1,8 @@
 fsspec==2022.7.1
 
+uvicorn[standard]==0.18.3
+uvloop==0.16.0
+
 aiofiles==0.8.0
 kubernetes_asyncio>=12.1.1,<22.6.0
 nbconvert>=6.5.0

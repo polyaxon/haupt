@@ -11,7 +11,7 @@ from tests.test_proxies.base import BaseProxiesTestCase
 
 
 @pytest.mark.proxies_mark
-class TestStreamsSchemas(BaseProxiesTestCase):
+class TestStreamsLocationSchemas(BaseProxiesTestCase):
     SET_PROXIES_SETTINGS = True
 
     def test_locations(self):

@@ -62,12 +62,6 @@ location = /favicon.ico {
 }
 
 
-location /healthz/ {
-    access_log off;
-    return 200 "healthy";
-}
-
-
 
 location /streams/ {
     proxy_pass http://polyaxon-polyaxon-streams;
@@ -207,6 +201,12 @@ location /static/ {
     proxy_set_header Host $http_host;
     proxy_buffering off;
 }
+
+
+location /healthz/ {
+    access_log off;
+    return 200 "healthy";
+}
 """  # noqa
         settings.PROXIES_CONFIG.auth_enabled = False
         settings.PROXIES_CONFIG.dns_use_resolver = False
@@ -256,12 +256,6 @@ location = /robots.txt {
 
 location = /favicon.ico {
     rewrite ^ /static/images/favicon.ico;
-}
-
-
-location /healthz/ {
-    access_log off;
-    return 200 "healthy";
 }
 
 
@@ -453,6 +447,12 @@ location /_admin/ {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header Host $http_host;
     proxy_buffering off;
+}
+
+
+location /healthz/ {
+    access_log off;
+    return 200 "healthy";
 }
 """  # noqa
         settings.PROXIES_CONFIG.ui_admin_enabled = True

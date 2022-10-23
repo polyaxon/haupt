@@ -8,20 +8,6 @@
 from haupt.proxies.schemas.base import get_config
 from polyaxon.api import K8S_V1_LOCATION, STREAMS_V1_LOCATION
 
-AUTH_OPTIONS = r"""
-    auth_request     {auth_api};
-    auth_request_set $auth_status $upstream_status;
-"""  # noqa
-
-
-def get_auth_config():
-    return get_config(
-        options=AUTH_OPTIONS,
-        indent=0,
-        auth_api=STREAMS_V1_LOCATION,
-    )
-
-
 K8S_LOCATION_OPTIONS = r"""
 location {app} {{
     auth_request     {streams_api}k8s/auth/;
