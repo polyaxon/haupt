@@ -36,6 +36,7 @@ def proxy(component, path, root):
         generate_api_conf(path=path, root=root)
     elif PolyaxonServices.is_streams(component):
         generate_streams_conf(path=path, root=root)
+        generate_forward_proxy_cmd(path=path)
     elif PolyaxonServices.is_gateway(component):
         generate_gateway_conf(path=path, root=root)
         generate_forward_proxy_cmd(path=path)

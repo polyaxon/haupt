@@ -6,5 +6,4 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.proxies.schemas.gateway.base import get_base_config
-from haupt.proxies.schemas.gateway.forward import get_forward_cmd
 from haupt.proxies.schemas.gateway.redirect import get_redirect_config

@@ -6,15 +6,11 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.proxies.generators.base import write_to_conf_file
-from haupt.proxies.schemas.gateway import (
-    get_base_config,
-    get_forward_cmd,
-    get_redirect_config,
-)
+from haupt.proxies.schemas.gateway import get_base_config, get_redirect_config
 from haupt.proxies.schemas.server import get_server_config
 
 
-def generate_gateway_conf(path=None, root=None):
+def generate_gateway_conf(path: str = None, root: str = None):
     write_to_conf_file(
         "polyaxon.main",
         get_server_config(root=root, use_upstream=False, use_redirect=True),
@@ -22,9 +18,3 @@ def generate_gateway_conf(path=None, root=None):
     )
     write_to_conf_file("polyaxon.base", get_base_config(), path)
     write_to_conf_file("polyaxon.redirect", get_redirect_config(), path)
-
-
-def generate_forward_proxy_cmd(path=None):
-    cmd = get_forward_cmd()
-    if cmd:
-        write_to_conf_file("forward_proxy", cmd, path, "sh")

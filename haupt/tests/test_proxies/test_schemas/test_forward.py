@@ -7,7 +7,7 @@
 import pytest
 
 from haupt import settings
-from haupt.proxies.schemas.gateway.forward import get_forward_cmd
+from haupt.proxies.schemas.forward import get_forward_cmd
 from tests.test_proxies.base import BaseProxiesTestCase
 
 

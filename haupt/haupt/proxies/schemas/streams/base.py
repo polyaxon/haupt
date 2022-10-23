@@ -16,7 +16,7 @@ from haupt.proxies.schemas.streams.api import get_api_config, get_k8s_auth_confi
 from haupt.proxies.schemas.streams.k8s import get_k8s_root_location_config
 
 
-def get_base_config(is_gateway: bool = False):
+def get_base_config(is_gateway: bool = True):
     resolver = get_resolver()
     auth = get_auth_config()
     api_configs = [

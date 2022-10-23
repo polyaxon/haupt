@@ -114,7 +114,7 @@ location /k8s/v1/ {
     proxy_buffering off;
 }
 """  # noqa
-        assert get_base_config() == expected
+        assert get_base_config(is_gateway=False) == expected
 
     def test_streams_base_config_with_gateway(self):
         expected = """
