@@ -22,15 +22,19 @@ def get_base_config(is_gateway: bool = False):
         get_api_config(),
         get_k8s_auth_config(),
     ]
+    api_location_configs = [
+        get_streams_locations_config(),
+        get_k8s_root_location_config(),
+    ]
     config = get_scaffold_config(
         is_proxy=False,
         port=settings.PROXIES_CONFIG.streams_target_port,
         use_ssl_config=is_gateway,
         use_assets_config=is_gateway,
+        use_services_configs=is_gateway,
+        resolver=resolver,
+        auth=auth,
         api_configs=api_configs,
+        api_location_configs=api_location_configs,
     )
-    config += [
-        get_streams_locations_config(),
-        get_k8s_root_location_config(),
-    ]
     return clean_config(config)

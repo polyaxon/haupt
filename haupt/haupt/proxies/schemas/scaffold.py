@@ -71,6 +71,7 @@ def get_scaffold_config(
             get_services_location_config(
                 resolver=resolver, auth=auth, rewrite=True, external=True
             ),
+            # get_plugins_location_config(resolver=resolver, auth=auth)
         ]
     if api_location_configs:
         config += api_location_configs
