@@ -165,11 +165,23 @@ location /streams/ {{
 """  # noqa
 
 
-def get_streams_location_config(resolver: str, auth: str, service: str = None):
-    service = service or get_service_url(
-        host=settings.PROXIES_CONFIG.streams_host,
-        port=settings.PROXIES_CONFIG.streams_port,
+def get_streams_service(is_local_service: bool = False) -> str:
+    return (
+        "http://polyaxon"
+        if is_local_service
+        else get_service_url(
+            host=settings.PROXIES_CONFIG.streams_host,
+            port=settings.PROXIES_CONFIG.streams_port,
+        )
     )
+
+
+def get_streams_location_config(
+    resolver: str, auth: str, is_local_service: bool = False
+):
+    service = get_streams_service(is_local_service)
+    # Do not use resolve local streams service
+    resolver = "" if is_local_service else resolver
     return get_config(
         options=STREAMS_OPTIONS, resolver=resolver, auth=auth, service=service
     )
@@ -191,11 +203,10 @@ location /k8s/ {{
 """  # noqa
 
 
-def get_k8s_location_config(resolver: str, auth: str, service: str = None):
-    service = service or get_service_url(
-        host=settings.PROXIES_CONFIG.streams_host,
-        port=settings.PROXIES_CONFIG.streams_port,
-    )
+def get_k8s_location_config(resolver: str, auth: str, is_local_service: bool = False):
+    service = get_streams_service(is_local_service)
+    # Do not use resolve local streams service
+    resolver = "" if is_local_service else resolver
     return get_config(
         options=K8S_OPTIONS, resolver=resolver, auth=auth, service=service
     )
