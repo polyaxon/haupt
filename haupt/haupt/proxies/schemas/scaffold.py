@@ -36,6 +36,7 @@ def get_scaffold_config(
     api_configs: List[str] = None,
     api_location_configs: List[str] = None,
     is_local_streams_service: bool = False,
+    is_local_auth_service: bool = False,
 ) -> List[str]:
     config = [get_listen_config(is_proxy=is_proxy, port=port)]
     if use_ssl_config and settings.PROXIES_CONFIG.ssl_enabled:
@@ -57,7 +58,9 @@ def get_scaffold_config(
         ]
     if use_services_configs:
         config += [
-            get_auth_location_config(resolver=resolver),
+            get_auth_location_config(
+                resolver=resolver, is_local_service=is_local_auth_service
+            ),
             get_streams_location_config(
                 resolver=resolver, auth=auth, is_local_service=is_local_streams_service
             ),

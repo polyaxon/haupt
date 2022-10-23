@@ -103,3 +103,18 @@ def get_streams_locations_config():
         get_archives_root_location_config(),
     ]
     return "\n".join(config)
+
+
+def get_platform_locations_config():
+    if settings.PROXIES_CONFIG.static_url and has_https(
+        settings.PROXIES_CONFIG.static_url
+    ):
+        static_location = get_static_proxy_config()
+    else:
+        static_location = get_static_location_config()
+    config = [
+        static_location,
+        get_tmp_location_config(),
+        get_archives_root_location_config(),
+    ]
+    return "\n".join(config)

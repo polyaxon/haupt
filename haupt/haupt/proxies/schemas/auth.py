@@ -47,12 +47,17 @@ location = {auth_api} {{
 """
 
 
-def get_auth_location_config(resolver: str):
-    service = settings.PROXIES_CONFIG.auth_external or get_service_url(
-        host=settings.PROXIES_CONFIG.api_host,
-        port=settings.PROXIES_CONFIG.api_port,
-    )
-    if not settings.PROXIES_CONFIG.auth_use_resolver:
+def get_auth_location_config(resolver: str, is_local_service: bool = False):
+    if settings.PROXIES_CONFIG.auth_external:
+        service = settings.PROXIES_CONFIG.auth_external
+    elif is_local_service:
+        service = "http://polyaxon"
+    else:
+        service = get_service_url(
+            host=settings.PROXIES_CONFIG.api_host,
+            port=settings.PROXIES_CONFIG.api_port,
+        )
+    if is_local_service or not settings.PROXIES_CONFIG.auth_use_resolver:
         resolver = ""
     header_host = get_header_host(service)
     if settings.PROXIES_CONFIG.has_forward_proxy:

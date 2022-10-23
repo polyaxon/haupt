@@ -16,6 +16,7 @@ def get_base_config():
     api_configs = [
         get_uwsgi_config(),
     ]
+    api_location_configs = [get_api_locations_config()]
     config = get_scaffold_config(
         is_proxy=False,
         port=settings.PROXIES_CONFIG.api_target_port,
@@ -23,9 +24,7 @@ def get_base_config():
         use_assets_config=True,
         use_services_configs=False,
         api_configs=api_configs,
-        api_location_configs=[
-            get_api_locations_config(),
-        ],
+        api_location_configs=api_location_configs,
     )
 
     return clean_config(config)

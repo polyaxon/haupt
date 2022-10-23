@@ -12,7 +12,7 @@ from haupt.proxies.schemas.dns import get_resolver
 from haupt.proxies.schemas.gateway.api import get_api_location_config
 from haupt.proxies.schemas.locations import get_streams_locations_config
 from haupt.proxies.schemas.scaffold import get_scaffold_config
-from haupt.proxies.schemas.streams.api import get_api_config, get_k8s_auth_config
+from haupt.proxies.schemas.streams.api import get_k8s_auth_config, get_streams_config
 from haupt.proxies.schemas.streams.k8s import get_k8s_root_location_config
 
 
@@ -20,7 +20,7 @@ def get_base_config(is_gateway: bool = True):
     resolver = get_resolver()
     auth = get_auth_config()
     api_configs = [
-        get_api_config(),
+        get_streams_config(),
         get_k8s_auth_config(),
     ]
     api_location_configs = [
