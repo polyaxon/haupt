@@ -7,7 +7,11 @@
 
 from haupt.common.config_manager import ConfigManager
 from polyaxon.api import STATIC_V1
-from polyaxon.env_vars.keys import EV_KEYS_STATIC_URL
+from polyaxon.env_vars.keys import (
+    EV_KEYS_ARTIFACTS_ROOT,
+    EV_KEYS_STATIC_ROOT,
+    EV_KEYS_STATIC_URL,
+)
 
 
 def set_assets(context, root_dir, config: ConfigManager):
@@ -18,7 +22,7 @@ def set_assets(context, root_dir, config: ConfigManager):
         "POLYAXON_MEDIA_URL", is_optional=True, default=""
     )
 
-    context["STATIC_ROOT"] = config.get_string("POLYAXON_STATIC_ROOT")
+    context["STATIC_ROOT"] = config.get_string(EV_KEYS_STATIC_ROOT)
     context["STATIC_URL"] = config.get_string(
         EV_KEYS_STATIC_URL,
         is_optional=True,
@@ -42,12 +46,9 @@ def set_assets(context, root_dir, config: ConfigManager):
     context["STATICI18N_OUTPUT_DIR"] = "jsi18n"
 
     context["ARTIFACTS_ROOT"] = config.get_string(
-        "POLYAXON_ARTIFACTS_ROOT",
+        EV_KEYS_ARTIFACTS_ROOT,
         is_optional=True,
         default="/tmp/plx/artifacts_uploads",
-    )
-    context["LOGS_ROOT"] = config.get_string(
-        "POLYAXON_LOGS_ROOT", is_optional=True, default="/tmp/plx/logs_uploads"
     )
     context["ARCHIVES_ROOT"] = config.get_string(
         "POLYAXON_ARCHIVES_ROOT", is_optional=True, default="/tmp/plx/archives"

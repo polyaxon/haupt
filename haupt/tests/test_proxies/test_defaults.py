@@ -37,7 +37,7 @@ class TestSettings(BaseProxiesTestCase):
         assert settings.PROXIES_CONFIG.nginx_indent_width == 4
         assert settings.PROXIES_CONFIG.ssl_path == "/etc/ssl/polyaxon"
         assert settings.PROXIES_CONFIG.ssl_enabled is False
-        assert settings.PROXIES_CONFIG.archive_root == ctx_paths.CONTEXT_ARCHIVE_ROOT
+        assert settings.PROXIES_CONFIG.archives_root == ctx_paths.CONTEXT_ARCHIVES_ROOT
         assert settings.PROXIES_CONFIG.ssl_path == "/etc/ssl/polyaxon"
         assert settings.PROXIES_CONFIG.ssl_enabled is False
         assert settings.PROXIES_CONFIG.auth_enabled is False

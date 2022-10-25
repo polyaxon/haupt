@@ -31,7 +31,6 @@ class BaseTest(PolyaxonBaseTest):
         )
 
         settings.ARTIFACTS_ROOT = tempfile.mkdtemp()
-        settings.LOGS_ROOT = tempfile.mkdtemp()
         settings.ARCHIVES_ROOT = tempfile.mkdtemp()
         self.client = BaseClient()
         self.user = UserFactory()

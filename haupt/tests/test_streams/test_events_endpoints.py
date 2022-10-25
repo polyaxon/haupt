@@ -81,10 +81,10 @@ class TestEventsEndpoints(BaseTest):
 
     def test_download_events_cached(self):
         filepath1 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text1.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text1.plx"
         )
         filepath2 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text2.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text2.plx"
         )
         assert os.path.exists(filepath1) is False
         assert os.path.exists(filepath2) is False
@@ -100,7 +100,7 @@ class TestEventsEndpoints(BaseTest):
         assert os.path.exists(filepath2) is True
 
         shutil.rmtree(
-            os.path.join(settings.CLIENT_CONFIG.archive_root, "uuid", "events")
+            os.path.join(settings.CLIENT_CONFIG.archives_root, "uuid", "events")
         )
         response = self.client.get(self.base_url + "/text?names=text1,text2&orient=csv")
         assert response.status_code == 200
@@ -109,10 +109,10 @@ class TestEventsEndpoints(BaseTest):
 
     def test_download_events_cached_force(self):
         filepath1 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text1.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text1.plx"
         )
         filepath2 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text2.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text2.plx"
         )
         assert os.path.exists(filepath1) is False
         assert os.path.exists(filepath2) is False
@@ -131,10 +131,10 @@ class TestEventsEndpoints(BaseTest):
 
     def test_download_text_events_as_csv(self):
         filepath1 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text1.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text1.plx"
         )
         filepath2 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text2.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text2.plx"
         )
         assert os.path.exists(filepath1) is False
         assert os.path.exists(filepath2) is False
@@ -183,10 +183,10 @@ class TestEventsEndpoints(BaseTest):
 
     def test_download_html_events_as_csv(self):
         filepath1 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "html", "html1.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "html", "html1.plx"
         )
         filepath2 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "html", "html2.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "html", "html2.plx"
         )
         assert os.path.exists(filepath1) is False
         assert os.path.exists(filepath2) is False
@@ -235,10 +235,10 @@ class TestEventsEndpoints(BaseTest):
 
     def test_download_text_events_as_dict(self):
         filepath1 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text1.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text1.plx"
         )
         filepath2 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "text", "text2.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "text", "text2.plx"
         )
         assert os.path.exists(filepath1) is False
         assert os.path.exists(filepath2) is False
@@ -293,10 +293,10 @@ class TestEventsEndpoints(BaseTest):
 
     def test_download_html_events_as_dict(self):
         filepath1 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "html", "html1.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "html", "html1.plx"
         )
         filepath2 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid", "events", "html", "html2.plx"
+            settings.CLIENT_CONFIG.archives_root, "uuid", "events", "html", "html2.plx"
         )
         assert os.path.exists(filepath1) is False
         assert os.path.exists(filepath2) is False
@@ -412,28 +412,28 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
     def test_download_multi_metric_events_cached(self):
         filepath11 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
@@ -461,7 +461,7 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         assert os.path.exists(filepath21) is True
         assert os.path.exists(filepath22) is True
 
-        shutil.rmtree(os.path.join(settings.CLIENT_CONFIG.archive_root, "uuid1"))
+        shutil.rmtree(os.path.join(settings.CLIENT_CONFIG.archives_root, "uuid1"))
         response = self.client.get(
             self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict"
         )
@@ -473,28 +473,28 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
     def test_download_multi_metric_events_cached_force(self):
         filepath11 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
@@ -525,28 +525,28 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
     def test_download_multi_metric_events_as_dict(self):
         filepath11 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
@@ -647,28 +647,28 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
     def test_download_multi_metric_events_as_csv(self):
         filepath11 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid1",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
-            settings.CLIENT_CONFIG.archive_root,
+            settings.CLIENT_CONFIG.archives_root,
             "uuid2",
             "events",
             "metric",

@@ -10,7 +10,7 @@ from marshmallow import EXCLUDE, fields, validate
 from polyaxon.api import STATIC_V1
 from polyaxon.contexts import paths as ctx_paths
 from polyaxon.env_vars.keys import (
-    EV_KEYS_ARCHIVE_ROOT,
+    EV_KEYS_ARCHIVES_ROOT,
     EV_KEYS_DNS_BACKEND,
     EV_KEYS_DNS_CUSTOM_CLUSTER,
     EV_KEYS_DNS_PREFIX,
@@ -91,7 +91,7 @@ class ProxiesSchema(BaseSchema):
     nginx_indent_width = fields.Int(
         allow_none=True, data_key=EV_KEYS_NGINX_INDENT_WIDTH
     )
-    archive_root = fields.Str(allow_none=True, data_key=EV_KEYS_ARCHIVE_ROOT)
+    archives_root = fields.Str(allow_none=True, data_key=EV_KEYS_ARCHIVES_ROOT)
     static_root = fields.Str(allow_none=True, data_key=EV_KEYS_STATIC_ROOT)
     static_url = fields.Str(allow_none=True, data_key=EV_KEYS_STATIC_URL)
     ui_admin_enabled = fields.Bool(allow_none=True, data_key=EV_KEYS_UI_ADMIN_ENABLED)
@@ -146,7 +146,7 @@ class ProxiesConfig(BaseConfig):
         EV_KEYS_NGINX_INDENT_WIDTH,
         EV_KEYS_K8S_NAMESPACE,
         EV_KEYS_LOG_LEVEL,
-        EV_KEYS_ARCHIVE_ROOT,
+        EV_KEYS_ARCHIVES_ROOT,
         EV_KEYS_STATIC_ROOT,
         EV_KEYS_STATIC_URL,
         EV_KEYS_UI_ADMIN_ENABLED,
@@ -184,7 +184,7 @@ class ProxiesConfig(BaseConfig):
         log_level=None,
         ssl_enabled=None,
         ssl_path=None,
-        archive_root=None,
+        archives_root=None,
         static_root=None,
         static_url=None,
         ui_admin_enabled=None,
@@ -221,7 +221,7 @@ class ProxiesConfig(BaseConfig):
         self.log_level = log_level or "warn"
         self.log_level = self.log_level.lower()
         self.ssl_path = ssl_path or "/etc/ssl/polyaxon"
-        self.archive_root = archive_root or ctx_paths.CONTEXT_ARCHIVE_ROOT
+        self.archives_root = archives_root or ctx_paths.CONTEXT_ARCHIVES_ROOT
         self.static_root = static_root or "/{}".format(STATIC_V1)
         self.static_url = static_url
         self.ui_admin_enabled = ui_admin_enabled

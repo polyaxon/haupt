@@ -26,7 +26,7 @@ class TestArtifactEndpoints(BaseTest):
         create_tmp_files(self.run_path)
         # Archive path
         self.archive_run_path = os.path.join(
-            settings.CLIENT_CONFIG.archive_root, "uuid"
+            settings.CLIENT_CONFIG.archives_root, "uuid"
         )
 
         self.base_url = (

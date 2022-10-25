@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from cli.runners.base import start_app
+from haupt.cli.runners.base import start_app
 from polyaxon.services.values import PolyaxonServices
 
 

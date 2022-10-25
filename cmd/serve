@@ -3,12 +3,12 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ROOT_DIR=$( cd $DIR/.. && pwd )
 
 if [ $? -eq 0 ]; then
-    if [ -z "$1" ]; then
-        echo "Coming soon"
+    if [ "$1" = "local-sqlite" ]; then
+        POLYAXON_PLATFORM_CONFIG="$ROOT_DIR/.docker/local.yaml" POLYAXON_DB_ENGINE="sqlite" POLYAXON_STATICFILES_DIRS="/Users/mourad/plx-wkpace/ee/polyaxon/static/v1" POLYAXON_DB_NAME="/tmp/db" haupt -v sandbox --workers 1
     elif [ "$1" = "container-pgsql" ]; then
         docker-compose -f docker-compose.test.pgsql.yml run --publish 8000:8000 -w /haupt/haupt api "cd haupt && uvicorn polyconf.asgi:application --port 8000 --host 0.0.0.0"
     elif [ "$1" = "nginx-sqlite" ]; then
-        echo "Coming soon"
+        docker-compose -f docker-compose.test.sqlite.yml run --publish 8000:8000 -w /haupt/haupt api "cd haupt && uvicorn polyconf.asgi:application --port 8000 --host 0.0.0.0"
     elif [ "$1" = "nginx-pgsql" ]; then
         echo "Coming soon"
     elif [ "$1" = "streams-nginx" ]; then

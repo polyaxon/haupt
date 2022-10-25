@@ -82,7 +82,7 @@ def get_archives_root_location_config():
     return get_config(
         options=ARCHIVES_LOCATION_OPTIONS,
         indent=0,
-        archives_root=settings.PROXIES_CONFIG.archive_root.rstrip("/") + "/",
+        archives_root=settings.PROXIES_CONFIG.archives_root.rstrip("/") + "/",
     )
 
 

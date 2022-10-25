@@ -29,7 +29,7 @@ class TestArtifactsEndpoints(BaseTest):
         )
 
     def test_download_artifacts(self):
-        filepath = os.path.join(settings.CLIENT_CONFIG.archive_root, "uuid.tar.gz")
+        filepath = os.path.join(settings.CLIENT_CONFIG.archives_root, "uuid.tar.gz")
         assert os.path.exists(filepath) is False
         response = self.client.get(self.base_url)
         assert response.status_code == 200
