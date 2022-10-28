@@ -96,6 +96,16 @@
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
   {% endif %}
+  {% if ui_in_sandbox %}
+  <script src="{% static 'dist/sandjs/0.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/1.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/2.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/3.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/4.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/5.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/6.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  <script src="{% static 'dist/sandjs/7.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  {% else %}
   <script src="{% static 'dist/js/0.bundle.js' %}?version={{ ui_assets_version }}"></script>
   <script src="{% static 'dist/js/1.bundle.js' %}?version={{ ui_assets_version }}"></script>
   <script src="{% static 'dist/js/2.bundle.js' %}?version={{ ui_assets_version }}"></script>
@@ -104,6 +114,7 @@
   <script src="{% static 'dist/js/5.bundle.js' %}?version={{ ui_assets_version }}"></script>
   <script src="{% static 'dist/js/6.bundle.js' %}?version={{ ui_assets_version }}"></script>
   <script src="{% static 'dist/js/7.bundle.js' %}?version={{ ui_assets_version }}"></script>
+  {% endif %}
   {% endif %}
 </body>
 

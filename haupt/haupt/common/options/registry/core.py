@@ -21,6 +21,7 @@ UI_ASSETS_VERSION = "UI_ASSETS_VERSION"
 UI_BASE_URL = "UI_BASE_URL"
 UI_OFFLINE = "UI_OFFLINE"
 UI_ENABLED = "UI_ENABLED"
+UI_IN_SANDBOX = "UI_IN_SANDBOX"
 
 OPTIONS = {
     LOGGING,
@@ -36,6 +37,7 @@ OPTIONS = {
     UI_BASE_URL,
     UI_OFFLINE,
     UI_ENABLED,
+    UI_IN_SANDBOX,
 }
 
 
@@ -185,6 +187,18 @@ class UiOffline(Option):
 
 class UiEnabled(Option):
     key = UI_ENABLED
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    store = OptionStores.SETTINGS
+    typing = types.BOOL
+    default = False
+    options = None
+
+
+class UiInSandbox(Option):
+    key = UI_IN_SANDBOX
     scope = OptionScope.GLOBAL
     is_secret = False
     is_optional = True

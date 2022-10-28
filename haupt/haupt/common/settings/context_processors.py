@@ -11,6 +11,7 @@ from haupt.common.options.registry.core import (
     UI_ASSETS_VERSION,
     UI_BASE_URL,
     UI_ENABLED,
+    UI_IN_SANDBOX,
     UI_OFFLINE,
 )
 
@@ -35,3 +36,7 @@ def ui_offline(request):
 
 def ui_enabled(request):
     return {"ui_enabled": conf.get(UI_ENABLED)}
+
+
+def ui_in_sandbox(request):
+    return {"ui_in_sandbox": conf.get(UI_IN_SANDBOX)}

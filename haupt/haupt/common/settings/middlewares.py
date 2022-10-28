@@ -19,3 +19,5 @@ def set_middlewares(context, config: ConfigManager):
         "django.contrib.messages.middleware.MessageMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     )
+    if context["UI_IN_SANDBOX"]:
+        context["MIDDLEWARE"] += ("whitenoise.middleware.WhiteNoiseMiddleware",)

@@ -13,6 +13,7 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_UI_ASSETS_VERSION,
     EV_KEYS_UI_BASE_URL,
     EV_KEYS_UI_ENABLED,
+    EV_KEYS_UI_IN_SANDBOX,
     EV_KEYS_UI_OFFLINE,
 )
 
@@ -56,6 +57,7 @@ def set_api(context, config: ConfigManager, processors: List[str] = None):
         "haupt.common.settings.context_processors.ui_base_url",
         "haupt.common.settings.context_processors.ui_offline",
         "haupt.common.settings.context_processors.ui_enabled",
+        "haupt.common.settings.context_processors.ui_in_sandbox",
     ] + processors
 
     context["FRONTEND_DEBUG"] = config.get_boolean(
@@ -83,6 +85,9 @@ def set_api(context, config: ConfigManager, processors: List[str] = None):
     )
     context["UI_ENABLED"] = config.get_boolean(
         EV_KEYS_UI_ENABLED, is_optional=True, default=True
+    )
+    context["UI_IN_SANDBOX"] = config.get_boolean(
+        EV_KEYS_UI_IN_SANDBOX, is_optional=True, default=False
     )
     context["TEMPLATES_DEBUG"] = template_debug
     context["LIST_TEMPLATE_CONTEXT_PROCESSORS"] = processors
