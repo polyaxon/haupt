@@ -11,10 +11,10 @@ from django.test import TestCase
 
 from haupt.common.events.registry import run as run_events
 from haupt.common.test_cases.fixtures import get_fxt_job_with_inputs
-from haupt.db import operations
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
+from haupt.orchestration import operations
 from polyaxon.constants.metadata import META_COPY_ARTIFACTS, META_UPLOAD_ARTIFACTS
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification

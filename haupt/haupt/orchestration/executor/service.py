@@ -7,8 +7,8 @@
 
 from haupt.common.events.event_service import EventService
 from haupt.common.events.registry import run
-from haupt.db.executor.handlers import run as run_handlers
-from haupt.db.executor.manager import event_manager
+from haupt.orchestration.executor.handlers import run as run_handlers
+from haupt.orchestration.executor.manager import event_manager
 from polyaxon.utils.imports import import_string
 
 
@@ -37,7 +37,7 @@ class ExecutorService(EventService):
     def setup(self) -> None:
         super().setup()
         # Load default event types
-        import haupt.db.executor.subscriptions  # noqa
+        import haupt.orchestration.executor.subscriptions  # noqa
 
         if self.workers_service:
             self.workers = import_string(self.workers_service)

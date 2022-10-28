@@ -9,11 +9,11 @@ from mock import MagicMock, patch
 
 from django.test import TestCase
 
+from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.common import auditor
-from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.common.events.registry import run as run_events
-from haupt.db import executor
-from haupt.db.executor.handlers.run import (
+from haupt.orchestration import executor
+from haupt.orchestration.executor.handlers.run import (
     handle_run_created,
     handle_run_stopped_triggered,
 )
@@ -36,7 +36,7 @@ class TestExecutorRecord(TestCase):
     def setUp(self):
         super().setUp()
         from haupt.common.events import auditor_subscriptions  # noqa
-        from haupt.db.executor import subscriptions  # noqa
+        from haupt.orchestration.executor import subscriptions  # noqa
 
         executor.validate_and_setup()
         auditor.validate_and_setup()
@@ -44,7 +44,7 @@ class TestExecutorRecord(TestCase):
         self.owner = MagicMock(id=1, name="owner")
         self.project = MagicMock(id=1, owner=self.owner, name="project")
 
-    @patch("haupt.db.executor.service.ExecutorService.record")
+    @patch("haupt.orchestration.executor.service.ExecutorService.record")
     def test_create_run_creation_is_recorded_by_executor(self, executor_record):
         run = MagicMock(project=self.project)
         auditor.record(run_events.RUN_CREATED, instance=run)
@@ -57,7 +57,7 @@ class TestExecutorHandlers(TestCase):
     def setUp(self):
         super().setUp()
         from haupt.common.events import auditor_subscriptions  # noqa
-        from haupt.db.executor import subscriptions  # noqa
+        from haupt.orchestration.executor import subscriptions  # noqa
 
         auditor.validate_and_setup()
         self.user = MagicMock(id=1)

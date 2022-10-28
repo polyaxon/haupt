@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.common.events.registry import run
-from haupt.db import executor
+from haupt.orchestration import executor
 
 executor.subscribe(run.RunCreatedEvent)
 executor.subscribe(run.RunResumedActorEvent)

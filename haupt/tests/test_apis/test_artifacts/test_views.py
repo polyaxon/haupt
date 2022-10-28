@@ -15,7 +15,7 @@ from rest_framework import status
 
 from django.db import IntegrityError
 
-from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.db.api.artifacts.serializers import (
     RunArtifactNameSerializer,
     RunArtifactSerializer,

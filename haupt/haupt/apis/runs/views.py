@@ -27,7 +27,6 @@ from haupt.common.events.registry.run import (
     RUN_STOPPED_ACTOR,
 )
 from haupt.common.options.registry.k8s import K8S_NAMESPACE
-from haupt.db import operations
 from haupt.db.api.runs import methods
 from haupt.db.api.runs.serializers import (
     RunDetailSerializer,
@@ -36,6 +35,7 @@ from haupt.db.api.runs.serializers import (
 )
 from haupt.db.queries import runs as runs_queries
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_DEFER
+from haupt.orchestration import operations
 from polyaxon.lifecycle import LifeCycle
 
 

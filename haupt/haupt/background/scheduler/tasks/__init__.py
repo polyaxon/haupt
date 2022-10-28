@@ -5,6 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import get_config
 
-config = get_config(file_path=__file__, config_prefix="haupt")
+from polyaxon.utils.imports import import_submodules
+
+import_submodules(globals(), __name__, __path__)

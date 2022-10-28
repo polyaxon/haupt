@@ -8,12 +8,15 @@
 from django.conf import settings
 
 from haupt.common.service_interface import LazyServiceWrapper
-from haupt.db.executor.manager import event_manager
-from haupt.db.executor.service import ExecutorService
+from haupt.orchestration.executor.manager import event_manager
+from haupt.orchestration.executor.service import ExecutorService
 
 
 def get_executor_backend_path():
-    return settings.EXECUTOR_BACKEND or "haupt.db.executor.service.ExecutorService"
+    return (
+        settings.EXECUTOR_BACKEND
+        or "haupt.orchestration.executor.service.ExecutorService"
+    )
 
 
 def get_executor_options():

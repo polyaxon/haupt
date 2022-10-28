@@ -7,8 +7,8 @@
 
 from django.db import transaction
 
-from haupt.common.celeryp.app import app
-from haupt.common.celeryp.polyaxon_task import HauptTask
+from haupt.background.celeryp.app import app
+from haupt.background.celeryp.polyaxon_task import HauptTask
 
 app.Task = HauptTask  # Custom base class for logging
 

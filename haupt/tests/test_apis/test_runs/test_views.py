@@ -11,14 +11,14 @@ from unittest.mock import patch
 
 from rest_framework import status
 
-from haupt.common.celeryp.tasks import CoreSchedulerCeleryTasks
-from haupt.db import operations
+from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.db.api.project_resources.serializers import RunSerializer
 from haupt.db.api.runs.serializers import RunDetailSerializer, RunStatusSerializer
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
+from haupt.orchestration import operations
 from polyaxon import live_state
 from polyaxon.api import API_V1
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses

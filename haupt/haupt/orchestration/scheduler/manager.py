@@ -18,7 +18,7 @@ from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.managers.artifacts import atomic_set_artifacts
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
-from haupt.db.scheduler import resolver
+from haupt.orchestration.scheduler import resolver
 from kubernetes.client.rest import ApiException
 from polyaxon import operations, settings
 from polyaxon.agents import manager
