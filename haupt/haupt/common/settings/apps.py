@@ -17,6 +17,7 @@ def set_apps(
     project_apps: Tuple,
     db_app: str = None,
     use_db_apps: bool = True,
+    use_admin_apps: bool = False,
     use_staticfiles_app: bool = True,
 ):
 
@@ -33,6 +34,11 @@ def set_apps(
             "django.contrib.sessions",
             "django.contrib.messages",
         )
+        if use_admin_apps:
+            apps += (
+                "django.contrib.admin",
+                "django.contrib.admindocs",
+            )
 
     if use_staticfiles_app:
         apps += ("django.contrib.staticfiles",)

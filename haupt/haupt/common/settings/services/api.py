@@ -26,8 +26,6 @@ def set_api_service(
 ):
     project_apps = (
         "haupt.common.apis.apps.CommonApisConfig",
-        "django.contrib.admin",
-        "django.contrib.admindocs",
         "haupt.common.commands.apps.CommandsConfig",
     ) + api_apps
     set_apps(
@@ -37,6 +35,7 @@ def set_api_service(
         project_apps=project_apps,
         db_app=db_app,
         use_db_apps=True,
+        use_admin_apps=True,
         use_staticfiles_app=True,
     )
     set_core(context=context, config=config, use_db=True)
