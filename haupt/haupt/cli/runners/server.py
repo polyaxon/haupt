@@ -25,4 +25,6 @@ def start(
         workers=workers,
         per_core=per_core,
         uds=uds,
+        migrate_tables=True,
+        migrate_db=True,
     )

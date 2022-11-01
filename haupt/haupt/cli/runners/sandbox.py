@@ -29,4 +29,6 @@ def start(
         workers=workers or settings.SANDBOX_CONFIG.workers,
         per_core=per_core or settings.SANDBOX_CONFIG.per_core,
         uds=uds,
+        migrate_tables=True,
+        migrate_db=True,
     )

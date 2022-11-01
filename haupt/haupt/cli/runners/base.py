@@ -14,6 +14,21 @@ from polyaxon.utils.workers_utils import get_core_workers
 _logger = logging.getLogger("haupt.cli")
 
 
+def migrate(
+    migrate_tables: bool = False,
+    migrate_db: bool = False,
+):
+    from django.core.management import execute_from_command_line
+
+    if migrate_tables:
+        argv = ["manage.py", "tables"]
+        execute_from_command_line(argv)
+
+    if migrate_db:
+        argv = ["manage.py", "migrate"]
+        execute_from_command_line(argv)
+
+
 def start_app(
     app,
     app_name,
@@ -23,7 +38,10 @@ def start_app(
     workers: int = None,
     per_core: bool = False,
     uds: str = None,
+    migrate_tables: bool = False,
+    migrate_db: bool = False,
 ):
+    migrate(migrate_tables=migrate_tables, migrate_db=migrate_db)
     host = host or "0.0.0.0"
     port = int(port or 8000)
     log_level = log_level or "warning"
