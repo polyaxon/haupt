@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+import os
 
 import click
 
@@ -23,6 +24,7 @@ def cli(verbose):
 
     Check the help available for each command listed below by appending `-h`.
     """
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
     configure_logger(verbose)
 
 
