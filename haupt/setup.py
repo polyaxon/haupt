@@ -49,17 +49,17 @@ with open("requirements/dev.txt") as requirements_file:
 with open("requirements/fs.txt") as requirements_file:
     fs_requirements = requirements_file.read().splitlines()
 
+with open("requirements/streams.txt") as requirements_file:
+    stream_requirements = requirements_file.read().splitlines()
+
 if os.environ.get("USE_PROD_PACKAGES"):
     with open("requirements/prod.txt") as requirements_file:
         requirements += requirements_file.read().splitlines()
 
-if os.environ.get("USE_STREAMS_PACKAGES"):
-    with open("requirements/streams.txt") as requirements_file:
-        requirements += requirements_file.read().splitlines()
-
 extra = {
-    "fs": fs_requirements,
     "platform": platform_requirements,
+    "fs": fs_requirements,
+    "streams": stream_requirements,
     "dev": dev_requirements,
 }
 
