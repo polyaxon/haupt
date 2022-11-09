@@ -77,6 +77,7 @@ setup(
     license=pkg["LICENSE"],
     platforms="any",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    include_package_data=True,
     keywords=[
         "polyaxon",
         "aws",
