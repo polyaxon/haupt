@@ -203,7 +203,7 @@ def get_config(file_path, config_prefix: str = None):
     def base_directory():
         root = Path(os.path.abspath(file_path))
         root.resolve()
-        return root.parent.parent.parent
+        return root.parent.parent
 
     root_dir = base_directory()
 

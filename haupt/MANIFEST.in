@@ -4,6 +4,7 @@ prune tests
 prune __pycache__
 recursive-include haupt/common/apis/templates *
 recursive-include haupt/background/queues *
+recursive-include haupt/static *
 include ../README.md
 include ../LICENSE
 include ../CONTRIBUTING.md
