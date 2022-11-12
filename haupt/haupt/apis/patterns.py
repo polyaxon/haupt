@@ -77,4 +77,6 @@ app_urlpatterns = [
 handler404 = handler404
 handler403 = handler403
 handler500 = handler500
-urlpatterns = get_urlpatterns(app_urlpatterns, ui_urlpatterns)
+urlpatterns = get_urlpatterns(
+    app_patterns=app_urlpatterns, no_healthz=False, ui_urlpatterns=ui_urlpatterns
+)

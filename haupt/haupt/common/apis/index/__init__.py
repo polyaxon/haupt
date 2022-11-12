@@ -17,7 +17,6 @@ from haupt.common.apis.index.errors import (
     Handler403View,
     Handler404View,
 )
-from haupt.common.apis.index.health import HealthView
 from haupt.common.apis.index.views import IndexView
 from haupt.common.options.registry.core import UI_ADMIN_ENABLED
 from polyaxon.api import ADMIN_V1, UI_V1
@@ -48,13 +47,23 @@ def get_ui_urlpatterns(ui_urlpatterns):
     ]
 
 
-def get_urlpatterns(app_patterns: List, ui_urlpatterns: List = None):
+def get_base_health_urlpatterns():
+    from haupt.common.apis.index.health import HealthView
+
+    return [
+        re_path(r"^healthz/?$", HealthView.as_view(), name="health_check"),
+    ]
+
+
+def get_urlpatterns(
+    app_patterns: List, no_healthz: bool = False, ui_urlpatterns: List = None
+):
     if conf.get(UI_ADMIN_ENABLED):
         app_patterns += [re_path(r"^{}/".format(ADMIN_V1), admin.site.urls)]
 
-    urlpatterns = app_patterns + [
-        re_path(r"^healthz/?$", HealthView.as_view(), name="health_check"),
-    ]
+    urlpatterns = app_patterns
+    if not no_healthz:
+        get_base_health_urlpatterns()
     if ui_urlpatterns:
         urlpatterns += get_ui_urlpatterns(ui_urlpatterns)
 
