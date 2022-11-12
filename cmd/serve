@@ -11,6 +11,8 @@ if [ $? -eq 0 ]; then
         docker-compose -f docker-compose.test.sqlite.yml run --publish 8000:8000 -w /haupt/haupt api "cd haupt && uvicorn polyconf.asgi:application --port 8000 --host 0.0.0.0"
     elif [ "$1" = "nginx-pgsql" ]; then
         echo "Coming soon"
+    elif [ "$1" = "streams" ]; then
+        POLYAXON_PLATFORM_CONFIG="$ROOT_DIR/.docker/streams.yaml" haupt -v streams --workers 1
     elif [ "$1" = "streams-nginx" ]; then
         echo "Coming soon"
     fi

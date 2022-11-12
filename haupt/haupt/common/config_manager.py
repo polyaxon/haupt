@@ -32,7 +32,9 @@ class ConfigManager(BaseConfigManager):
         self._is_debug_mode = self.get_boolean(
             EV_KEYS_DEBUG, is_optional=True, default=False
         )
-        self._db_engine_name = self.get_string("POLYAXON_DB_ENGINE", default="pgsql")
+        self._db_engine_name = self.get_string(
+            "POLYAXON_DB_ENGINE", default="pgsql", is_optional=True
+        )
         self._namespace = self.get_string("POLYAXON_K8S_NAMESPACE", is_optional=True)
         self._log_level = self.get_string(
             EV_KEYS_LOG_LEVEL, is_local=True, is_optional=True, default="WARNING"
