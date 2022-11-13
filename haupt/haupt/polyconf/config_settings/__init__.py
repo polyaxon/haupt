@@ -15,13 +15,7 @@ from haupt.common.settings.secrets import set_secrets
 from haupt.polyconf.config_manager import config
 
 context = locals()
-set_logging(
-    context=context,
-    root_dir=config.config_root_dir,
-    log_level=config.log_level,
-    log_handlers=config.log_handlers,
-    debug=config.is_debug_mode,
-)
+set_logging(context=context, config=config)
 set_admin(context=context, config=config)
 set_secrets(context=context, config=config)
 if config.is_streams_service:

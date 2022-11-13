@@ -9,11 +9,17 @@ import os
 
 from typing import Dict
 
+from haupt.common.config_manager import ConfigManager
+from polyaxon.env_vars.keys import EV_KEYS_LOGS_ROOT
+
 
 def set_logging(
-    context, root_dir: str, log_level: str, log_handlers, debug=False
+    context,
+    config: ConfigManager,
 ) -> Dict:
-    log_dir = root_dir / "logs"
+    log_dir = config.get_string(
+        EV_KEYS_LOGS_ROOT, is_optional=True, default="/tmp/logs"
+    )
     context["LOG_DIRECTORY"] = log_dir
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
@@ -35,7 +41,7 @@ def set_logging(
         },
         "handlers": {
             "logfile": {
-                "level": log_level,
+                "level": config.log_level,
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": "{}/polyaxon_{}.log".format(log_dir, os.getpid()),
                 "maxBytes": 1024 * 1024 * 8,  # 8 MByte
@@ -43,7 +49,7 @@ def set_logging(
                 "formatter": "standard",
             },
             "console": {
-                "level": log_level,
+                "level": config.log_level,
                 "class": "logging.StreamHandler",
                 "formatter": "verbose",
             },
@@ -51,16 +57,16 @@ def set_logging(
         "loggers": {
             "django.request": {
                 "propagate": True,
-                "handlers": log_handlers,
-                "level": log_level,
+                "handlers": config.log_handlers,
+                "level": config.log_level,
             },
-            "root": {"handlers": log_handlers, "level": log_level},
+            "root": {"handlers": config.log_handlers, "level": config.log_level},
         },
     }
-    if debug:
+    if config.is_debug_mode:
         logging_spec["loggers"]["django.db.backends"] = {
             "propagate": True,
             "handlers": ["console"],
-            "level": log_level,
+            "level": config.log_level,
         }
     context["LOGGING"] = logging_spec
