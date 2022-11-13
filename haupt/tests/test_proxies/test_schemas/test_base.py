@@ -103,7 +103,7 @@ ssl on;
 
     def test_logging(self):
         expected = """
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 """  # noqa
         settings.PROXIES_CONFIG.log_level = "warn"
         assert get_logging_config() == expected

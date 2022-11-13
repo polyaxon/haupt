@@ -20,7 +20,7 @@ class TestApiBase(BaseProxiesTestCase):
 listen 8000;
 
 
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 
 
 gzip                        on;
@@ -151,7 +151,7 @@ location /tmp/ {
 listen 8000;
 
 
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 
 
 gzip                        on;

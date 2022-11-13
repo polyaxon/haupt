@@ -11,6 +11,7 @@ from typing import Dict
 
 from haupt.common.config_manager import ConfigManager
 from polyaxon.env_vars.keys import EV_KEYS_LOGS_ROOT
+from polyaxon.utils.log_utils import DEFAULT_LOGS_ROOT
 
 
 def set_logging(
@@ -18,7 +19,7 @@ def set_logging(
     config: ConfigManager,
 ) -> Dict:
     log_dir = config.get_string(
-        EV_KEYS_LOGS_ROOT, is_optional=True, default="/tmp/logs"
+        EV_KEYS_LOGS_ROOT, is_optional=True, default=DEFAULT_LOGS_ROOT
     )
     context["LOG_DIRECTORY"] = log_dir
     if not os.path.exists(log_dir):

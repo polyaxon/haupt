@@ -17,6 +17,7 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_DNS_USE_RESOLVER,
     EV_KEYS_K8S_NAMESPACE,
     EV_KEYS_LOG_LEVEL,
+    EV_KEYS_LOGS_ROOT,
     EV_KEYS_NGINX_INDENT_CHAR,
     EV_KEYS_NGINX_INDENT_WIDTH,
     EV_KEYS_NGINX_TIMEOUT,
@@ -46,6 +47,7 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_UI_ADMIN_ENABLED,
 )
 from polyaxon.schemas.base import BaseConfig, BaseSchema
+from polyaxon.utils.log_utils import DEFAULT_LOGS_ROOT
 
 
 class ProxiesSchema(BaseSchema):
@@ -85,6 +87,7 @@ class ProxiesSchema(BaseSchema):
     )
     dns_backend = fields.Str(allow_none=True, data_key=EV_KEYS_DNS_BACKEND)
     dns_prefix = fields.Str(allow_none=True, data_key=EV_KEYS_DNS_PREFIX)
+    logs_root = fields.Str(allow_none=True, data_key=EV_KEYS_LOGS_ROOT)
     log_level = fields.Str(allow_none=True, data_key=EV_KEYS_LOG_LEVEL)
     nginx_timeout = fields.Int(allow_none=True, data_key=EV_KEYS_NGINX_TIMEOUT)
     nginx_indent_char = fields.Str(allow_none=True, data_key=EV_KEYS_NGINX_INDENT_CHAR)
@@ -119,6 +122,8 @@ class ProxiesConfig(BaseConfig):
     SCHEMA = ProxiesSchema
     IDENTIFIER = "proxies"
     UNKNOWN_BEHAVIOUR = EXCLUDE
+    DEFAULT_TARGET_PORT = 8000
+    DEFAULT_PORT = 80
     REDUCED_ATTRIBUTES = [
         EV_KEYS_PROXY_GATEWAY_PORT,
         EV_KEYS_PROXY_GATEWAY_TARGET_PORT,
@@ -146,6 +151,7 @@ class ProxiesConfig(BaseConfig):
         EV_KEYS_NGINX_INDENT_WIDTH,
         EV_KEYS_K8S_NAMESPACE,
         EV_KEYS_LOG_LEVEL,
+        EV_KEYS_LOGS_ROOT,
         EV_KEYS_ARCHIVES_ROOT,
         EV_KEYS_STATIC_ROOT,
         EV_KEYS_STATIC_URL,
@@ -181,6 +187,7 @@ class ProxiesConfig(BaseConfig):
         nginx_timeout=None,
         nginx_indent_char=None,
         nginx_indent_width=None,
+        logs_root=None,
         log_level=None,
         ssl_enabled=None,
         ssl_path=None,
@@ -199,17 +206,17 @@ class ProxiesConfig(BaseConfig):
         self.auth_enabled = auth_enabled or False
         self.auth_external = auth_external
         self.auth_use_resolver = auth_use_resolver or False
-        self.gateway_port = gateway_port or self.default_port
-        self.gateway_target_port = gateway_target_port or self.default_target_port
+        self.gateway_port = gateway_port or self.DEFAULT_PORT
+        self.gateway_target_port = gateway_target_port or self.DEFAULT_TARGET_PORT
         self.gateway_host = gateway_host or "polyaxon-polyaxon-gateway"
-        self.streams_port = streams_port or self.default_port
-        self.streams_target_port = streams_target_port or self.default_target_port
+        self.streams_port = streams_port or self.DEFAULT_PORT
+        self.streams_target_port = streams_target_port or self.DEFAULT_TARGET_PORT
         self.streams_host = streams_host or "polyaxon-polyaxon-streams"
-        self.api_port = api_port or self.default_port
-        self.api_target_port = api_target_port or self.default_target_port
+        self.api_port = api_port or self.DEFAULT_PORT
+        self.api_target_port = api_target_port or self.DEFAULT_TARGET_PORT
         self.api_host = api_host or "polyaxon-polyaxon-api"
         self.api_use_resolver = api_use_resolver or False
-        self.services_port = services_port or self.default_port
+        self.services_port = services_port or self.DEFAULT_PORT
         self.dns_use_resolver = dns_use_resolver or False
         self.dns_custom_cluster = dns_custom_cluster or "cluster.local"
         self.dns_backend = dns_backend or "kube-dns"
@@ -218,8 +225,8 @@ class ProxiesConfig(BaseConfig):
         self.nginx_indent_char = nginx_indent_char or " "
         self.nginx_indent_width = nginx_indent_width or 4
         self.ssl_enabled = ssl_enabled or False
-        self.log_level = log_level or "warn"
-        self.log_level = self.log_level.lower()
+        self.logs_root = logs_root or DEFAULT_LOGS_ROOT
+        self.log_level = (log_level or "warn").lower()
         self.ssl_path = ssl_path or "/etc/ssl/polyaxon"
         self.archives_root = archives_root or ctx_paths.CONTEXT_ARCHIVES_ROOT
         self.static_root = static_root or "/{}".format(STATIC_V1)
@@ -229,11 +236,3 @@ class ProxiesConfig(BaseConfig):
         self.forward_proxy_port = forward_proxy_port
         self.forward_proxy_host = forward_proxy_host
         self.forward_proxy_kind = forward_proxy_kind
-
-    @property
-    def default_target_port(self):
-        return 8000
-
-    @property
-    def default_port(self):
-        return 80

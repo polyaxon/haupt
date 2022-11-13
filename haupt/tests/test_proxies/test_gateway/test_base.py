@@ -20,7 +20,7 @@ class TestGatewayBase(BaseProxiesTestCase):
 listen 8000;
 
 
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 
 
 gzip                        on;
@@ -217,7 +217,7 @@ location /healthz/ {
 listen 8000;
 
 
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 
 
 gzip                        on;
@@ -474,7 +474,7 @@ class TestPlatformBase(BaseProxiesTestCase):
 listen 8000;
 
 
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 
 
 gzip                        on;
@@ -768,7 +768,7 @@ location /k8s/v1/ {
 listen 8000;
 
 
-error_log /polyaxon/logs/error.log warn;
+error_log /tmp/logs/error.log warn;
 
 
 gzip                        on;
