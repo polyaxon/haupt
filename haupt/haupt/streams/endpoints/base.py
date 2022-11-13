@@ -11,32 +11,11 @@ from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.http import HttpResponse
-from django.urls import path
+from django.urls import re_path
 
 
 async def health(request: ASGIRequest) -> HttpResponse:
     return HttpResponse(status=status.HTTP_200_OK)
-
-
-async def error(request: ASGIRequest):
-    """
-    An example error. Switch the `debug` setting to see either tracebacks or 500 pages.
-    """
-    raise RuntimeError("Oh no")
-
-
-async def not_found(request: ASGIRequest, exc) -> HttpResponse:
-    """
-    Return an HTTP 404 page.
-    """
-    return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-
-async def server_error(request: ASGIRequest, exc):
-    """
-    Return an HTTP 500 page.
-    """
-    raise HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UJSONResponse(HttpResponse):
@@ -69,12 +48,4 @@ class ConfigResponse(UJSONResponse):
         super().__init__(content=data, **kwargs)
 
 
-base_routes = [
-    path("/500", error),
-    path("/healthz", health),
-]
-
-exception_handlers = {
-    404: not_found,
-    500: server_error,
-}
+base_health_route = re_path(r"^healthz/?$", health, name="health_check")

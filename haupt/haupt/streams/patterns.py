@@ -9,7 +9,7 @@ from django.urls import include, re_path
 
 from haupt.common.apis.index import get_urlpatterns, handler403, handler404, handler500
 from haupt.streams.endpoints.artifacts import artifacts_routes
-from haupt.streams.endpoints.base import base_routes
+from haupt.streams.endpoints.base import base_health_route
 from haupt.streams.endpoints.events import events_routes
 from haupt.streams.endpoints.k8s import k8s_routes
 from haupt.streams.endpoints.logs import logs_routes
@@ -24,7 +24,6 @@ streams_routes = (
     + artifacts_routes
     + events_routes
     + sandbox_routes
-    + base_routes
 )
 
 app_urlpatterns = [
@@ -32,6 +31,7 @@ app_urlpatterns = [
         r"^{}/".format(STREAMS_V1),
         include((streams_routes, "streams-v1"), namespace="streams-v1"),
     ),
+    base_health_route,
 ]
 
 handler404 = handler404
