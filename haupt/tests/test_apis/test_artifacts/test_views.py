@@ -15,11 +15,11 @@ from rest_framework import status
 
 from django.db import IntegrityError
 
-from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
-from haupt.db.api.artifacts.serializers import (
+from haupt.apis.serializers.artifacts import (
     RunArtifactNameSerializer,
     RunArtifactSerializer,
 )
+from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory

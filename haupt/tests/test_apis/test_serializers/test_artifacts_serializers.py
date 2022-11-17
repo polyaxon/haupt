@@ -8,11 +8,11 @@
 import pytest
 import random
 
-from haupt.common.test_cases.base import PolyaxonBaseTestSerializer
-from haupt.db.api.artifacts.serializers import (
+from haupt.apis.serializers.artifacts import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
 )
+from haupt.common.test_cases.base import PolyaxonBaseTestSerializer
 from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory

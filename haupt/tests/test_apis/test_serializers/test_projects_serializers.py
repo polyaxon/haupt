@@ -7,12 +7,12 @@
 
 import pytest
 
-from haupt.db.api.projects.serializers import (
+from haupt.apis.serializers.projects import (
     ProjectDetailSerializer,
     ProjectNameSerializer,
     ProjectSerializer,
 )
-from tests.tests_db.test_api.base import BaseTestProjectSerializer
+from tests.base.case import BaseTestProjectSerializer
 
 
 @pytest.mark.serializers_mark

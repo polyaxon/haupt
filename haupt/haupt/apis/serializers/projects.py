@@ -10,8 +10,8 @@ from rest_framework.exceptions import ValidationError
 
 from django.db import IntegrityError
 
+from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.db.abstracts.getter import get_project_model
-from haupt.db.api.base.tags import TagsMixin
 
 
 class ProjectNameSerializer(serializers.ModelSerializer):

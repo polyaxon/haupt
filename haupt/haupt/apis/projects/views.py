@@ -7,6 +7,12 @@
 from rest_framework.generics import CreateAPIView
 
 from haupt.apis.endpoints.project import ProjectEndpoint
+from haupt.apis.serializers.projects import (
+    ProjectCreateSerializer,
+    ProjectDetailSerializer,
+    ProjectNameSerializer,
+    ProjectSerializer,
+)
 from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.common.apis.paginator import LargeLimitOffsetPagination
 from haupt.common.endpoints.base import (
@@ -15,12 +21,6 @@ from haupt.common.endpoints.base import (
     ListEndpoint,
     RetrieveEndpoint,
     UpdateEndpoint,
-)
-from haupt.db.api.projects.serializers import (
-    ProjectCreateSerializer,
-    ProjectDetailSerializer,
-    ProjectNameSerializer,
-    ProjectSerializer,
 )
 from haupt.db.queries import projects as projects_queries
 from haupt.db.query_managers.project import ProjectQueryManager

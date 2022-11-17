@@ -10,12 +10,12 @@ from rest_framework.exceptions import ValidationError
 
 from django.db import IntegrityError
 
+from haupt.apis.serializers.base.cloning import CloningMixin
+from haupt.apis.serializers.base.is_managed import IsManagedMixin
+from haupt.apis.serializers.base.pipeline import PipelineMixin
+from haupt.apis.serializers.base.settings import SettingsMixin
+from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.db.abstracts.getter import get_run_model
-from haupt.db.api.base.cloning import CloningMixin
-from haupt.db.api.base.is_managed import IsManagedMixin
-from haupt.db.api.base.pipeline import PipelineMixin
-from haupt.db.api.base.settings import SettingsMixin
-from haupt.db.api.base.tags import TagsMixin
 from haupt.db.managers.runs import create_run
 from haupt.orchestration import operations
 from polyaxon.exceptions import PolyaxonException

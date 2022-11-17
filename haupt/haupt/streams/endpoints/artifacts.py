@@ -10,7 +10,7 @@ from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
-from django.http import FileResponse, HttpResponse, HttpResponseBadRequest
+from django.http import FileResponse, HttpResponse
 from django.urls import path
 
 from haupt.common.endpoints.files import FilePathResponse

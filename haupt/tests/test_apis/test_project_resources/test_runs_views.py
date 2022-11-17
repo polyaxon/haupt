@@ -14,11 +14,11 @@ from rest_framework import status
 
 from django.conf import settings
 
-from haupt.db.api.artifacts.serializers import (
+from haupt.apis.serializers.artifacts import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
 )
-from haupt.db.api.project_resources.serializers import (
+from haupt.apis.serializers.project_resources import (
     OfflineRunSerializer,
     OperationCreateSerializer,
     RunSerializer,

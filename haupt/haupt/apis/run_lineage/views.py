@@ -6,6 +6,11 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.apis.endpoints.run import RunArtifactEndpoint, RunResourceListEndpoint
+from haupt.apis.methods import run_lineage as methods
+from haupt.apis.serializers.artifacts import (
+    RunArtifactNameSerializer,
+    RunArtifactSerializer,
+)
 from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.common.apis.paginator import LargeLimitOffsetPagination
 from haupt.common.apis.regex import RUN_UUID_KEY
@@ -16,11 +21,6 @@ from haupt.common.endpoints.base import (
     RetrieveEndpoint,
 )
 from haupt.common.events.registry.run import RUN_NEW_ARTIFACTS
-from haupt.db.api.artifacts import methods
-from haupt.db.api.artifacts.serializers import (
-    RunArtifactNameSerializer,
-    RunArtifactSerializer,
-)
 from haupt.db.queries import artifacts as artifacts_queries
 from haupt.db.query_managers.artifact import ArtifactQueryManager
 

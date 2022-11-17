@@ -8,6 +8,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 
+from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.common import auditor
 from haupt.common.events.registry.run import (
     RUN_APPROVED_ACTOR,
@@ -15,7 +16,6 @@ from haupt.common.events.registry.run import (
     RUN_STOPPED_ACTOR,
 )
 from haupt.db.abstracts.getter import get_run_model
-from haupt.db.api.base.tags import TagsMixin
 from haupt.db.managers.statuses import bulk_new_run_status
 from polyaxon import live_state
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses

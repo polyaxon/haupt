@@ -11,7 +11,7 @@ from flaky import flaky
 
 from rest_framework import status
 
-from haupt.db.api.projects.serializers import (
+from haupt.apis.serializers.projects import (
     ProjectDetailSerializer,
     ProjectNameSerializer,
     ProjectSerializer,

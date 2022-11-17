@@ -7,6 +7,16 @@
 from django.conf import settings
 
 from haupt.apis.endpoints.project import ProjectResourceListEndpoint
+from haupt.apis.methods import project_resources as methods
+from haupt.apis.serializers.artifacts import (
+    RunArtifactLightSerializer,
+    RunArtifactSerializer,
+)
+from haupt.apis.serializers.project_resources import (
+    OfflineRunSerializer,
+    OperationCreateSerializer,
+    RunSerializer,
+)
 from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.common.apis.paginator import LargeLimitOffsetPagination
 from haupt.common.endpoints.base import (
@@ -14,16 +24,6 @@ from haupt.common.endpoints.base import (
     DestroyEndpoint,
     ListEndpoint,
     PostEndpoint,
-)
-from haupt.db.api.artifacts.serializers import (
-    RunArtifactLightSerializer,
-    RunArtifactSerializer,
-)
-from haupt.db.api.project_resources import methods
-from haupt.db.api.project_resources.serializers import (
-    OfflineRunSerializer,
-    OperationCreateSerializer,
-    RunSerializer,
 )
 from haupt.db.queries import artifacts as artifacts_queries
 from haupt.db.queries import runs as runs_queries
