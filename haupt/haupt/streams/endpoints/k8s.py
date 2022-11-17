@@ -44,7 +44,12 @@ async def k8s_auth(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
 
 @transaction.non_atomic_requests
 async def k8s_inspect(
-    request: ASGIRequest, run_uuid: str, methods: Dict = None
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Dict = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)

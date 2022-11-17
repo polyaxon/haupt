@@ -7,8 +7,6 @@
 
 import os
 
-import ujson
-
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -33,15 +31,12 @@ async def handle_posted_data(
     overwrite: bool = True,
     untar: bool = True,
 ) -> str:
-    tmp_path = "{}/{}".format(
-        root_path, os.path.basename(content_file.filename)
-    ).rstrip("/")
+    filename = content_file.name
+    tmp_path = "{}/{}".format(root_path, os.path.basename(filename)).rstrip("/")
     if path:
         root_path = "{}/{}".format(root_path, path).rstrip("/")
         if is_file:
-            root_path = "{}/{}".format(
-                root_path, os.path.basename(content_file.filename)
-            )
+            root_path = "{}/{}".format(root_path, os.path.basename(filename))
     else:
         if untar:
             root_path = "{}/{}".format(root_path, DEFAULT_UPLOADS_PATH).rstrip("/")
@@ -70,7 +65,7 @@ async def handle_posted_data(
 
     # Creating the new file
     with open(full_tmppath, "wb") as destination:
-        for chunk in content_file.file:
+        for chunk in content_file.chunks():
             destination.write(chunk)
     if untar:
         await sync_to_async(untar_file)(
@@ -85,16 +80,12 @@ async def handle_posted_data(
 
 
 async def handle_upload(
-    fs: FSSystem, request: ASGIRequest, is_file: bool
+    fs: FSSystem, request: ASGIRequest, run_uuid: str, is_file: bool
 ) -> HttpResponse:
-    form = await request.form()
-    content_file = form["upload_file"]  # type: UploadFile
-    content_json = form["json"]  # type: str
-    content_json = ujson.loads(content_json) if content_json else {}
-    run_uuid = request.path_params["run_uuid"]
-    overwrite = content_json.get("overwrite", True)
-    untar = content_json.get("untar", True)
-    path = content_json.get("path", "")
+    content_file = request.FILES["upload_file"]
+    overwrite = request.POST.get("overwrite", True)
+    untar = request.POST.get("untar", True)
+    path = request.POST.get("path", "")
     try:
         archived_path = await handle_posted_data(
             fs=fs,

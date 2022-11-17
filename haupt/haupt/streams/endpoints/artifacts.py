@@ -49,7 +49,7 @@ async def handle_artifact(
     if request.method == "DELETE":
         return await delete_artifact(request, run_uuid=run_uuid)
     if request.method == "POST":
-        return await upload_artifact(request)
+        return await upload_artifact(request, run_uuid=run_uuid)
 
 
 @transaction.non_atomic_requests
@@ -103,8 +103,10 @@ async def download_artifact(
     return await redirect_file(archived_path)
 
 
-async def upload_artifact(request: ASGIRequest) -> HttpResponse:
-    return await handle_upload(fs=await AppFS.get_fs(), request=request, is_file=True)
+async def upload_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
+    return await handle_upload(
+        fs=await AppFS.get_fs(), request=request, run_uuid=run_uuid, is_file=True
+    )
 
 
 async def delete_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
@@ -143,7 +145,7 @@ async def handle_artifacts(
     if request.method == "DELETE":
         return await delete_artifacts(request, run_uuid=run_uuid)
     if request.method == "POST":
-        return await upload_artifacts(request)
+        return await upload_artifacts(request, run_uuid=run_uuid)
 
 
 async def download_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
@@ -167,8 +169,10 @@ async def download_artifacts(request: ASGIRequest, run_uuid: str) -> HttpRespons
     return await redirect_file(archived_path)
 
 
-async def upload_artifacts(request: ASGIRequest) -> HttpResponse:
-    return await handle_upload(fs=await AppFS.get_fs(), request=request, is_file=False)
+async def upload_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
+    return await handle_upload(
+        fs=await AppFS.get_fs(), request=request, run_uuid=run_uuid, is_file=False
+    )
 
 
 async def delete_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
