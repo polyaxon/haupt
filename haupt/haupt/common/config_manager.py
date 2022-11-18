@@ -97,16 +97,16 @@ class ConfigManager(BaseConfigManager):
         return self.service == "streams"
 
     @property
-    def is_api_service(self) -> bool:
-        return self.service == "api"
-
-    @property
-    def is_scheduler(self) -> bool:
-        return self.service == "scheduler"
-
-    @property
     def is_monolith_service(self) -> bool:
         return self.service == "monolith"
+
+    @property
+    def is_api_service(self) -> bool:
+        return self.service == "api" or self.is_monolith_service
+
+    @property
+    def is_scheduler_service(self) -> bool:
+        return self.service == "scheduler" or self.is_monolith_service
 
     @property
     def is_debug_mode(self) -> bool:

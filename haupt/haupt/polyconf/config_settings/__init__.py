@@ -20,15 +20,14 @@ set_admin(context=context, config=config)
 set_secrets(context=context, config=config)
 if config.is_streams_service:
     from haupt.common.settings.services.streams import set_service
-elif config.is_scheduler:
-    from haupt.common.settings.services.background import set_service
-else:
+elif config.is_api_service:
     from haupt.common.settings.services.api import set_service
+else:
+    from haupt.common.settings.services.background import set_service
 
 set_service(context=context, config=config)
 
 from haupt.common.settings.defaults import *
 
-# Service configs
-if not config.is_scheduler:
+if config.is_api_service or config.is_streams_service:
     from .rest import *
