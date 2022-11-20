@@ -34,15 +34,17 @@ def get_base_config(is_platform: bool = True):
             get_platform_locations_config(),
             get_k8s_root_location_config(),
         ]
+        port = settings.PROXIES_CONFIG.api_target_port
     else:
         api_configs = None
         api_location_configs = [
             get_api_location_config(resolver=resolver, auth=auth),
             get_healthz_location_config(),
         ]
+        port = settings.PROXIES_CONFIG.gateway_target_port
     config = get_scaffold_config(
         is_proxy=not is_platform,
-        port=settings.PROXIES_CONFIG.gateway_target_port,
+        port=port,
         use_ssl_config=True,
         use_assets_config=True,
         use_services_configs=True,
