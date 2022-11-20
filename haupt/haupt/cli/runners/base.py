@@ -22,11 +22,14 @@ def migrate(
 
     if migrate_tables:
         argv = ["manage.py", "tables"]
+        _logger.info("Starting tables migration ...")
         execute_from_command_line(argv)
+        _logger.info("Tables were migrated correctly!")
 
     if migrate_db:
         argv = ["manage.py", "migrate"]
         execute_from_command_line(argv)
+        _logger.info("DB Migration finished!")
 
 
 def start_app(
