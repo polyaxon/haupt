@@ -63,7 +63,7 @@ def get_urlpatterns(
 
     urlpatterns = app_patterns
     if not no_healthz:
-        get_base_health_urlpatterns()
+        urlpatterns = get_base_health_urlpatterns() + urlpatterns
     if ui_urlpatterns:
         urlpatterns += get_ui_urlpatterns(ui_urlpatterns)
 

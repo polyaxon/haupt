@@ -12,10 +12,10 @@ from haupt.streams.endpoints.artifacts import artifacts_routes
 from haupt.streams.endpoints.base import base_health_route
 from haupt.streams.endpoints.events import events_routes
 from haupt.streams.endpoints.k8s import k8s_routes
-from haupt.streams.endpoints.logs import logs_routes
+from haupt.streams.endpoints.logs import internal_logs_routes, logs_routes
 from haupt.streams.endpoints.notifications import notifications_routes
 from haupt.streams.endpoints.sandbox import sandbox_routes
-from polyaxon.api import STREAMS_V1
+from polyaxon.api import INTERNAL_V1, STREAMS_V1
 
 streams_routes = (
     logs_routes
@@ -27,6 +27,10 @@ streams_routes = (
 )
 
 app_urlpatterns = [
+    re_path(
+        r"^{}/".format(INTERNAL_V1),
+        include((internal_logs_routes, "internal-v1"), namespace="internal-v1"),
+    ),
     re_path(
         r"^{}/".format(STREAMS_V1),
         include((streams_routes, "streams-v1"), namespace="streams-v1"),

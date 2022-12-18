@@ -17,6 +17,7 @@ from haupt.proxies.schemas.listen import get_listen_config
 from haupt.proxies.schemas.logging import get_logging_config
 from haupt.proxies.schemas.robots import get_robots_config
 from haupt.proxies.schemas.services import (
+    get_internal_location_config,
     get_k8s_location_config,
     get_services_location_config,
     get_streams_location_config,
@@ -60,6 +61,9 @@ def get_scaffold_config(
         config += [
             get_auth_location_config(
                 resolver=resolver, is_local_service=is_local_auth_service
+            ),
+            get_internal_location_config(
+                resolver=resolver, is_local_service=is_local_streams_service
             ),
             get_streams_location_config(
                 resolver=resolver, auth=auth, is_local_service=is_local_streams_service

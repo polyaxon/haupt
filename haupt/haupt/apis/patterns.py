@@ -12,9 +12,9 @@ from haupt.common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 from haupt.streams.endpoints.artifacts import artifacts_routes
 from haupt.streams.endpoints.events import events_routes
 from haupt.streams.endpoints.k8s import k8s_routes
-from haupt.streams.endpoints.logs import logs_routes
+from haupt.streams.endpoints.logs import internal_logs_routes, logs_routes
 from haupt.streams.endpoints.notifications import notifications_routes
-from polyaxon.api import API_V1, STREAMS_V1
+from polyaxon.api import API_V1, INTERNAL_V1, STREAMS_V1
 
 api_patterns = [
     re_path(
@@ -63,8 +63,11 @@ ui_urlpatterns = [
 streams_routes = (
     logs_routes + k8s_routes + notifications_routes + artifacts_routes + events_routes
 )
-
 app_urlpatterns = [
+    re_path(
+        r"^{}/".format(INTERNAL_V1),
+        include((internal_logs_routes, "internal-v1"), namespace="internal-v1"),
+    ),
     re_path(
         r"^{}/".format(STREAMS_V1),
         include((streams_routes, "streams-v1"), namespace="streams-v1"),

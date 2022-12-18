@@ -63,6 +63,18 @@ location = /favicon.ico {
 
 
 
+location /internal/ {
+    proxy_pass http://polyaxon-polyaxon-streams;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}
+
+
 location /streams/ {
     proxy_pass http://polyaxon-polyaxon-streams;
     proxy_http_version 1.1;
@@ -271,6 +283,19 @@ location = /auth/v1/ {
     proxy_set_header X-Origin-Method $request_method;
     proxy_set_header Host $http_host;
     internal;
+}
+
+
+location /internal/ {
+    resolver coredns.kube-system.svc.cluster.local valid=5s;
+    proxy_pass http://polyaxon-polyaxon-streams;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
 }
 
 
@@ -566,19 +591,6 @@ location /sso/ {
 }
 
 
-location /streams/v1/ {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
-}
-
-
 location /ui/ {
     proxy_pass http://polyaxon;
     proxy_http_version 1.1;
@@ -589,19 +601,6 @@ location /ui/ {
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_intercept_errors on;
-}
-
-
-location / {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
 }
 
 
@@ -632,6 +631,18 @@ location = /favicon.ico {
     rewrite ^ /static/images/favicon.ico;
 }
 
+
+
+location /internal/ {
+    proxy_pass http://polyaxon;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}
 
 
 location /streams/ {
@@ -860,19 +871,6 @@ location /sso/ {
 }
 
 
-location /streams/v1/ {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
-}
-
-
 location /ui/ {
     proxy_pass http://polyaxon;
     proxy_http_version 1.1;
@@ -896,19 +894,6 @@ location /_admin/ {
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_intercept_errors on;
-}
-
-
-location / {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
 }
 
 
@@ -951,6 +936,18 @@ location = /auth/v1/ {
     proxy_set_header X-Origin-Method $request_method;
     proxy_set_header Host $http_host;
     internal;
+}
+
+
+location /internal/ {
+    proxy_pass http://polyaxon;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
 }
 
 

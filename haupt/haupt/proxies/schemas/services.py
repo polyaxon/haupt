@@ -210,3 +210,25 @@ def get_k8s_location_config(resolver: str, auth: str, is_local_service: bool = F
     return get_config(
         options=K8S_OPTIONS, resolver=resolver, auth=auth, service=service
     )
+
+
+INTERNAL_OPTIONS = r"""
+location /internal/ {{
+    {resolver}
+    proxy_pass {service};
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}}
+"""  # noqa
+
+
+def get_internal_location_config(resolver: str, is_local_service: bool = False):
+    service = get_streams_service(is_local_service)
+    # Do not use resolve local streams service
+    resolver = "" if is_local_service else resolver
+    return get_config(options=INTERNAL_OPTIONS, resolver=resolver, service=service)

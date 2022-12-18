@@ -96,7 +96,13 @@ async def get_logs(
 
 @transaction.non_atomic_requests
 async def collect_logs(
-    request: ASGIRequest, run_uuid: str, run_kind: str, methods: Dict = None
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    run_kind: str,
+    methods: Dict = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid, run_kind=run_kind)
@@ -142,10 +148,8 @@ async def collect_logs(
     return HttpResponse(status=status.HTTP_200_OK)
 
 
-URLS_RUNS_INTERNAL_LOGS = (
-    "<str:namespace>"
-    + "/_internal"
-    + "/<str:owner>/<str:project>/runs/<str:run_uuid>/{run_kind:str}/logs"
+URLS_RUNS_COLLECT_LOGS = (
+    "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/<str:run_kind>/logs"
 )
 URLS_RUNS_LOGS = "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/logs"
 
@@ -153,15 +157,17 @@ URLS_RUNS_LOGS = "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/
 # fmt: off
 logs_routes = [
     path(
-        URLS_RUNS_INTERNAL_LOGS,
-        collect_logs,
-        name="collect_logs",
-        kwargs=dict(methods=["POST"]),
-    ),
-    path(
         URLS_RUNS_LOGS,
         get_logs,
         name="logs",
         kwargs=dict(methods=["GET"]),
+    ),
+]
+internal_logs_routes = [
+    path(
+        URLS_RUNS_COLLECT_LOGS,
+        collect_logs,
+        name="collect_logs",
+        kwargs=dict(methods=["POST"]),
     ),
 ]

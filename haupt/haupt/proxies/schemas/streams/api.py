@@ -48,7 +48,6 @@ def get_platform_config():
         get_api_config(path=API_V1_LOCATION, intercept_errors="off"),
         get_api_config(path=AUTH_V1_LOCATION, intercept_errors="off"),
         get_api_config(path=SSO_V1_LOCATION, intercept_errors="off"),
-        get_api_config(path=STREAMS_V1_LOCATION, intercept_errors="off"),
         get_api_config(path=UI_V1_LOCATION),
     ]
     if settings.PROXIES_CONFIG.ui_admin_enabled:

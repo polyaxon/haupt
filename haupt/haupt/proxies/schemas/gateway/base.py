@@ -13,11 +13,7 @@ from haupt.proxies.schemas.gateway.api import get_api_location_config
 from haupt.proxies.schemas.gateway.healthz import get_healthz_location_config
 from haupt.proxies.schemas.locations import get_platform_locations_config
 from haupt.proxies.schemas.scaffold import get_scaffold_config
-from haupt.proxies.schemas.streams.api import (
-    get_k8s_auth_config,
-    get_platform_config,
-    get_streams_config,
-)
+from haupt.proxies.schemas.streams.api import get_k8s_auth_config, get_platform_config
 from haupt.proxies.schemas.streams.k8s import get_k8s_root_location_config
 
 
@@ -27,7 +23,6 @@ def get_base_config(is_platform: bool = True):
     if is_platform:
         api_configs = [
             get_platform_config(),
-            get_streams_config(),
             get_k8s_auth_config(),
         ]
         api_location_configs = [

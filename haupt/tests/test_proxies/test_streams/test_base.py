@@ -190,6 +190,18 @@ location = /favicon.ico {
 
 
 
+location /internal/ {
+    proxy_pass http://polyaxon;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}
+
+
 location /streams/ {
     proxy_pass http://polyaxon;
     proxy_http_version 1.1;
@@ -453,6 +465,18 @@ location = /auth/v1/ {
     proxy_set_header X-Origin-Method $request_method;
     proxy_set_header Host $http_host;
     internal;
+}
+
+
+location /internal/ {
+    proxy_pass http://polyaxon;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
 }
 
 
