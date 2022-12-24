@@ -144,7 +144,7 @@ class ConfigManager(BaseConfigManager):
 
     @property
     def log_level(self) -> str:
-        if self.is_staging_env or self.is_local_env:
+        if self.is_staging_env or self.is_local_env or self.is_test_env:
             return self._log_level
         if self._log_level == "DEBUG":
             return "INFO"

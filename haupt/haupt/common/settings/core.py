@@ -25,7 +25,6 @@ def set_core(context, config: ConfigManager, use_db: bool = True):
     context["LANGUAGES"] = (("en", "English"),)
 
     context["USE_I18N"] = True
-    context["USE_L10N"] = True
     context["USE_TZ"] = True
 
     context["INTERNAL_IPS"] = ("127.0.0.1",)
