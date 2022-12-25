@@ -42,7 +42,7 @@ def set_api_service(
     set_cors(context=context, config=config)
     set_ui(context=context, config=config, processors=processors)
     set_middlewares(context=context, config=config)
-    set_assets(context=context, root_dir=config.config_root_dir, config=config)
+    set_assets(context=context, config=config)
     if config.scheduler_enabled:
         set_celery(context=context, config=config, routes=routes)
 

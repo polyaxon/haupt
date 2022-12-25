@@ -14,7 +14,7 @@ from polyaxon.env_vars.keys import (
 )
 
 
-def set_assets(context, root_dir, config: ConfigManager):
+def set_assets(context, config: ConfigManager):
     context["MEDIA_ROOT"] = config.get_string(
         "POLYAXON_MEDIA_ROOT", is_optional=True, default=""
     )
@@ -23,7 +23,7 @@ def set_assets(context, root_dir, config: ConfigManager):
     )
 
     context["STATIC_ROOT"] = config.get_string(
-        EV_KEYS_STATIC_ROOT, is_optional=True, default=str(root_dir / "static")
+        EV_KEYS_STATIC_ROOT, is_optional=True, default=str(config.root_dir / "static")
     )
     context["STATIC_URL"] = config.get_string(
         EV_KEYS_STATIC_URL,
@@ -32,7 +32,7 @@ def set_assets(context, root_dir, config: ConfigManager):
     )
 
     # Additional locations of static files
-    context["STATICFILES_DIRS"] = (str(root_dir / "public"),)
+    context["STATICFILES_DIRS"] = (str(config.root_dir / "public"),)
 
     context["STATICFILES_FINDERS"] = (
         "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -40,8 +40,8 @@ def set_assets(context, root_dir, config: ConfigManager):
     )
 
     context["LOCALE_PATHS"] = (
-        str(root_dir / "locale"),
-        str(root_dir / "client" / "js" / "libs" / "locale"),
+        str(config.root_dir / "locale"),
+        str(config.root_dir / "client" / "js" / "libs" / "locale"),
     )
 
     context["STATICI18N_ROOT"] = STATIC_V1

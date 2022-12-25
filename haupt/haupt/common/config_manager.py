@@ -27,7 +27,7 @@ class ConfigManager(BaseConfigManager):
         self._config_module = self.get_string(
             "POLYAXON_CONFIG_MODULE", is_optional=True, default="polyconf"
         )
-        self._config_root_dir = self.get_value("POLYAXON_CONFIG_ROOT_DIR")
+        self._root_dir = self.get_value("POLYAXON_CONFIG_ROOT_DIR")
         self._service = self.get_string("POLYAXON_SERVICE", is_local=True)
         self._is_debug_mode = self.get_boolean(
             EV_KEYS_DEBUG, is_optional=True, default=False
@@ -69,8 +69,8 @@ class ConfigManager(BaseConfigManager):
         return self._config_module
 
     @property
-    def config_root_dir(self) -> str:
-        return self._config_root_dir
+    def root_dir(self) -> Path:
+        return self._root_dir
 
     @property
     def db_engine_name(self) -> str:
