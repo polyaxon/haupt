@@ -6,11 +6,12 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.common.config_manager import ConfigManager
+from polyaxon.env_vars.keys import EV_KEYS_SECRET_KEY
 
 
 def set_secrets(context, config: ConfigManager):
     context["SECRET_KEY"] = config.get_string(
-        "POLYAXON_SECRET_KEY",
+        EV_KEYS_SECRET_KEY,
         is_secret=True,
         is_optional=True,
         default="default-secret",

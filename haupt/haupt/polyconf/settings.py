@@ -5,4 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+import os
+
+os.environ["CONFIG_PREFIX"] = "haupt"
+
 from haupt.polyconf.config_settings import *  # noqa

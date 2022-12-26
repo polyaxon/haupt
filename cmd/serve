@@ -4,7 +4,7 @@ ROOT_DIR=$( cd $DIR/.. && pwd )
 
 if [ $? -eq 0 ]; then
     if [ "$1" = "local-sqlite" ]; then
-        POLYAXON_PLATFORM_CONFIG="$ROOT_DIR/.docker/local.yaml" POLYAXON_DB_ENGINE="sqlite" POLYAXON_DB_NAME="/tmp/db" haupt -v sandbox --workers 1
+        haupt -v sandbox --workers 1
     elif [ "$1" = "container-pgsql" ]; then
         docker-compose -f docker-compose.test.pgsql.yml run --publish 8000:8000 -w /haupt/haupt api "cd haupt && uvicorn polyconf.asgi:application --port 8000 --host 0.0.0.0"
     elif [ "$1" = "container-sqlite" ]; then
@@ -12,7 +12,7 @@ if [ $? -eq 0 ]; then
     elif [ "$1" = "nginx-pgsql" ]; then
         echo "Coming soon"
     elif [ "$1" = "streams" ]; then
-        POLYAXON_PLATFORM_CONFIG="$ROOT_DIR/.docker/streams.yaml" haupt -v streams --workers 1
+        haupt -v streams --workers 1
     elif [ "$1" = "streams-nginx" ]; then
         echo "Coming soon"
     fi

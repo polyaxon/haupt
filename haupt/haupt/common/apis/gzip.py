@@ -9,10 +9,7 @@ from functools import wraps
 
 from django.utils.text import compress_string
 
-try:
-    import config
-except ImportError:
-    config = None
+from haupt.polyconf.config_manager import config
 
 
 class GzipDecorator:

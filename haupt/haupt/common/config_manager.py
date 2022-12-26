@@ -14,8 +14,10 @@ from haupt import pkg
 from polyaxon.config_reader.manager import ConfigManager as BaseConfigManager
 from polyaxon.env_vars.keys import (
     EV_KEYS_DEBUG,
+    EV_KEYS_ENVIRONMENT,
     EV_KEYS_LOG_LEVEL,
     EV_KEYS_PLATFORM_CONFIG,
+    EV_KEYS_SERVICE,
     EV_KEYS_TIME_ZONE,
 )
 
@@ -23,17 +25,21 @@ from polyaxon.env_vars.keys import (
 class ConfigManager(BaseConfigManager):
     def __init__(self, **params) -> None:
         super().__init__(**params)
-        self._env = self.get_string("POLYAXON_ENVIRONMENT")
+        self._env = self.get_string(
+            EV_KEYS_ENVIRONMENT, is_optional=True, default="local"
+        )
         self._config_module = self.get_string(
             "POLYAXON_CONFIG_MODULE", is_optional=True, default="polyconf"
         )
         self._root_dir = self.get_value("POLYAXON_CONFIG_ROOT_DIR")
-        self._service = self.get_string("POLYAXON_SERVICE", is_local=True)
+        self._service = self.get_string(
+            EV_KEYS_SERVICE, is_local=True, is_optional=True
+        )
         self._is_debug_mode = self.get_boolean(
             EV_KEYS_DEBUG, is_optional=True, default=False
         )
         self._db_engine_name = self.get_string(
-            "POLYAXON_DB_ENGINE", default="pgsql", is_optional=True
+            "POLYAXON_DB_ENGINE", default="sqlite", is_optional=True
         )
         self._namespace = self.get_string("POLYAXON_K8S_NAMESPACE", is_optional=True)
         self._log_level = self.get_string(
@@ -199,7 +205,7 @@ class ConfigManager(BaseConfigManager):
             return self._get_rabbitmq_broker_url()
 
 
-def get_config(file_path, config_prefix: str = None):
+def get_config(file_path):
     def base_directory():
         root = Path(os.path.abspath(file_path))
         root.resolve()
@@ -208,6 +214,7 @@ def get_config(file_path, config_prefix: str = None):
     root_dir = base_directory()
 
     config_module = "polyconf"
+    config_prefix = os.environ.get("CONFIG_PREFIX")
     if config_prefix:
         config_module = "{}.{}".format(config_prefix, config_module)
     config_values = [

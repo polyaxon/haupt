@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+import os
 
 import click
 
@@ -11,7 +12,10 @@ import click
 def start_server(host: str, port: int, workers: int, per_core: bool, uds: str):
     """Start sandbox service."""
     from haupt.cli.runners.server import start
+    from polyaxon.env_vars.keys import EV_KEYS_SERVICE
+    from polyaxon.services.values import PolyaxonServices
 
+    os.environ[EV_KEYS_SERVICE] = PolyaxonServices.API
     start(host=host, port=port, workers=workers, per_core=per_core, uds=uds)
 
 

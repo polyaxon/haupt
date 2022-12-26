@@ -10,7 +10,6 @@ import os
 from unittest import TestCase
 
 from haupt.common.config_manager import ConfigManager
-from polyaxon.exceptions import PolyaxonSchemaError
 
 
 class TestConfigManager(TestCase):
@@ -26,10 +25,6 @@ class TestConfigManager(TestCase):
 
         assert config.get_string("POLYAXON_ENVIRONMENT") == "testing"
         assert config.get_string("FOO_BAR_KEY") == "foo_bar"
-
-    def test_raises_for_non_optional_env_vars(self):
-        with self.assertRaises(PolyaxonSchemaError):
-            ConfigManager.read_configs({"dummy": "dummy"})
 
     def test_get_broker(self):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"

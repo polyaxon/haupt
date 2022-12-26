@@ -41,9 +41,12 @@ def set_core(context, config: ConfigManager, use_db: bool = True):
         context["AUTH_USER_MODEL"] = "db.User"
         context["DB_ENGINE_NAME"] = config.db_engine_name
         context["DEFAULT_DB_ENGINE"] = db_engine
+        db_name = config.get_string("POLYAXON_DB_NAME", is_optional=True)
+        if not db_name:
+            db_name = "/tmp/plxdb" if config.is_sqlite_db_engine else "polyaxon"
         db_definition = {
             "ENGINE": db_engine,
-            "NAME": config.get_string("POLYAXON_DB_NAME"),
+            "NAME": db_name,
             "USER": config.get_string("POLYAXON_DB_USER", is_optional=True),
             "PASSWORD": config.get_string(
                 "POLYAXON_DB_PASSWORD", is_secret=True, is_optional=True

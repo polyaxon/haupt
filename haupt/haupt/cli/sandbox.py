@@ -14,10 +14,15 @@ def start_sandbox(
 ):
     """Start sandbox service."""
     from haupt.cli.runners.sandbox import start
-    from polyaxon.env_vars.keys import EV_KEYS_SANDBOX_ROOT, EV_KEYS_SERVICE
+    from polyaxon.env_vars.keys import (
+        EV_KEYS_SANDBOX_ROOT,
+        EV_KEYS_SERVICE,
+        EV_KEYS_UI_IN_SANDBOX,
+    )
     from polyaxon.services.values import PolyaxonServices
 
-    os.environ[EV_KEYS_SERVICE] = PolyaxonServices.SANDBOX
+    os.environ[EV_KEYS_SERVICE] = PolyaxonServices.API
+    os.environ[EV_KEYS_UI_IN_SANDBOX] = "true"
     if path:
         os.environ[EV_KEYS_SANDBOX_ROOT] = path
 

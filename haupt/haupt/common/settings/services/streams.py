@@ -33,4 +33,4 @@ def set_service(context, config: ConfigManager):
     set_cors(context=context, config=config)
     set_ui(context=context, config=config)
     set_base_middlewares(context=context, config=config)
-    set_assets(context=context, root_dir=config.root_dir, config=config)
+    set_assets(context=context, config=config)
