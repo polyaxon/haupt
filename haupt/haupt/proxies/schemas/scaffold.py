@@ -7,7 +7,6 @@
 from typing import List
 
 from haupt import settings
-from haupt.proxies.schemas.auth import get_auth_location_config
 from haupt.proxies.schemas.buffering import get_buffering_config
 from haupt.proxies.schemas.charset import get_charset_config
 from haupt.proxies.schemas.error_page import get_error_page_config
@@ -17,6 +16,7 @@ from haupt.proxies.schemas.listen import get_listen_config
 from haupt.proxies.schemas.logging import get_logging_config
 from haupt.proxies.schemas.robots import get_robots_config
 from haupt.proxies.schemas.services import (
+    get_auth_request_config,
     get_internal_location_config,
     get_k8s_location_config,
     get_services_location_config,
@@ -37,7 +37,6 @@ def get_scaffold_config(
     api_configs: List[str] = None,
     api_location_configs: List[str] = None,
     is_local_streams_service: bool = False,
-    is_local_auth_service: bool = False,
 ) -> List[str]:
     config = [get_listen_config(is_proxy=is_proxy, port=port)]
     if use_ssl_config and settings.PROXIES_CONFIG.ssl_enabled:
@@ -57,11 +56,12 @@ def get_scaffold_config(
             get_robots_config(),
             get_favicon_config(),
         ]
+    if is_local_streams_service:
+        config.append(
+            get_auth_request_config(),
+        )
     if use_services_configs:
         config += [
-            get_auth_location_config(
-                resolver=resolver, is_local_service=is_local_auth_service
-            ),
             get_internal_location_config(
                 resolver=resolver, is_local_service=is_local_streams_service
             ),

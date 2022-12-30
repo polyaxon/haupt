@@ -12,7 +12,6 @@ from polyaxon.api import (
     AUTH_V1_LOCATION,
     HEALTHZ_LOCATION,
     SSO_V1_LOCATION,
-    STREAMS_V1_LOCATION,
     UI_V1_LOCATION,
 )
 
@@ -53,27 +52,3 @@ def get_platform_config():
     if settings.PROXIES_CONFIG.ui_admin_enabled:
         config.append(get_api_config(path=ADMIN_V1_LOCATION))
     return clean_config(config)
-
-
-K8S_AUTH_OPTIONS = """
-location {app}k8s/auth/ {{
-    proxy_method      GET;
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Origin-URI $request_uri;
-    proxy_intercept_errors {intercept_errors};
-}}
-"""
-
-
-def get_k8s_auth_config():
-    return get_config(
-        options=K8S_AUTH_OPTIONS,
-        app=STREAMS_V1_LOCATION,
-        indent=0,
-        intercept_errors="off",
-    )

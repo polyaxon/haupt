@@ -16,6 +16,7 @@ from haupt.proxies.schemas.urls import (
 from polyaxon.api import (
     ADMIN_V1_LOCATION,
     API_V1_LOCATION,
+    AUTH_V1_LOCATION,
     SSO_V1_LOCATION,
     UI_V1_LOCATION,
 )
@@ -83,6 +84,14 @@ def get_api_location_config(resolver: str, auth=str):
             service=service,
             resolver=resolver,
             auth=auth,
+            ssl_server_name=ssl_server_name,
+            header_host=header_host,
+        ),
+        get_api_config(
+            path=AUTH_V1_LOCATION,
+            service=service,
+            resolver=resolver,
+            auth="",
             ssl_server_name=ssl_server_name,
             header_host=header_host,
         ),

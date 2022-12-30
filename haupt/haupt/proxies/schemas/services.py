@@ -9,6 +9,7 @@ from haupt import settings
 from haupt.proxies.schemas.base import get_config
 from haupt.proxies.schemas.urls import get_service_url
 from polyaxon.api import (
+    AUTH_REQUEST_V1_LOCATION,
     EXTERNAL_V1_LOCATION,
     REWRITE_EXTERNAL_V1_LOCATION,
     REWRITE_SERVICES_V1_LOCATION,
@@ -232,3 +233,30 @@ def get_internal_location_config(resolver: str, is_local_service: bool = False):
     # Do not use resolve local streams service
     resolver = "" if is_local_service else resolver
     return get_config(options=INTERNAL_OPTIONS, resolver=resolver, service=service)
+
+
+AUTH_REQUEST_OPTIONS = """
+location = {app} {{
+    proxy_pass {service};
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Origin-URI $request_uri;
+    proxy_set_header X-Origin-Method $request_method;
+    proxy_set_header Host $http_host;
+    proxy_intercept_errors {intercept_errors};
+    internal;
+}}
+"""
+
+
+def get_auth_request_config():
+    return get_config(
+        options=AUTH_REQUEST_OPTIONS,
+        app=AUTH_REQUEST_V1_LOCATION,
+        service=get_streams_service(True),
+        indent=0,
+        intercept_errors="off",
+    )

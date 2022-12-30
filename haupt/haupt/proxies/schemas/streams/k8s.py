@@ -6,11 +6,11 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.proxies.schemas.base import get_config
-from polyaxon.api import K8S_V1_LOCATION, STREAMS_V1_LOCATION
+from polyaxon.api import AUTH_REQUEST_V1_LOCATION, K8S_V1_LOCATION
 
 K8S_LOCATION_OPTIONS = r"""
 location {app} {{
-    auth_request     {streams_api}k8s/auth/;
+    auth_request     {auth_request};
     auth_request_set $auth_status $upstream_status;
     auth_request_set $k8s_token $upstream_http_k8s_token;
     auth_request_set $k8s_uri $upstream_http_k8s_uri;
@@ -33,5 +33,5 @@ def get_k8s_root_location_config():
     return get_config(
         options=K8S_LOCATION_OPTIONS,
         app=K8S_V1_LOCATION,
-        streams_api=STREAMS_V1_LOCATION,
+        auth_request=AUTH_REQUEST_V1_LOCATION,
     )

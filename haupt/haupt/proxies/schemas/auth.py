@@ -48,6 +48,7 @@ location = {auth_api} {{
 
 
 def get_auth_location_config(resolver: str, is_local_service: bool = False):
+    """Note that this is not used anymore and was deprecated in favor of the new auth-request"""
     if settings.PROXIES_CONFIG.auth_external:
         service = settings.PROXIES_CONFIG.auth_external
     elif is_local_service:

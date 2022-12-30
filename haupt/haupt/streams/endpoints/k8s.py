@@ -6,40 +6,18 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict
 
-from rest_framework import status
-
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
 
 from haupt.common.endpoints.validation import validate_methods
-from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
 from haupt.streams.controllers.k8s_pods import get_pods
 from haupt.streams.endpoints.base import UJSONResponse
 from polyaxon import settings
 from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.utils.fqn_utils import get_resource_name_for_kind
-
-
-@transaction.non_atomic_requests
-async def k8s_auth(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
-    validate_methods(request, methods)
-    uri = request.headers.get("x-origin-uri")
-    if not uri:
-        return HttpResponse(
-            content="This endpoint can only be a sub-requested.",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        path, params = k8s_check(uri)
-    except ValueError as e:
-        return HttpResponse(
-            content="Error validating path. {}".format(e),
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    return await reverse_k8s(path="{}?{}".format(path, params))
 
 
 @transaction.non_atomic_requests
@@ -69,19 +47,12 @@ async def k8s_inspect(
     return UJSONResponse(data or {})
 
 
-URLS_RUNS_K8S_AUTH = "k8s/auth/"
 URLS_RUNS_K8S_INSPECT = (
     "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/k8s_inspect"
 )
 
 # fmt: off
 k8s_routes = [
-    path(
-        URLS_RUNS_K8S_AUTH,
-        k8s_auth,
-        name="k8s_auth",
-        kwargs=dict(methods=["GET"]),
-    ),
     path(
         URLS_RUNS_K8S_INSPECT,
         k8s_inspect,

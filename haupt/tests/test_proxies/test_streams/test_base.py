@@ -60,22 +60,24 @@ location / {
 }
 
 
-location /streams/v1/k8s/auth/ {
-    proxy_method      GET;
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Origin-URI $request_uri;
-    proxy_intercept_errors off;
-}
-
-
 error_page 500 502 503 504 /static/errors/50x.html;
 error_page 401 403 /static/errors/permission.html;
 error_page 404 /static/errors/404.html;
+
+
+location = /auth-request/v1/ {
+    proxy_pass http://polyaxon;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Origin-URI $request_uri;
+    proxy_set_header X-Origin-Method $request_method;
+    proxy_set_header Host $http_host;
+    proxy_intercept_errors off;
+    internal;
+}
 
 
 location /tmp/ {
@@ -97,7 +99,7 @@ location /tmp/plx/archives/ {
 
 
 location /k8s/v1/ {
-    auth_request     /streams/v1/k8s/auth/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
     auth_request_set $k8s_token $upstream_http_k8s_token;
     auth_request_set $k8s_uri $upstream_http_k8s_uri;
@@ -161,19 +163,6 @@ location / {
 }
 
 
-location /streams/v1/k8s/auth/ {
-    proxy_method      GET;
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Origin-URI $request_uri;
-    proxy_intercept_errors off;
-}
-
-
 error_page 500 502 503 504 /static/errors/50x.html;
 error_page 401 403 /static/errors/permission.html;
 error_page 404 /static/errors/404.html;
@@ -188,6 +177,20 @@ location = /favicon.ico {
     rewrite ^ /static/images/favicon.ico;
 }
 
+
+location = /auth-request/v1/ {
+    proxy_pass http://polyaxon;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Origin-URI $request_uri;
+    proxy_set_header X-Origin-Method $request_method;
+    proxy_set_header Host $http_host;
+    proxy_intercept_errors off;
+    internal;
+}
 
 
 location /internal/ {
@@ -301,7 +304,7 @@ location /tmp/plx/archives/ {
 
 
 location /k8s/v1/ {
-    auth_request     /streams/v1/k8s/auth/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
     auth_request_set $k8s_token $upstream_http_k8s_token;
     auth_request_set $k8s_uri $upstream_http_k8s_uri;
@@ -332,6 +335,18 @@ location = / {
 
 
 location /api/v1/ {
+    proxy_pass http://polyaxon-polyaxon-api;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Host $http_host;
+    proxy_buffering off;
+}
+
+
+location /auth/v1/ {
     proxy_pass http://polyaxon-polyaxon-api;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -425,19 +440,6 @@ location / {
 }
 
 
-location /streams/v1/k8s/auth/ {
-    proxy_method      GET;
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Origin-URI $request_uri;
-    proxy_intercept_errors off;
-}
-
-
 error_page 500 502 503 504 /static/errors/50x.html;
 error_page 401 403 /static/errors/permission.html;
 error_page 404 /static/errors/404.html;
@@ -453,9 +455,8 @@ location = /favicon.ico {
 }
 
 
-location = /auth/v1/ {
-    resolver coredns.kube-system.svc.cluster.local valid=5s;
-    proxy_pass http://polyaxon-polyaxon-api;
+location = /auth-request/v1/ {
+    proxy_pass http://polyaxon;
     proxy_pass_request_body off;
     proxy_set_header Content-Length "";
     proxy_set_header X-Real-IP $remote_addr;
@@ -464,6 +465,7 @@ location = /auth/v1/ {
     proxy_set_header X-Origin-URI $request_uri;
     proxy_set_header X-Origin-Method $request_method;
     proxy_set_header Host $http_host;
+    proxy_intercept_errors off;
     internal;
 }
 
@@ -595,7 +597,7 @@ location /tmp/plx/archives/ {
 
 
 location /k8s/v1/ {
-    auth_request     /streams/v1/k8s/auth/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
     auth_request_set $k8s_token $upstream_http_k8s_token;
     auth_request_set $k8s_uri $upstream_http_k8s_uri;
@@ -627,6 +629,19 @@ location = / {
 
 
 location /api/v1/ {
+    resolver coredns.kube-system.svc.cluster.local valid=5s;
+    proxy_pass http://polyaxon-polyaxon-api;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Origin "";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Host $http_host;
+    proxy_buffering off;
+}
+
+
+location /auth/v1/ {
     resolver coredns.kube-system.svc.cluster.local valid=5s;
     proxy_pass http://polyaxon-polyaxon-api;
     proxy_http_version 1.1;
