@@ -15,7 +15,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
 
-from haupt.common.endpoints.validation import validate_methods
+from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
 from haupt.streams.controllers.logs import (
@@ -105,6 +105,7 @@ async def collect_logs(
     methods: Dict = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
+    validate_internal_auth(request)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid, run_kind=run_kind)
     k8s_manager = AsyncK8SManager(
         namespace=settings.CLIENT_CONFIG.namespace,
