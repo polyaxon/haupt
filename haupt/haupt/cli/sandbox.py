@@ -4,29 +4,8 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-import os
 
 import click
-
-
-def start_sandbox(
-    host: str, port: int, workers: int, per_core: bool, path: str, uds: str
-):
-    """Start sandbox service."""
-    from haupt.cli.runners.sandbox import start
-    from polyaxon.env_vars.keys import (
-        EV_KEYS_SANDBOX_ROOT,
-        EV_KEYS_SERVICE,
-        EV_KEYS_UI_IN_SANDBOX,
-    )
-    from polyaxon.services.values import PolyaxonServices
-
-    os.environ[EV_KEYS_SERVICE] = PolyaxonServices.API
-    os.environ[EV_KEYS_UI_IN_SANDBOX] = "true"
-    if path:
-        os.environ[EV_KEYS_SANDBOX_ROOT] = path
-
-    start(host=host, port=port, workers=workers, per_core=per_core, uds=uds)
 
 
 @click.command()
@@ -60,6 +39,8 @@ def start_sandbox(
 )
 def sandbox(host: str, port: int, workers: int, per_core: bool, path: str, uds: str):
     """Start a new sandbox session."""
-    return start_sandbox(
-        host=host, port=port, workers=workers, per_core=per_core, path=path, uds=uds
+    from haupt.cli.runners.sandbox import start
+
+    return start(
+        host=host, port=port, workers=workers, per_core=per_core, uds=uds, path=path
     )

@@ -4,8 +4,10 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+import os
 
 from haupt.cli.runners.base import start_app
+from polyaxon.env_vars.keys import EV_KEYS_PROXY_STREAMS_TARGET_PORT, EV_KEYS_SERVICE
 from polyaxon.services.values import PolyaxonServices
 
 
@@ -17,6 +19,8 @@ def start(
     per_core: bool = False,
     uds: str = None,
 ):
+    os.environ[EV_KEYS_SERVICE] = PolyaxonServices.STREAMS
+    port = port or os.environ.get(EV_KEYS_PROXY_STREAMS_TARGET_PORT)
     start_app(
         app="haupt.polyconf.asgi:application",
         app_name=PolyaxonServices.STREAMS,

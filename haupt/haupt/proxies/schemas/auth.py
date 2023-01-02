@@ -13,7 +13,7 @@ from haupt.proxies.schemas.urls import (
     get_service_url,
     get_ssl_server_name,
 )
-from polyaxon.api import AUTH_V1_LOCATION
+from polyaxon.api import AUTH_REQUEST_V1_LOCATION, AUTH_V1_LOCATION
 
 AUTH_OPTIONS = r"""
     auth_request     {auth_api};
@@ -21,11 +21,11 @@ AUTH_OPTIONS = r"""
 """  # noqa
 
 
-def get_auth_config():
+def get_auth_config(auth_api: str = AUTH_REQUEST_V1_LOCATION):
     return get_config(
         options=AUTH_OPTIONS if settings.PROXIES_CONFIG.auth_enabled else "",
         indent=0,
-        auth_api=AUTH_V1_LOCATION,
+        auth_api=auth_api,
     )
 
 

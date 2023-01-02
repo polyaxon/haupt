@@ -38,7 +38,7 @@ location /streams/ {
         settings.PROXIES_CONFIG.streams_host = "foo"
         expected = r"""
 location /streams/ {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     proxy_pass http://foo:8888;
@@ -79,7 +79,7 @@ location /streams/ {
 
         expected = r"""
 location /streams/ {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.new-system.svc.new-dns valid=5s;

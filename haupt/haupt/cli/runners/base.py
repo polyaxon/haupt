@@ -9,6 +9,7 @@ import os
 
 import uvicorn
 
+from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
 from polyaxon.utils.workers_utils import get_core_workers
 
 _logger = logging.getLogger("haupt.cli")
@@ -47,6 +48,7 @@ def start_app(
     migrate(migrate_tables=migrate_tables, migrate_db=migrate_db)
     host = host or "0.0.0.0"
     port = int(port or 8000)
+    os.environ[EV_KEYS_PROXY_LOCAL_PORT] = str(port)
     log_level = log_level or "warning"
     if per_core:
         workers = get_core_workers(per_core=workers or 2)

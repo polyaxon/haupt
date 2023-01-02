@@ -19,10 +19,21 @@ class TestAuthSchemas(BaseProxiesTestCase):
     def test_auth_config(self):
         settings.PROXIES_CONFIG.auth_enabled = True
         expected = r"""
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 """  # noqa
         assert get_auth_config() == expected
+
+        settings.PROXIES_CONFIG.auth_enabled = False
+        assert get_auth_config() == ""
+
+    def test_auth_config_with_external_service(self):
+        settings.PROXIES_CONFIG.auth_enabled = True
+        expected = r"""
+    auth_request     /auth/v1/;
+    auth_request_set $auth_status $upstream_status;
+"""  # noqa
+        assert get_auth_config(auth_api="/auth/v1/") == expected
 
         settings.PROXIES_CONFIG.auth_enabled = False
         assert get_auth_config() == ""

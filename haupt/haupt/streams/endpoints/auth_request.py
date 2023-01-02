@@ -24,6 +24,7 @@ import aiohttp
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from polyaxon import settings
+from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
 from polyaxon.utils.date_utils import DateTimeFormatter
 from polyaxon.utils.hashing import hash_value
 from polyaxon.utils.tz_utils import now
@@ -72,7 +73,10 @@ async def _persist_auth_cache(request_cache: str, response: bool):
 
 async def _check_auth_service(uri: str, headers: Dict):
     async with aiohttp.ClientSession(trust_env=True) as session:
-        async with session.get(uri, headers=headers) as resp:
+        async with session.get(
+            "http://localhost:{}{}".format(os.environ[EV_KEYS_PROXY_LOCAL_PORT], uri),
+            headers=headers,
+        ) as resp:
             return resp
 
 
@@ -129,7 +133,7 @@ async def auth_request(request: ASGIRequest, methods: Dict = None) -> HttpRespon
     return await reverse_k8s(path="{}?{}".format(path, params))
 
 
-URLS_RUNS_AUTH_REQUEST = "/"
+URLS_RUNS_AUTH_REQUEST = ""
 
 # fmt: off
 auth_request_routes = [

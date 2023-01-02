@@ -296,7 +296,7 @@ location /internal/ {
 
 
 location /streams/ {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -312,7 +312,7 @@ location /streams/ {
 
 
 location /k8s/ {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -328,7 +328,7 @@ location /k8s/ {
 
 
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -345,7 +345,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*
 
 
 location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -950,7 +950,7 @@ location /internal/ {
 
 
 location /streams/ {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     proxy_pass http://polyaxon;
@@ -965,7 +965,7 @@ location /streams/ {
 
 
 location /k8s/ {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     proxy_pass http://polyaxon;
@@ -980,7 +980,7 @@ location /k8s/ {
 
 
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -997,7 +997,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*
 
 
 location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;

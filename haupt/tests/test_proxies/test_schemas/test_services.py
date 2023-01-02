@@ -46,7 +46,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
 
         expected = r"""
 location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -104,7 +104,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
 
         expected = r"""
 location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -137,7 +137,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         settings.PROXIES_CONFIG.dns_use_resolver = True
         expected = r"""
 location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -167,7 +167,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
 
         expected = r"""
 location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.new-system.svc.new-dns valid=5s;
@@ -224,7 +224,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*
 
         expected = r"""
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -278,7 +278,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*
 
         expected = r"""
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -309,7 +309,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*
         settings.PROXIES_CONFIG.dns_use_resolver = True
         expected = r"""
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -337,7 +337,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*
 
         expected = r"""
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.new-system.svc.new-dns valid=5s;
@@ -762,7 +762,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
 
         expected = r"""
 location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -779,7 +779,7 @@ location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
 
 
 location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -856,7 +856,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
 
         expected = r"""
 location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -873,7 +873,7 @@ location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
 
 
 location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.kube-system.svc.new-dns valid=5s;
@@ -909,7 +909,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
         settings.PROXIES_CONFIG.dns_use_resolver = True
         expected = r"""
 location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -926,7 +926,7 @@ location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
 
 
 location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver coredns.kube-system.svc.cluster.local valid=5s;
@@ -958,7 +958,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
 
         expected = r"""
 location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.new-system.svc.new-dns valid=5s;
@@ -975,7 +975,7 @@ location ~ /tensorboard/proxy/([-_.:\w]+)/(.*) {
 
 
 location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
-    auth_request     /auth/v1/;
+    auth_request     /auth-request/v1/;
     auth_request_set $auth_status $upstream_status;
 
     resolver kube-dns.new-system.svc.new-dns valid=5s;
