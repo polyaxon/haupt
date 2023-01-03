@@ -24,5 +24,5 @@ def validate_internal_auth(request: HttpRequest):
     if data is None:
         raise BadRequest("Request requires an authentication data.")
 
-    if data[1] != conf.get(core.SecretInternalToken):
+    if data[1] != conf.get(core.SECRET_INTERNAL_TOKEN):
         raise BadRequest("Request requires a valid authentication token.")
