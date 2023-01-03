@@ -105,7 +105,15 @@ async def collect_logs(
     methods: Dict = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
-    validate_internal_auth(request)
+    try:
+        validate_internal_auth(request)
+    except Exception as e:
+        return UJSONResponse(
+            data={
+                "errors": "Request requires an authenticated internal service %s" % e
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid, run_kind=run_kind)
     k8s_manager = AsyncK8SManager(
         namespace=settings.CLIENT_CONFIG.namespace,
@@ -128,7 +136,10 @@ async def collect_logs(
     if k8s_manager:
         await k8s_manager.close()
     if not operation_logs:
-        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        return HttpResponse(
+            data={"errors": "Operation logs could not be fetched"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     fs = await AppFS.get_fs()
     try:

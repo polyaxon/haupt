@@ -4,9 +4,9 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
-from rest_framework import exceptions
+from rest_framework import HTTP_HEADER_ENCODING, exceptions
 from rest_framework.authentication import get_authorization_header
 
 from django.http import HttpRequest
@@ -33,7 +33,7 @@ def get_internal_auth(
     if internal_service not in PolyaxonServices.VALUES:
         return None
 
-    if not auth or auth[0].lower() != keyword.lower().encode():
+    if not auth or auth[0].lower() != keyword.lower().encode(HTTP_HEADER_ENCODING):
         return None
 
     if len(auth) == 1:

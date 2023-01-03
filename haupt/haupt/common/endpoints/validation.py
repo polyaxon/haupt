@@ -11,7 +11,7 @@ from django.http import HttpRequest
 
 from haupt.common import conf
 from haupt.common.internal_auth import get_internal_auth
-from haupt.common.options.registry.core import SECRET_INTERNAL_TOKEN
+from haupt.common.options.registry import core
 
 
 def validate_methods(request: HttpRequest, methods: Dict = None):
@@ -22,7 +22,7 @@ def validate_methods(request: HttpRequest, methods: Dict = None):
 def validate_internal_auth(request: HttpRequest):
     data = get_internal_auth(request=request)
     if data is None:
-        raise BadRequest("Request requires an authenticated internal service.")
+        raise BadRequest("Request requires an authentication data.")
 
-    if data[1] != conf.get(SECRET_INTERNAL_TOKEN):
-        raise BadRequest("Request requires an authenticated internal service.")
+    if data[1] != conf.get(core.SecretInternalToken):
+        raise BadRequest("Request requires a valid authentication token.")

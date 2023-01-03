@@ -24,18 +24,22 @@ import aiohttp
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from polyaxon import settings
+from polyaxon.api import AUTH_V1_LOCATION
 from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
 from polyaxon.utils.date_utils import DateTimeFormatter
 from polyaxon.utils.hashing import hash_value
+from polyaxon.utils.path_utils import check_or_create_path
 from polyaxon.utils.tz_utils import now
 
 logger = logging.getLogger("haupt.streams.auth")
 
 
-def _get_auth_cache_path(request_cache: str):
-    return os.path.join(
+def _get_auth_cache_path(request_cache: str) -> str:
+    auth_cache_path = os.path.join(
         settings.CLIENT_CONFIG.archives_root, ".token/{}".format(request_cache)
     )
+    check_or_create_path(auth_cache_path, is_dir=False)
+    return auth_cache_path
 
 
 async def _check_auth_cache(request_cache: str) -> bool:
@@ -51,7 +55,7 @@ async def _check_auth_cache(request_cache: str) -> bool:
             )
             interval = 60 if last_value["response"] else 30
 
-        if now() - last_time < interval:
+        if (now() - last_time).seconds < interval:
             return True
 
         try:
@@ -71,10 +75,12 @@ async def _persist_auth_cache(request_cache: str, response: bool):
         await filepath.write(ujson.dumps(data))
 
 
-async def _check_auth_service(uri: str, headers: Dict):
+async def _check_auth_service(headers: Dict):
     async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(
-            "http://localhost:{}{}".format(os.environ[EV_KEYS_PROXY_LOCAL_PORT], uri),
+            "http://localhost:{}{}".format(
+                os.environ[EV_KEYS_PROXY_LOCAL_PORT], AUTH_V1_LOCATION
+            ),
             headers=headers,
         ) as resp:
             return resp
@@ -86,50 +92,45 @@ async def auth_request(request: ASGIRequest, methods: Dict = None) -> HttpRespon
     # Polyaxon checks for origin headers
     try:
         uri = request.META.get("HTTP_X_ORIGIN_URI")
-        logger.info(uri)
+        logger.debug("Authenticating %s" % uri)
         if not uri:
             return HttpResponse(
                 content="Request must comply with an HTTP_X_ORIGIN_URI",
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_403_FORBIDDEN,
             )
+        uri = uri.split("?")[0]
         method = request.META.get("HTTP_X_ORIGIN_METHOD")
         if not method:
             return HttpResponse(
                 content="Request must comply with an HTTP_X_ORIGIN_METHOD",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-        method = request.META.get("HTTP_X_ORIGIN_METHOD")
-        if not method:
-            return HttpResponse(
-                content="Request must comply with an HTTP_X_ORIGIN_METHOD",
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_403_FORBIDDEN,
             )
         auth = request.META.get("HTTP_AUTHORIZATION", "")
         request_cache = hash_value(value={uri, method, auth}, hash_length=64)
     except Exception as exc:
         return HttpResponse(
             content="Auth request failed extracting headers: %s" % exc,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     # Check cache
     cached = await _check_auth_cache(request_cache=request_cache)
     if cached:
-        return HttpResponse(status_code=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_200_OK)
 
     # Contact auth service
-    response = await _check_auth_service(uri=uri, headers=request.headers)
+    response = await _check_auth_service(headers=request.headers)
     if response.status != 200:
         await _persist_auth_cache(request_cache=request_cache, response=False)
         return HttpResponse(
             content="Auth request failed",
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_403_FORBIDDEN,
         )
     try:
         path, params = k8s_check(uri)
     except ValueError:
         await _persist_auth_cache(request_cache=request_cache, response=True)
-        return HttpResponse(status_code=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_200_OK)
     return await reverse_k8s(path="{}?{}".format(path, params))
 
 
