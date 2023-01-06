@@ -45,6 +45,8 @@ def start_app(
     migrate_tables: bool = False,
     migrate_db: bool = False,
 ):
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
+
     migrate(migrate_tables=migrate_tables, migrate_db=migrate_db)
     host = host or "0.0.0.0"
     port = int(port or 8000)

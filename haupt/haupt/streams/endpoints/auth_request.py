@@ -105,7 +105,9 @@ async def auth_request(request: ASGIRequest, methods: Dict = None) -> HttpRespon
                 status=status.HTTP_403_FORBIDDEN,
             )
         auth = request.META.get("HTTP_AUTHORIZATION", "")
-        request_cache = hash_value(value={uri.split("?")[0], method, auth}, hash_length=64)
+        request_cache = hash_value(
+            value={uri.split("?")[0], method, auth}, hash_length=64
+        )
     except Exception as exc:
         return HttpResponse(
             content="Auth request failed extracting headers: %s" % exc,
