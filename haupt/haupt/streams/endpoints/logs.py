@@ -146,8 +146,8 @@ async def collect_logs(
         await upload_logs(fs=fs, run_uuid=run_uuid, logs=operation_logs)
     except Exception as e:
         errors = (
-            "Run's logs was not collected, an error was raised while uploading the data %s."
-            % e
+            "Run's logs was not collected, an error was raised while uploading the data. "
+            "Error %s." % e
         )
         logger.warning(errors)
         return UJSONResponse(
@@ -155,7 +155,13 @@ async def collect_logs(
             status=status.HTTP_400_BAD_REQUEST,
         )
     if settings.AGENT_CONFIG.is_replica:
-        await clean_tmp_logs(fs=fs, run_uuid=run_uuid)
+        try:
+            await clean_tmp_logs(fs=fs, run_uuid=run_uuid)
+        except Exception as e:
+            return HttpResponse(
+                content="Logs collection failed. Error: %s" % e,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return HttpResponse(status=status.HTTP_200_OK)
     return HttpResponse(status=status.HTTP_200_OK)
 

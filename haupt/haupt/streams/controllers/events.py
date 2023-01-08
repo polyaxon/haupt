@@ -11,10 +11,6 @@ from typing import Dict, List, Optional, Set
 
 import ujson
 
-from rest_framework import status
-
-from django.http import HttpResponse
-
 import aiofiles
 
 from asgiref.sync import sync_to_async
@@ -85,9 +81,8 @@ async def process_operation_event(
                     "data": event_df.to_dict() if to_dict else event_df,
                 }
             else:
-                raise HttpResponse(
-                    detail="received an unrecognisable orient value {}.".format(orient),
-                    status=status.HTTP_400_BAD_REQUEST,
+                logger.warning(
+                    "received an unrecognisable orient value {}.".format(orient)
                 )
     return None
 
@@ -149,20 +144,16 @@ async def get_archived_operation_event_and_assets(
     event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
     pkg_files.append(event_path)
 
-    try:
-        event = await process_operation_event(
-            event_path=event_path,
-            event_kind=event_kind,
-            event_name=event_name,
-            orient=V1Events.ORIENT_DICT,
-            sample=None,
-            to_dict=False,
-        )
-    except Exception as e:
-        logger.warning(
-            "During the packaging of %s, the event download failed. Error %s"
-            % (event_path, e)
-        )
+    event = await process_operation_event(
+        event_path=event_path,
+        event_kind=event_kind,
+        event_name=event_name,
+        orient=V1Events.ORIENT_DICT,
+        sample=None,
+        to_dict=False,
+    )
+    if not event:
+        logger.warning("During the packaging of %s, the event download failed.")
         return []
     df = event["data"].df
     try:

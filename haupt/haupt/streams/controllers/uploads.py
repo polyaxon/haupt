@@ -4,8 +4,9 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-
 import os
+
+import ujson
 
 from rest_framework import status
 
@@ -71,7 +72,7 @@ async def handle_posted_data(
         await sync_to_async(untar_file)(
             full_tmppath, extract_path=full_filepath, use_filepath=False
         )
-    if upload:
+    if upload and full_tmppath != full_filepath:
         if is_file:
             await upload_file(fs=fs, subpath=root_path)
         else:
@@ -83,9 +84,11 @@ async def handle_upload(
     fs: FSSystem, request: ASGIRequest, run_uuid: str, is_file: bool
 ) -> HttpResponse:
     content_file = request.FILES["upload_file"]
-    overwrite = request.POST.get("overwrite", True)
-    untar = request.POST.get("untar", True)
-    path = request.POST.get("path", "")
+    content_json = request.POST.get("json")
+    content_json = ujson.loads(content_json) if content_json else {}
+    overwrite = content_json.get("overwrite", True)
+    untar = content_json.get("untar", True)
+    path = content_json.get("path", "")
     try:
         archived_path = await handle_posted_data(
             fs=fs,
@@ -99,7 +102,7 @@ async def handle_upload(
         )
     except Exception as e:
         return HttpResponse(
-            detail="Run's artifacts upload was unsuccessful, "
+            content="Run's artifacts upload was unsuccessful, "
             "an error was raised while uploading the data %s." % e,
             status=status.HTTP_400_BAD_REQUEST,
         )

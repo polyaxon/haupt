@@ -20,6 +20,7 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_SERVICE,
     EV_KEYS_TIME_ZONE,
 )
+from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
 
 
 class ConfigManager(BaseConfigManager):
@@ -41,7 +42,9 @@ class ConfigManager(BaseConfigManager):
         self._db_engine_name = self.get_string(
             "POLYAXON_DB_ENGINE", default="sqlite", is_optional=True
         )
-        self._namespace = self.get_string("POLYAXON_K8S_NAMESPACE", is_optional=True)
+        self._namespace = self.get_string(
+            "POLYAXON_K8S_NAMESPACE", is_optional=True, default=DEFAULT_NAMESPACE
+        )
         self._log_level = self.get_string(
             EV_KEYS_LOG_LEVEL, is_local=True, is_optional=True, default="WARNING"
         ).upper()

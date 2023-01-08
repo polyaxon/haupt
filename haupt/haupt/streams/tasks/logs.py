@@ -9,9 +9,7 @@ from typing import List
 
 import ujson
 
-from rest_framework import status
-
-from django.http import HttpResponse
+from django.core.exceptions import BadRequest
 
 from asgiref.sync import sync_to_async
 from polyaxon import settings
@@ -28,10 +26,7 @@ from traceml.logging import V1Log, V1Logs
 
 async def clean_tmp_logs(fs: FSSystem, run_uuid: str):
     if not settings.AGENT_CONFIG.artifacts_store:
-        raise HttpResponse(
-            detail="Run's logs was not collected, resource was not found.",
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        raise BadRequest("Run's logs was not collected, resource was not found.")
     subpath = "{}/.tmpplxlogs".format(run_uuid)
     delete_path(subpath)
     await delete_file_or_dir(fs=fs, subpath=subpath, is_file=False)
@@ -39,10 +34,7 @@ async def clean_tmp_logs(fs: FSSystem, run_uuid: str):
 
 async def upload_logs(fs: FSSystem, run_uuid: str, logs: List[V1Log]):
     if not settings.AGENT_CONFIG.artifacts_store:
-        raise HttpResponse(
-            detail="Run's logs was not collected, resource was not found.",
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        raise BadRequest("Run's logs was not collected, resource was not found.")
     for c_logs in V1Logs.chunk_logs(logs):
         last_file = datetime.timestamp(c_logs.logs[-1].timestamp)
         if settings.AGENT_CONFIG.compressed_logs:

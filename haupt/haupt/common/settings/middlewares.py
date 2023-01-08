@@ -14,11 +14,17 @@ def set_middlewares(context, config: ConfigManager):
         "django.contrib.sessions.middleware.SessionMiddleware",
         "corsheaders.middleware.CorsMiddleware",
         "django.middleware.common.CommonMiddleware",
-        "django.middleware.csrf.CsrfViewMiddleware",
+    )
+
+    if not context["UI_IN_SANDBOX"]:
+        context["MIDDLEWARE"] += ("django.middleware.csrf.CsrfViewMiddleware",)
+
+    context["MIDDLEWARE"] += (
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     )
+
     if context["UI_IN_SANDBOX"]:
         context["MIDDLEWARE"] += ("whitenoise.middleware.WhiteNoiseMiddleware",)
 
