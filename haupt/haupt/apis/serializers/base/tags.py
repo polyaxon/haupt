@@ -16,7 +16,6 @@ from polyaxon.utils.list_utils import to_list
 class TagsMixin:
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        print(representation)
         if settings.DB_ENGINE_NAME == "sqlite" and isinstance(
             representation.get("tags"), Mapping
         ):
