@@ -39,4 +39,4 @@ def set_sandbox_config():
         set_agent_config(SANDBOX_CONFIG)
     except (TypeError, ValidationError):
         SandboxConfigManager.purge()
-        Printer.print_warning("Your sandbox configuration was purged!")
+        Printer.warning("Your sandbox configuration was purged!")
