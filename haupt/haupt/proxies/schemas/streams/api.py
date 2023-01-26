@@ -36,10 +36,6 @@ def get_api_config(path: str, intercept_errors: str = "on"):
     )
 
 
-def get_streams_config():
-    return get_api_config(path="/", intercept_errors="off")
-
-
 def get_platform_config():
     config = [
         get_api_config(path="= /"),

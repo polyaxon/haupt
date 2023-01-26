@@ -47,19 +47,6 @@ proxy_read_timeout 650;
 keepalive_requests 10000;
 
 
-location / {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
-}
-
-
 error_page 500 502 503 504 /static/errors/50x.html;
 error_page 401 403 /static/errors/permission.html;
 error_page 404 /static/errors/404.html;
@@ -148,19 +135,6 @@ uwsgi_send_timeout 650;
 client_header_timeout 650;
 proxy_read_timeout 650;
 keepalive_requests 10000;
-
-
-location / {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
-}
 
 
 error_page 500 502 503 504 /static/errors/50x.html;
@@ -425,19 +399,6 @@ uwsgi_send_timeout 650;
 client_header_timeout 650;
 proxy_read_timeout 650;
 keepalive_requests 10000;
-
-
-location / {
-    proxy_pass http://polyaxon;
-    proxy_http_version 1.1;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Origin "";
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_intercept_errors off;
-}
 
 
 error_page 500 502 503 504 /static/errors/50x.html;
