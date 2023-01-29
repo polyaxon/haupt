@@ -45,20 +45,20 @@ def _get_auth_cache_path(request_cache: str) -> str:
 async def _check_auth_cache(request_cache: str) -> bool:
     cache_path = _get_auth_cache_path(request_cache)
     if os.path.isfile(cache_path):
-        async with aiofiles.open(cache_path, mode="r") as f:
-            last_value = ujson.loads(await f.read())
-            last_time = DateTimeFormatter.extract_timestamp(
-                last_value["time"],
-                dt_format=DateTimeFormatter.DATETIME_FORMAT,
-                timezone=settings.CLIENT_CONFIG.timezone,
-                force_tz=True,
-            )
-            interval = 60 if last_value["response"] else 30
-
-        if (now() - last_time).seconds < interval:
-            return True
-
         try:
+            async with aiofiles.open(cache_path, mode="r") as f:
+                last_value = ujson.loads(await f.read())
+                last_time = DateTimeFormatter.extract_timestamp(
+                    last_value["time"],
+                    dt_format=DateTimeFormatter.DATETIME_FORMAT,
+                    timezone=settings.CLIENT_CONFIG.timezone,
+                    force_tz=True,
+                )
+                interval = 60 if last_value["response"] else 30
+
+            if (now() - last_time).seconds < interval:
+                return True
+
             os.remove(cache_path)
         except Exception as e:
             logger.warning(
