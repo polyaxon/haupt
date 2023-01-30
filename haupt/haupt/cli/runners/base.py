@@ -41,6 +41,7 @@ def start_app(
     log_level: str = None,
     workers: int = None,
     per_core: bool = False,
+    max_workers: int = None,
     uds: str = None,
     migrate_tables: bool = False,
     migrate_db: bool = False,
@@ -53,9 +54,9 @@ def start_app(
     os.environ[EV_KEYS_PROXY_LOCAL_PORT] = str(port)
     log_level = log_level or "warning"
     if per_core:
-        workers = get_core_workers(per_core=workers or 2)
+        workers = get_core_workers(per_core=workers or 2, max_workers=max_workers)
     else:
-        workers = workers or get_core_workers(per_core=2)
+        workers = workers or get_core_workers(per_core=2, max_workers=max_workers)
 
         _logger.info(
             "{app_name} is running on http://{host}:{port} in process {pid}".format(
