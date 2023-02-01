@@ -22,6 +22,11 @@ import aiofiles
 import aiohttp
 
 from haupt.common.endpoints.validation import validate_methods
+from haupt.common.headers import (
+    get_authorization_header,
+    get_original_method_header,
+    get_original_uri_header,
+)
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from polyaxon import settings
 from polyaxon.api import AUTH_V1_LOCATION
@@ -91,20 +96,20 @@ async def auth_request(request: ASGIRequest, methods: Dict = None) -> HttpRespon
     validate_methods(request, methods)
     # Polyaxon checks for origin headers
     try:
-        uri = request.META.get("HTTP_X_ORIGIN_URI")
+        uri = get_original_uri_header(request)
         logger.debug("Authenticating %s" % uri)
         if not uri:
             return HttpResponse(
                 content="Request must comply with an HTTP_X_ORIGIN_URI",
                 status=status.HTTP_403_FORBIDDEN,
             )
-        method = request.META.get("HTTP_X_ORIGIN_METHOD")
+        method = get_original_method_header(request)
         if not method:
             return HttpResponse(
                 content="Request must comply with an HTTP_X_ORIGIN_METHOD",
                 status=status.HTTP_403_FORBIDDEN,
             )
-        auth = request.META.get("HTTP_AUTHORIZATION", "")
+        auth = get_authorization_header(request)
         request_cache = hash_value(
             value={uri.split("?")[0], method, auth}, hash_length=64
         )
