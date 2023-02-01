@@ -15,7 +15,6 @@ from django.http import HttpResponse
 
 from asgiref.sync import sync_to_async
 from polyaxon import settings
-from polyaxon.constants.globals import DEFAULT_UPLOADS_PATH
 from polyaxon.fs.async_manager import upload_dir, upload_file
 from polyaxon.fs.types import FSSystem
 from polyaxon.lifecycle import V1ProjectFeature
@@ -40,7 +39,7 @@ async def handle_posted_data(
             root_path = "{}/{}".format(root_path, os.path.basename(filename))
     else:
         if untar:
-            root_path = "{}/{}".format(root_path, DEFAULT_UPLOADS_PATH).rstrip("/")
+            root_path = "{}/{}".format(root_path, path or "/").rstrip("/")
         else:
             root_path = tmp_path
     if not untar:
