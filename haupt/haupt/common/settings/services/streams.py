@@ -11,6 +11,7 @@ from haupt.common.settings.core import set_core
 from haupt.common.settings.cors import set_cors
 from haupt.common.settings.middlewares import set_base_middlewares
 from haupt.common.settings.ui import set_ui
+from polyaxon.env_vars.keys import EV_KEYS_UI_IN_SANDBOX
 
 
 def set_streams_apps(context, config: ConfigManager):
@@ -23,11 +24,15 @@ def set_streams_apps(context, config: ConfigManager):
             "haupt.streams.apps.StreamsConfig",
         ),
         use_db_apps=False,
-        use_staticfiles_app=False,
+        use_staticfiles_app=context["UI_IN_SANDBOX"],
     )
 
 
 def set_service(context, config: ConfigManager):
+    # This is repeated because it's required for using the staticfiles app
+    context["UI_IN_SANDBOX"] = config.get_boolean(
+        EV_KEYS_UI_IN_SANDBOX, is_optional=True, default=False
+    )
     set_streams_apps(context, config)
     set_core(context=context, config=config, use_db=False)
     set_cors(context=context, config=config)

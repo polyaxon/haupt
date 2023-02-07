@@ -31,3 +31,5 @@ def set_middlewares(context, config: ConfigManager):
 
 def set_base_middlewares(context, config: ConfigManager):
     context["MIDDLEWARE"] = ("django.middleware.common.CommonMiddleware",)
+    if context["UI_IN_SANDBOX"]:
+        context["MIDDLEWARE"] += ("whitenoise.middleware.WhiteNoiseMiddleware",)

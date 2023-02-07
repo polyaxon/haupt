@@ -5,6 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+import os
+
 import click
 
 
@@ -37,10 +39,36 @@ import click
     "--uds",
     help="UNIX domain socket binding.",
 )
-def sandbox(host: str, port: int, workers: int, per_core: bool, path: str, uds: str):
+@click.option(
+    "--is-local",
+    is_flag=True,
+    default=False,
+    help="A flag to load local run package.",
+)
+def sandbox(
+    host: str,
+    port: int,
+    workers: int,
+    per_core: bool,
+    path: str,
+    uds: str,
+    is_local: bool,
+):
     """Start a new sandbox session."""
-    from haupt.cli.runners.sandbox import start
+    from haupt import settings
+    from polyaxon.env_vars.keys import EV_KEYS_SANDBOX_ROOT, EV_KEYS_UI_IN_SANDBOX
 
-    return start(
-        host=host, port=port, workers=workers, per_core=per_core, uds=uds, path=path
-    )
+    os.environ[EV_KEYS_UI_IN_SANDBOX] = "true"
+    if path:
+        os.environ[EV_KEYS_SANDBOX_ROOT] = path
+
+    if is_local:
+        from haupt.cli.runners.streams import start
+        from polyaxon.env_vars.keys import EV_KEYS_SANDBOX_IS_LOCAL
+
+        os.environ[EV_KEYS_SANDBOX_IS_LOCAL] = "true"
+    else:
+        from haupt.cli.runners.sandbox import start
+
+    settings.set_sandbox_config()
+    return start(host=host, port=port, workers=workers, per_core=per_core, uds=uds)

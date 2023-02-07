@@ -14,16 +14,15 @@ from django.core.handlers.asgi import ASGIRequest
 from django.http import HttpResponse
 from django.urls import path
 
+from haupt import settings
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.endpoints.base import ConfigResponse, UJSONResponse
-from polyaxon import settings
-from polyaxon.api import API_V1_LOCATION
 from polyaxon.contexts import paths as ctx_paths
 from polyaxon.lifecycle import V1ProjectFeature
 
 
 async def get_run_details(
-    request: ASGIRequest, run_uuid: str, methods: Dict = None
+    request: ASGIRequest, owner: str, project: str, run_uuid: str, methods: Dict = None
 ) -> HttpResponse:
     validate_methods(request, methods)
     subpath = os.path.join(run_uuid, ctx_paths.CONTEXT_LOCAL_RUN)
@@ -39,7 +38,7 @@ async def get_run_details(
 
 
 async def get_run_artifact_lineage(
-    request: ASGIRequest, run_uuid: str, methods: Dict = None
+    request: ASGIRequest, owner: str, project: str, run_uuid: str, methods: Dict = None
 ) -> HttpResponse:
     validate_methods(request, methods)
     subpath = os.path.join(run_uuid, ctx_paths.CONTEXT_LOCAL_LINEAGES)
@@ -56,7 +55,9 @@ async def get_run_artifact_lineage(
     return ConfigResponse(config_str)
 
 
-async def list_runs(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
+async def list_runs(
+    request: ASGIRequest, owner: str, project: str, methods: Dict = None
+) -> HttpResponse:
     validate_methods(request, methods)
     # project = request.path_params["project"]
     data_path = settings.SANDBOX_CONFIG.get_store_path(
@@ -79,7 +80,10 @@ async def list_runs(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
 
 
 async def get_project_details(
-    request: ASGIRequest, project: str, methods: Dict = None
+    request: ASGIRequest,
+    owner: str,
+    project: str,
+    methods: Dict = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     data_path = settings.SANDBOX_CONFIG.get_store_path(
@@ -98,7 +102,9 @@ async def get_project_details(
     return UJSONResponse({"name": project})
 
 
-async def list_projects(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
+async def list_projects(
+    request: ASGIRequest, owner: str, methods: Dict = None
+) -> HttpResponse:
     validate_methods(request, methods)
     data_path = settings.SANDBOX_CONFIG.get_store_path(subpath="", entity="project")
     if not os.path.exists(data_path) or not os.path.isdir(data_path):
@@ -106,7 +112,6 @@ async def list_projects(request: ASGIRequest, methods: Dict = None) -> HttpRespo
 
     data = []
     for proj in os.listdir(data_path):
-
         data_path = os.path.join(data_path, proj, ctx_paths.CONTEXT_LOCAL_PROJECT)
         if os.path.exists(data_path) and os.path.isfile(data_path):
             with open(data_path, "r") as config_file:
@@ -119,19 +124,17 @@ async def list_projects(request: ASGIRequest, methods: Dict = None) -> HttpRespo
     return ConfigResponse(config_str)
 
 
-URLS_RUNS_DETAILS = API_V1_LOCATION + "<str:owner>/<str:project>/runs/<str:run_uuid>/"
-URLS_RUNS_STATUSES = (
-    API_V1_LOCATION + "<str:owner>/<str:project>/runs/<str:run_uuid>/statuses"
-)
+URLS_RUNS_DETAILS = "<str:owner>/<str:project>/runs/<str:run_uuid>/"
+URLS_RUNS_STATUSES = "<str:owner>/<str:project>/runs/<str:run_uuid>/statuses"
 URLS_RUNS_LINEAGE_ARTIFACTS = (
-    API_V1_LOCATION + "<str:owner>/<str:project>/runs/<str:run_uuid>/lineage/artifacts"
+    "<str:owner>/<str:project>/runs/<str:run_uuid>/lineage/artifacts"
 )
-URLS_RUNS_LIST = API_V1_LOCATION + "<str:owner>/<str:project>/runs/"
-URLS_PROJECTS_LIST = API_V1_LOCATION + "<str:owner>/projects/list"
-URLS_PROJECTS_DETAILS = API_V1_LOCATION + "<str:owner>/<str:project>/"
+URLS_RUNS_LIST = "<str:owner>/<str:project>/runs/"
+URLS_PROJECTS_LIST = "<str:owner>/projects/list"
+URLS_PROJECTS_DETAILS = "<str:owner>/<str:project>/"
 
 # fmt: off
-sandbox_routes = [
+local_sandbox_routes = [
     path(
         URLS_RUNS_DETAILS,
         get_run_details,

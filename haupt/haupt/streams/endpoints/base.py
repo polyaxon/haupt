@@ -38,7 +38,7 @@ class UJSONResponse(HttpResponse):
         super().__init__(content=data, **kwargs)
 
 
-class ConfigResponse(UJSONResponse):
+class ConfigResponse(HttpResponse):
     def __init__(
         self,
         data,

@@ -10,6 +10,7 @@ from marshmallow import fields
 from polyaxon.env_vars.keys import (
     EV_KEYS_SANDBOX_DEBUG,
     EV_KEYS_SANDBOX_HOST,
+    EV_KEYS_SANDBOX_IS_LOCAL,
     EV_KEYS_SANDBOX_PER_CORE,
     EV_KEYS_SANDBOX_PORT,
     EV_KEYS_SANDBOX_SSL_ENABLED,
@@ -28,6 +29,7 @@ class SandboxSchema(BaseAgentSchema):
     debug = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_DEBUG)
     workers = fields.Int(allow_none=True, data_key=EV_KEYS_SANDBOX_WORKERS)
     per_core = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_PER_CORE)
+    is_local = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_IS_LOCAL)
 
     @staticmethod
     def schema_config():
@@ -44,6 +46,7 @@ class SandboxConfig(BaseAgentConfig):
         EV_KEYS_SANDBOX_DEBUG,
         EV_KEYS_SANDBOX_WORKERS,
         EV_KEYS_SANDBOX_PER_CORE,
+        EV_KEYS_SANDBOX_IS_LOCAL,
     ]
 
     def __init__(
@@ -56,6 +59,7 @@ class SandboxConfig(BaseAgentConfig):
         debug: bool = None,
         workers: int = None,
         per_core: bool = None,
+        is_local: bool = None,
         **kwargs,
     ):
         super().__init__(
@@ -70,3 +74,4 @@ class SandboxConfig(BaseAgentConfig):
         self.debug = debug
         self.workers = workers
         self.per_core = per_core
+        self.is_local = is_local

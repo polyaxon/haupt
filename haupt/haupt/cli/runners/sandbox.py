@@ -9,11 +9,7 @@ import os
 from haupt import settings
 from haupt.cli.runners.base import start_app
 from polyaxon import settings as plx_settings
-from polyaxon.env_vars.keys import (
-    EV_KEYS_SANDBOX_ROOT,
-    EV_KEYS_SERVICE,
-    EV_KEYS_UI_IN_SANDBOX,
-)
+from polyaxon.env_vars.keys import EV_KEYS_SERVICE
 from polyaxon.services.values import PolyaxonServices
 
 
@@ -24,13 +20,7 @@ def start(
     workers: int = None,
     per_core: bool = False,
     uds: str = None,
-    path: str = None,
 ):
-    settings.set_sandbox_config()
-
-    if path:
-        os.environ[EV_KEYS_SANDBOX_ROOT] = path
-    os.environ[EV_KEYS_UI_IN_SANDBOX] = "true"
     os.environ[EV_KEYS_SERVICE] = PolyaxonServices.API
     host = host or settings.SANDBOX_CONFIG.host
     port = port or settings.SANDBOX_CONFIG.port

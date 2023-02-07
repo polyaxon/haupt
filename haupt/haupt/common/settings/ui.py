@@ -44,14 +44,17 @@ def set_ui(context, config: ConfigManager, processors: List[str] = None):
     context["ALLOWED_HOSTS"] = get_allowed_hosts()
 
     processors = processors or []
+    if not config.is_streams_service:
+        processors = [
+            "django.contrib.auth.context_processors.auth",
+            "django.contrib.messages.context_processors.messages",
+        ] + processors
     processors = [
-        "django.contrib.auth.context_processors.auth",
         "django.template.context_processors.debug",
         "django.template.context_processors.request",
         "django.template.context_processors.media",
         "django.template.context_processors.static",
         "django.template.context_processors.tz",
-        "django.contrib.messages.context_processors.messages",
         "haupt.common.settings.context_processors.version",
         "haupt.common.settings.context_processors.ui_assets_version",
         "haupt.common.settings.context_processors.ui_base_url",
