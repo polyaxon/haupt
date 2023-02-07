@@ -23,7 +23,6 @@ def migrate_wait_time(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("db", "0007_auto_20201121_1332"),
     ]

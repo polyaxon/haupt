@@ -21,7 +21,6 @@ class ProxiesManager(BaseConfigManager):
 
     @classmethod
     def get_config_from_env(cls, **kwargs) -> ProxiesConfig:
-
         config_paths = [os.environ, {"dummy": "dummy"}]
 
         proxy_config = ConfigManager.read_configs(config_paths)

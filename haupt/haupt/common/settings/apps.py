@@ -20,7 +20,6 @@ def set_apps(
     use_admin_apps: bool = False,
     use_staticfiles_app: bool = True,
 ):
-
     extra_apps = config.get_string(
         "POLYAXON_EXTRA_APPS", is_list=True, is_optional=True
     )

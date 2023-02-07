@@ -77,7 +77,6 @@ async def get_archived_operation_logs(
 async def get_tmp_operation_logs(
     fs: FSSystem, run_uuid: str, last_time: Optional[AwareDT]
 ) -> Tuple[List[V1Log], Optional[AwareDT]]:
-
     logs = []
 
     tmp_logs = await download_tmp_logs(fs=fs, run_uuid=run_uuid)

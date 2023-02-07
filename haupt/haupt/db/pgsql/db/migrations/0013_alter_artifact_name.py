@@ -10,7 +10,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("db", "0012_alter_artifact_updated_at_and_more"),
     ]

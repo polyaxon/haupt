@@ -15,7 +15,6 @@ import haupt.common.validation.blacklist
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("db", "0006_auto_20201020_1705"),
     ]

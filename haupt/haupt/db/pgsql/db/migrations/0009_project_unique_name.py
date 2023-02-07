@@ -15,7 +15,6 @@ import haupt.common.validation.blacklist
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("db", "0008_run_wait_time"),
     ]

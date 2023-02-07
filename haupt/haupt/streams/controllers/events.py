@@ -96,7 +96,6 @@ async def get_archived_operation_resource(
     check_cache: bool = True,
     sample: int = None,
 ) -> Optional[Dict]:
-
     subpath = get_resource_path(run_path=run_uuid, kind=event_kind, name=event_name)
     event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
 
@@ -118,7 +117,6 @@ async def get_archived_operation_event(
     check_cache: bool = True,
     sample: int = None,
 ) -> Optional[Dict]:
-
     subpath = get_event_path(run_path=run_uuid, kind=event_kind, name=event_name)
     event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
 
@@ -138,7 +136,6 @@ async def get_archived_operation_event_and_assets(
     event_name: str,
     check_cache: bool = True,
 ) -> List[str]:
-
     pkg_files = []
     subpath = get_event_path(run_path=run_uuid, kind=event_kind, name=event_name)
     event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
@@ -180,7 +177,6 @@ async def get_archived_operation_events_and_assets(
     event_names: Set[str],
     check_cache: bool = True,
 ) -> Optional[str]:
-
     pkg_files = []
     for event_name in event_names:
         event_pkg_files = await get_archived_operation_event_and_assets(

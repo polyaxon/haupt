@@ -21,7 +21,6 @@ from polyaxon.services.values import PolyaxonServices
 async def _redirect(
     redirect_path: str, is_file: bool = False, additional_headers: Dict = None
 ) -> HttpResponse:
-
     headers = {"Content-Type": "", "X-Accel-Redirect": redirect_path}
     if additional_headers:
         headers.update(additional_headers)

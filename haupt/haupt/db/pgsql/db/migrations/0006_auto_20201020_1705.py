@@ -21,7 +21,6 @@ def migrate_runtime(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("db", "0005_auto_20201005_0913"),
     ]

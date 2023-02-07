@@ -129,7 +129,6 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
 def get_services_location_config(
     resolver: str, auth: str, rewrite: bool = False, external: bool = False
 ):
-
     dns_cluster_with_port = settings.PROXIES_CONFIG.dns_custom_cluster
     if settings.PROXIES_CONFIG.services_port != 80:
         dns_cluster_with_port = "{}:{}".format(

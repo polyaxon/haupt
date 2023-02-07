@@ -22,7 +22,6 @@ import haupt.common.validation.blacklist
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
