@@ -100,6 +100,7 @@ setup(
         "google cloud",
         "tensorFlow",
         "pytorch",
+        "paddlepaddle",
         "matplotlib",
         "plotly",
         "visualization",

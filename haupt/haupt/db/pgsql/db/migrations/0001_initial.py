@@ -386,6 +386,7 @@ class Migration(migrations.Migration):
                             ("mpijob", "mpijob"),
                             ("mxjob", "mxjob"),
                             ("notifier", "notifier"),
+                            ("paddlejob", "paddlejob"),
                             ("pytorchjob", "pytorchjob"),
                             ("ray", "ray"),
                             ("schedule", "schedule"),
