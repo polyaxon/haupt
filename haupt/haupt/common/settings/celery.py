@@ -9,7 +9,7 @@ from typing import Dict
 from haupt.common.config_manager import ConfigManager
 
 
-def set_celery(context, config: ConfigManager, routes: Dict):
+def set_celery(context, config: ConfigManager, routes: Dict, schedules: Dict = None):
     context["CELERY_TASK_TRACK_STARTED"] = config.get_boolean(
         "POLYAXON_CELERY_TASK_TRACK_STARTED", is_optional=True, default=True
     )
@@ -90,3 +90,5 @@ def set_celery(context, config: ConfigManager, routes: Dict):
 
     context["Intervals"] = Intervals
     context["CELERY_TASK_ROUTES"] = routes
+    if schedules:
+        context["CELERY_BEAT_SCHEDULE"] = schedules

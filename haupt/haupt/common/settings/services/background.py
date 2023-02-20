@@ -17,6 +17,7 @@ def set_background_service(
     config: ConfigManager,
     scheduler_apps: Tuple,
     routes: Dict,
+    schedules: Dict = None,
     db_app: str = None,
 ):
     set_apps(
@@ -27,7 +28,7 @@ def set_background_service(
         db_app=db_app,
     )
     set_core(context=context, config=config, use_db=True)
-    set_celery(context=context, config=config, routes=routes)
+    set_celery(context=context, config=config, routes=routes, schedules=schedules)
 
 
 def set_service(context, config: ConfigManager):
