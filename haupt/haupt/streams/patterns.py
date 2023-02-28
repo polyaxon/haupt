@@ -20,7 +20,7 @@ from haupt.streams.endpoints.logs import internal_logs_routes, logs_routes
 from haupt.streams.endpoints.notifications import notifications_routes
 from polyaxon.api import API_V1, AUTH_REQUEST_V1, INTERNAL_V1, STREAMS_V1
 
-sandbox_id_local = settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.is_local
+sandbox_is_local = settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.is_local
 
 streams_routes = (
     logs_routes + k8s_routes + notifications_routes + artifacts_routes + events_routes
@@ -28,7 +28,7 @@ streams_routes = (
 
 app_urlpatterns = []
 
-if sandbox_id_local:
+if sandbox_is_local:
     app_urlpatterns += [
         re_path(
             r"^{}/".format(API_V1),
@@ -53,7 +53,7 @@ app_urlpatterns += [
 ]
 
 # UI
-if sandbox_id_local:
+if sandbox_is_local:
     projects_urls = "{}/{}".format(OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN)
     orgs_urls = "orgs/{}".format(OWNER_NAME_PATTERN)
     ui_urlpatterns = [
