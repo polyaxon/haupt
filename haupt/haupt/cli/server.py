@@ -34,7 +34,7 @@ import click
     help="UNIX domain socket binding.",
 )
 def server(host: str, port: int, workers: int, per_core: bool, uds: str):
-    """Start a new sandbox session."""
+    """Start a new sever session."""
     from haupt.cli.runners.server import start
 
     return start(

@@ -22,11 +22,11 @@ def start(
     uds: str = None,
 ):
     os.environ[EV_KEYS_SERVICE] = PolyaxonServices.API
+    settings.set_sandbox_config()
     host = host or settings.SANDBOX_CONFIG.host
     port = port or settings.SANDBOX_CONFIG.port
-
     start_app(
-        app="haupt.polyconf.asgi:application",
+        app="haupt.polyconf.asgi.sandbox:application",
         app_name=PolyaxonServices.SANDBOX,
         host=host,
         port=port,

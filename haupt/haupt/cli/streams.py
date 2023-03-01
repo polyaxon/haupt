@@ -34,6 +34,7 @@ import click
     help="UNIX domain socket binding.",
 )
 def streams(host: str, port: int, workers: int, per_core: bool, uds: str):
+    """Start a new streams session."""
     from haupt.cli.runners.streams import start
 
     return start(host=host, port=port, workers=workers, per_core=per_core, uds=uds)

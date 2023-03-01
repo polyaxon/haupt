@@ -7,7 +7,7 @@
 import os
 
 from haupt.cli.runners.base import start_app
-from polyaxon.env_vars.keys import EV_KEYS_PROXY_STREAMS_TARGET_PORT, EV_KEYS_SERVICE
+from polyaxon.env_vars.keys import EV_KEYS_PROXY_STREAMS_TARGET_PORT
 from polyaxon.services.values import PolyaxonServices
 
 
@@ -19,10 +19,9 @@ def start(
     per_core: bool = False,
     uds: str = None,
 ):
-    os.environ[EV_KEYS_SERVICE] = PolyaxonServices.STREAMS
     port = port or os.environ.get(EV_KEYS_PROXY_STREAMS_TARGET_PORT)
     start_app(
-        app="haupt.polyconf.asgi:application",
+        app="haupt.polyconf.asgi.streams:application",
         app_name=PolyaxonServices.STREAMS,
         host=host,
         port=port,

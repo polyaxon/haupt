@@ -39,7 +39,7 @@ import click
     "--uds",
     help="UNIX domain socket binding.",
 )
-def sandbox(
+def viewer(
     host: str,
     port: int,
     workers: int,
@@ -47,8 +47,8 @@ def sandbox(
     path: str,
     uds: str,
 ):
-    """Start a new sandbox session."""
-    from haupt.cli.runners.sandbox import start
+    """Start a new local viewer session."""
+    from haupt.cli.runners.viewer import start
     from polyaxon.env_vars.keys import EV_KEYS_SANDBOX_ROOT
 
     if path:
