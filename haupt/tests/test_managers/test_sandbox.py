@@ -18,6 +18,6 @@ class TestSandboxConfigManager(BaseTestCase):
         assert SandboxConfigManager.is_global() is False
         assert SandboxConfigManager.is_all_visibility() is True
         assert SandboxConfigManager.CONFIG_PATH is None
-        assert SandboxConfigManager.IS_POLYAXON_DIR is False
+        assert SandboxConfigManager.IN_POLYAXON_DIR is False
         assert SandboxConfigManager.CONFIG_FILE_NAME == ".sandbox"
         assert SandboxConfigManager.CONFIG == SandboxConfig

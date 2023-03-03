@@ -21,10 +21,7 @@ class SandboxConfigManager(BaseConfigManager):
 
     @classmethod
     def get_config_from_env(cls):
-        config_paths = [
-            os.environ,
-            {"dummy": "dummy"},
-        ]
+        config_paths = [os.environ, {"dummy": "dummy"}]
 
         config = ConfigManager.read_configs(config_paths)
         return cls.CONFIG.from_dict(config.data)
