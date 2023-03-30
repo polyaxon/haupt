@@ -11,6 +11,7 @@ import shutil
 
 from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION
+from polyaxon.utils.enums_utils import get_enum_value
 from polyaxon.utils.path_utils import create_path
 from polyaxon.utils.test_utils import set_store
 from tests.base.case import BaseTest
@@ -73,7 +74,7 @@ class TestEventsEndpoints(BaseTest):
         self.create_kind_events(name="html2", kind=V1ArtifactKind.HTML, events=html2)
 
     def create_kind_events(self, name, kind, events):
-        event_kind_path = "{}/{}".format(self.run_events, kind)
+        event_kind_path = "{}/{}".format(self.run_events, get_enum_value(kind))
         create_path(event_kind_path)
         with open("{}/{}.plx".format(event_kind_path, name), "+w") as f:
             f.write(events.get_csv_header())
@@ -404,7 +405,7 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         )
 
     def create_kind_events(self, run_events, name, kind, events):
-        event_kind_path = "{}/{}".format(run_events, kind)
+        event_kind_path = "{}/{}".format(run_events, get_enum_value(kind))
         create_path(event_kind_path)
         with open("{}/{}.plx".format(event_kind_path, name), "+w") as f:
             f.write(events.get_csv_header())
