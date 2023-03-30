@@ -9,6 +9,8 @@ import pytest
 
 import ujson
 
+from pydantic import ValidationError
+
 from haupt.schemas.sandbox_config import SandboxConfig
 from polyaxon.connections.kinds import V1ConnectionKind
 from polyaxon.connections.schemas import V1BucketConnection, V1K8sResourceSchema
@@ -17,7 +19,6 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_AGENT_CONNECTIONS,
 )
 from polyaxon.utils.test_utils import BaseTestCase
-from pydantic import ValidationError
 
 
 @pytest.mark.schemas_mark

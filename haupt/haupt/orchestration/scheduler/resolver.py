@@ -7,6 +7,7 @@
 from datetime import datetime
 from typing import List, Optional
 
+from pydantic import ValidationError as PydanticValidationError
 from rest_framework.exceptions import ValidationError
 
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
@@ -28,7 +29,6 @@ from polyaxon.polypod.compiler.lineage.artifacts_collector import (
 )
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
-from pydantic import ValidationError as PydanticValidationError
 
 
 class CorePlatformResolver(resolver.BaseResolver):

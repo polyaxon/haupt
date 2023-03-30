@@ -6,9 +6,10 @@
 # LICENSE-AGPL for a copy of the license.
 import pytest
 
+from pydantic import ValidationError
+
 from haupt import settings
 from haupt.proxies.schemas.forward import get_forward_cmd
-from pydantic import ValidationError
 from tests.test_proxies.base import BaseProxiesTestCase
 
 

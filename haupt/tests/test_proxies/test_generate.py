@@ -9,6 +9,8 @@ import os
 import pytest
 import tempfile
 
+from pydantic import ValidationError
+
 from haupt import settings
 from haupt.proxies.generators import (
     generate_api_conf,
@@ -16,7 +18,6 @@ from haupt.proxies.generators import (
     generate_gateway_conf,
     generate_streams_conf,
 )
-from pydantic import ValidationError
 from tests.test_proxies.base import BaseProxiesTestCase
 
 

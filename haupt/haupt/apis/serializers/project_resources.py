@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+from pydantic import ValidationError as PydanticValidationError
 from rest_framework import fields, serializers
 from rest_framework.exceptions import ValidationError
 
@@ -20,7 +21,6 @@ from haupt.orchestration import operations
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.schemas import V1RunPending
-from pydantic import ValidationError as PydanticValidationError
 
 
 class RunSerializer(

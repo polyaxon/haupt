@@ -6,6 +6,8 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Optional
 
+from pydantic import Field, StrictInt, StrictStr
+
 from polyaxon.env_vars.keys import (
     EV_KEYS_K8S_NAMESPACE,
     EV_KEYS_SANDBOX_DEBUG,
@@ -18,7 +20,6 @@ from polyaxon.env_vars.keys import (
 )
 from polyaxon.schemas.cli.agent_config import BaseAgentConfig
 from polyaxon.utils.http_utils import clean_host
-from pydantic import Field, StrictInt, StrictStr
 
 
 class SandboxConfig(BaseAgentConfig):
