@@ -7,13 +7,13 @@
 
 from django.test import TestCase
 
-from haupt.common.test_cases.fixtures import get_fxt_job, get_fxt_job_with_inputs
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification
 from polyaxon.polyflow import V1RunKind
+from polyaxon.utils.fixtures import get_fxt_job, get_fxt_job_with_inputs
 
 
 class TestCreateJobs(TestCase):
@@ -68,7 +68,7 @@ class TestCreateJobs(TestCase):
             compiled_operation
         )
         CompiledOperationSpecification.apply_runtime_contexts(compiled_operation)
-        run.content = compiled_operation.to_dict(dump=True)
+        run.content = compiled_operation.to_json()
         run.save(update_fields=["content"])
         job_spec = CompiledOperationSpecification.read(run.content)
         assert job_spec.run.container.image == "{{ image }}"

@@ -5,11 +5,11 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from enum import Enum
 from typing import Optional, Tuple
 
 from haupt.common.options.exceptions import OptionException
 from polyaxon.parser import parser
+from polyaxon.utils.enums_utils import PEnum
 
 NAMESPACE_DB_OPTION_MARKER = ":"
 NAMESPACE_DB_CONFIG_MARKER = "__"
@@ -17,14 +17,14 @@ NAMESPACE_SETTINGS_MARKER = "__"
 NAMESPACE_ENV_MARKER = ":"
 
 
-class OptionStores(Enum):
+class OptionStores(str, PEnum):
     ENV = "env"
     DB_OPTION = "db_option"
     DB_CONFIG = "db_config"
     SETTINGS = "settings"
 
 
-class OptionScope(Enum):
+class OptionScope(str, PEnum):
     GLOBAL = "global"
     ORGANISATION = "organization"
     TEAM = "team"

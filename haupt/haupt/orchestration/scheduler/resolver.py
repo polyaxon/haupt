@@ -7,7 +7,6 @@
 from datetime import datetime
 from typing import List, Optional
 
-from marshmallow import ValidationError as MarshmallowValidationError
 from rest_framework.exceptions import ValidationError
 
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
@@ -29,6 +28,7 @@ from polyaxon.polypod.compiler.lineage.artifacts_collector import (
 )
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
+from pydantic import ValidationError as PydanticValidationError
 
 
 class CorePlatformResolver(resolver.BaseResolver):
@@ -66,7 +66,7 @@ class CorePlatformResolver(resolver.BaseResolver):
             artifacts.files = [
                 [d, get_relative_to_run_artifacts(d)] for d in artifacts.files
             ]
-        init = V1Init(artifacts=artifacts)
+        init = V1Init.construct(artifacts=artifacts)
         return [{"runPatch": {"init": [init.to_dict()]}}]
 
     def _get_meta_destination_image(self) -> Optional[str]:
@@ -100,7 +100,7 @@ class CorePlatformResolver(resolver.BaseResolver):
         return False
 
     def persist_state(self):
-        self.run.content = self.compiled_operation.to_dict(dump=True)
+        self.run.content = self.compiled_operation.to_json()
         if (
             self.compiled_operation.is_service_run
             and self.compiled_operation.run.rewrite_path
@@ -123,7 +123,9 @@ def resolve(
 ):
     resolver_cls = resolver_cls or CorePlatformResolver
     try:
-        compiled_operation = V1CompiledOperation.read(run.content)
+        compiled_operation = V1CompiledOperation.read(
+            run.content
+        )  # TODO: Use construct
         project = run.project
         return resolver.resolve(
             run=run,
@@ -151,7 +153,7 @@ def resolve(
     except (
         AccessNotAuthorized,
         AccessNotFound,
-        MarshmallowValidationError,
+        PydanticValidationError,
         PolyaxonSchemaError,
         ValidationError,
     ) as e:
@@ -161,7 +163,9 @@ def resolve(
 def resolve_hooks(run: BaseRun, resolver_cls=None) -> List[V1Operation]:
     resolver_cls = resolver_cls or CorePlatformResolver
     try:
-        compiled_operation = V1CompiledOperation.read(run.content)
+        compiled_operation = V1CompiledOperation.read(
+            run.content
+        )  # TODO: Use construct
         project = run.project
         return resolver.resolve_hooks(
             run=run,
@@ -187,7 +191,7 @@ def resolve_hooks(run: BaseRun, resolver_cls=None) -> List[V1Operation]:
     except (
         AccessNotAuthorized,
         AccessNotFound,
-        MarshmallowValidationError,
+        PydanticValidationError,
         PolyaxonSchemaError,
         ValidationError,
     ) as e:

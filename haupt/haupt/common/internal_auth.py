@@ -30,7 +30,7 @@ def get_internal_auth(
         )
         raise exceptions.AuthenticationFailed(msg)
 
-    if internal_service not in PolyaxonServices.VALUES:
+    if internal_service not in PolyaxonServices.to_set():
         return None
 
     if not auth or auth[0].lower() != keyword.lower().encode(HTTP_HEADER_ENCODING):

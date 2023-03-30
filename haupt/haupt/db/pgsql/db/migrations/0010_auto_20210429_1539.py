@@ -25,9 +25,9 @@ class Migration(migrations.Migration):
                 blank=True,
                 choices=[
                     ("approval", "approval"),
-                    ("build", "build"),
-                    ("cache", "cache"),
                     ("upload", "upload"),
+                    ("cache", "cache"),
+                    ("build", "build"),
                 ],
                 db_index=True,
                 help_text="If this entity requires approval before it should run.",

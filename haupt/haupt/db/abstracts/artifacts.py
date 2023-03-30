@@ -10,7 +10,6 @@ from django.db import models
 from haupt.db.abstracts.diff import DiffModel
 from haupt.db.abstracts.getter import get_db_model_name
 from haupt.db.abstracts.state import StateModel
-from polyaxon.utils.enums_utils import values_to_choices
 from traceml.artifacts import V1ArtifactKind
 
 
@@ -19,7 +18,7 @@ class BaseArtifact(DiffModel, StateModel):
     kind = models.CharField(
         max_length=12,
         db_index=True,
-        choices=values_to_choices(V1ArtifactKind.allowable_values),
+        choices=V1ArtifactKind.to_choices(),
     )
     path = models.CharField(max_length=256, blank=True, null=True)
     summary = models.JSONField()

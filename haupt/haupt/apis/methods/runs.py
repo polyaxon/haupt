@@ -6,7 +6,6 @@
 # LICENSE-AGPL for a copy of the license.
 import ujson
 
-from marshmallow import ValidationError as MarshmallowValidationError
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -15,6 +14,7 @@ from haupt.db.managers.runs import base_approve_run
 from haupt.db.managers.statuses import new_run_status, new_run_stopping_status
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.lifecycle import V1StatusCondition
+from pydantic import ValidationError as PydanticValidationError
 
 
 def clone_run(view, request, *args, **kwargs):
@@ -37,7 +37,7 @@ def clone_run(view, request, *args, **kwargs):
             tags=request.data.get("tags"),
             meta_info=request.data.get("meta_info"),
         )
-    except (MarshmallowValidationError, PolyaxonException, ValueError) as e:
+    except (PydanticValidationError, PolyaxonException, ValueError) as e:
         raise ValidationError("Cloning was not successful, error: {}".format(e))
 
     view.audit(request, *args, **kwargs)

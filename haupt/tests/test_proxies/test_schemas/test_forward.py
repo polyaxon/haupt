@@ -8,6 +8,7 @@ import pytest
 
 from haupt import settings
 from haupt.proxies.schemas.forward import get_forward_cmd
+from pydantic import ValidationError
 from tests.test_proxies.base import BaseProxiesTestCase
 
 
@@ -19,13 +20,17 @@ class TestGatewayForward(BaseProxiesTestCase):
         assert get_forward_cmd() is None
 
     def test_forward_config_wrong(self):
-        settings.PROXIES_CONFIG.forward_proxy_kind = "foo"
+        assert get_forward_cmd() is None
+        with self.assertRaises(ValidationError):
+            settings.PROXIES_CONFIG.forward_proxy_kind = "foo"
+
+        assert get_forward_cmd() is None
         settings.PROXIES_CONFIG.has_forward_proxy = True
         settings.PROXIES_CONFIG.forward_proxy_port = 8080
         settings.PROXIES_CONFIG.forward_proxy_host = "123.123.123.123"
         settings.PROXIES_CONFIG.api_port = 443
         settings.PROXIES_CONFIG.api_host = "cloud.polyaxon.com"
-        assert get_forward_cmd() is None
+        assert get_forward_cmd() is not None
 
     def test_forward_config_transparent(self):
         settings.PROXIES_CONFIG.forward_proxy_kind = "transparent"

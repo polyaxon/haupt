@@ -488,9 +488,6 @@ class TestRunStatusListViewV1(BaseTestRunApi):
         condition.pop("last_transition_time")
         condition.pop("last_update_time")
         assert condition == {
-            "message": None,
-            "reason": None,
-            "status": None,
             "type": V1Statuses.RUNNING,
         }
 
@@ -583,9 +580,6 @@ class TestRunStatusListViewV1(BaseTestRunApi):
         condition.pop("last_update_time")
         assert condition == {
             "type": V1Statuses.STOPPED,
-            "status": None,
-            "reason": None,
-            "message": None,
         }
 
 

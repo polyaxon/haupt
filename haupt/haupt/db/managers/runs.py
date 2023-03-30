@@ -55,7 +55,9 @@ def base_approve_run(run: BaseRun):
             (pending == V1RunPending.BUILD and run.status == V1Statuses.CREATED)
             or pending == V1RunPending.UPLOAD
         ) and run.content:
-            compiled_operation = V1CompiledOperation.read(run.content)
+            compiled_operation = V1CompiledOperation.read(
+                run.content
+            )  # TODO: Use construct
             if compiled_operation.is_approved is False:
                 new_pending = V1RunPending.APPROVAL
         run.pending = new_pending

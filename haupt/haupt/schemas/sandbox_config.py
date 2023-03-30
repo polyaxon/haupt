@@ -4,10 +4,10 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-
-from marshmallow import fields
+from typing import Optional
 
 from polyaxon.env_vars.keys import (
+    EV_KEYS_K8S_NAMESPACE,
     EV_KEYS_SANDBOX_DEBUG,
     EV_KEYS_SANDBOX_HOST,
     EV_KEYS_SANDBOX_IS_LOCAL,
@@ -16,62 +16,31 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_SANDBOX_SSL_ENABLED,
     EV_KEYS_SANDBOX_WORKERS,
 )
-from polyaxon.schemas.cli.agent_config import BaseAgentConfig, BaseAgentSchema
+from polyaxon.schemas.cli.agent_config import BaseAgentConfig
 from polyaxon.utils.http_utils import clean_host
-
-
-class SandboxSchema(BaseAgentSchema):
-    REQUIRED_ARTIFACTS_STORE = False
-
-    port = fields.Int(allow_none=True, data_key=EV_KEYS_SANDBOX_PORT)
-    host = fields.Str(allow_none=True, data_key=EV_KEYS_SANDBOX_HOST)
-    ssl_enabled = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_SSL_ENABLED)
-    debug = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_DEBUG)
-    workers = fields.Int(allow_none=True, data_key=EV_KEYS_SANDBOX_WORKERS)
-    per_core = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_PER_CORE)
-    is_local = fields.Bool(allow_none=True, data_key=EV_KEYS_SANDBOX_IS_LOCAL)
-
-    @staticmethod
-    def schema_config():
-        return SandboxConfig
+from pydantic import Field, StrictInt, StrictStr
 
 
 class SandboxConfig(BaseAgentConfig):
-    SCHEMA = SandboxSchema
-    IDENTIFIER = "sandbox"
-    REDUCED_ATTRIBUTES = BaseAgentConfig.REDUCED_ATTRIBUTES + [
-        EV_KEYS_SANDBOX_PORT,
-        EV_KEYS_SANDBOX_HOST,
-        EV_KEYS_SANDBOX_SSL_ENABLED,
-        EV_KEYS_SANDBOX_DEBUG,
-        EV_KEYS_SANDBOX_WORKERS,
-        EV_KEYS_SANDBOX_PER_CORE,
-        EV_KEYS_SANDBOX_IS_LOCAL,
-    ]
+    _IDENTIFIER = "sandbox"
+
+    namespace: Optional[StrictStr] = Field(
+        alias=EV_KEYS_K8S_NAMESPACE, default="sandbox"
+    )
+    port: Optional[StrictInt] = Field(alias=EV_KEYS_SANDBOX_PORT)
+    host: Optional[StrictStr] = Field(alias=EV_KEYS_SANDBOX_HOST)
+    ssl_enabled: Optional[bool] = Field(alias=EV_KEYS_SANDBOX_SSL_ENABLED)
+    debug: Optional[bool] = Field(alias=EV_KEYS_SANDBOX_DEBUG)
+    workers: Optional[StrictInt] = Field(alias=EV_KEYS_SANDBOX_WORKERS)
+    per_core: Optional[bool] = Field(alias=EV_KEYS_SANDBOX_PER_CORE)
+    is_local: Optional[bool] = Field(alias=EV_KEYS_SANDBOX_IS_LOCAL)
 
     def __init__(
         self,
-        artifacts_store=None,
-        connections=None,
-        port: int = None,
         host: str = None,
-        ssl_enabled: bool = None,
-        debug: bool = None,
-        workers: int = None,
-        per_core: bool = None,
-        is_local: bool = None,
-        **kwargs,
+        **data,
     ):
         super().__init__(
-            artifacts_store=artifacts_store,
-            connections=connections,
-            namespace="sandbox",
-            **kwargs,
+            host=clean_host(host) if host else host,
+            **data,
         )
-        self.host = clean_host(host) if host else host
-        self.port = port
-        self.ssl_enabled = ssl_enabled
-        self.debug = debug
-        self.workers = workers
-        self.per_core = per_core
-        self.is_local = is_local

@@ -15,5 +15,7 @@ RUN pip3 install --no-cache-dir -r /requirements/platform.txt
 RUN pip3 install --no-cache-dir -r /requirements/streams.txt
 RUN pip3 install --no-cache-dir -r /requirements/prod.txt
 
+ENV PYTHONPATH="${PYTHONPATH}:/haupt/haupt"
+
 VOLUME /haupt
 WORKDIR /haupt

@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from enum import Enum
+from polyaxon.utils.enums_utils import PEnum
 
 
-class ContentTypes(Enum):
+class ContentTypes(str, PEnum):
     ORGANIZATION = "organization"
     TEAM = "team"
     USER = "user"

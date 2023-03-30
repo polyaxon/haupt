@@ -9,7 +9,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
 from polyaxon.lifecycle import V1Statuses
-from polyaxon.utils.enums_utils import values_to_choices
 
 
 class StatusModel(models.Model):
@@ -19,7 +18,7 @@ class StatusModel(models.Model):
         null=True,
         db_index=True,
         default=V1Statuses.CREATED,
-        choices=values_to_choices(V1Statuses.allowable_values),
+        choices=V1Statuses.to_choices(),
     )
     status_conditions = models.JSONField(
         encoder=DjangoJSONEncoder, blank=True, null=True, default=dict

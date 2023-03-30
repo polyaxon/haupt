@@ -5,10 +5,9 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from marshmallow import ValidationError
-
 from polyaxon.services.values import PolyaxonServices
 from polyaxon.utils.formatting import Printer
+from pydantic import ValidationError
 
 PROXIES_CONFIG = None
 SANDBOX_CONFIG = None

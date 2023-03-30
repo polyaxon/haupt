@@ -8,6 +8,7 @@
 from django.http import HttpRequest
 
 from polyaxon.services.headers import PolyaxonServiceHeaders
+from polyaxon.utils.enums_utils import get_enum_value
 
 try:
     from rest_framework import HTTP_HEADER_ENCODING
@@ -24,7 +25,7 @@ def get_header(request: HttpRequest, header_key: str, as_bytestring: bool = Fals
 
     Hide some test client ickyness where the header can be unicode.
     """
-    header = request.META.get("HTTP_{}".format(header_key), "")
+    header = request.META.get("HTTP_{}".format(get_enum_value(header_key)), "")
     if isinstance(header, str) and as_bytestring:
         # Work around django test client oddness
         header = header.encode(HTTP_HEADER_ENCODING)

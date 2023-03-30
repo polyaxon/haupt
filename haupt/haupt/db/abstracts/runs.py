@@ -22,7 +22,6 @@ from haupt.db.abstracts.uid import UuidModel
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending
-from polyaxon.utils.enums_utils import values_to_choices
 
 
 class BaseRun(
@@ -47,7 +46,7 @@ class BaseRun(
     kind = models.CharField(
         max_length=12,
         db_index=True,
-        choices=values_to_choices(V1RunKind.allowable_values),
+        choices=V1RunKind.to_choices(),
     )
     runtime = models.CharField(max_length=12, db_index=True, null=True, blank=True)
     user = models.ForeignKey(
@@ -68,7 +67,7 @@ class BaseRun(
         null=True,
         blank=True,
         db_index=True,
-        choices=values_to_choices(V1RunPending.allowable_values),
+        choices=V1RunPending.to_choices(),
         help_text="If this entity requires approval before it should run.",
     )
     meta_info = models.JSONField(null=True, blank=True, default=dict)
@@ -93,7 +92,7 @@ class BaseRun(
         max_length=12,
         blank=True,
         null=True,
-        choices=values_to_choices(V1CloningKind.allowable_values),
+        choices=V1CloningKind.to_choices(),
     )
     artifacts = models.ManyToManyField(
         get_db_model_name("Artifact"),

@@ -46,7 +46,7 @@ async def upload_logs(fs: FSSystem, run_uuid: str, logs: List[V1Log]):
             )
         else:
             subpath = "{}/plxlogs/{}".format(run_uuid, last_file)
-            await upload_data(fs=fs, subpath=subpath, data=c_logs.to_dict(dump=True))
+            await upload_data(fs=fs, subpath=subpath, data=c_logs.to_json())
 
 
 async def content_to_logs(content, logs_path):

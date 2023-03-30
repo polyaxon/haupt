@@ -51,7 +51,7 @@ class OperationInitSpec(
 
 class OperationsService(Service):
     SUPPORTS_OP_BUILD = False
-    DEFAULT_KINDS = V1RunKind.default_runtime_values
+    DEFAULT_KINDS = V1RunKind.default_runtime_values()
     __all__ = (
         "init_run",
         "init_and_save_run",
@@ -64,7 +64,7 @@ class OperationsService(Service):
 
     @staticmethod
     def set_spec(spec: V1Operation, **kwargs) -> Tuple[V1Operation, Dict]:
-        kwargs["raw_content"] = spec.to_dict(dump=True)
+        kwargs["raw_content"] = spec.to_json()
         return spec, kwargs
 
     @staticmethod
@@ -105,10 +105,10 @@ class OperationsService(Service):
             "or your plan does not support operations of kind: {}"
         )
         if kind not in supported_kinds:
-            if is_managed or kind not in V1RunKind.eager_values:
+            if is_managed or kind not in V1RunKind.eager_values():
                 raise ValueError(error_message.format(kind))
         if runtime and runtime not in supported_kinds:
-            if is_managed or runtime not in V1MatrixKind.eager_values:
+            if is_managed or runtime not in V1MatrixKind.eager_values():
                 raise ValueError(error_message.format(runtime))
         return True
 
@@ -263,7 +263,7 @@ class OperationsService(Service):
                 compiled_operation, kind, runtime, meta_info, **kwargs
             )
             self.supports_kind(kind, runtime, supported_kinds, is_managed)
-            kwargs["content"] = compiled_operation.to_dict(dump=True)
+            kwargs["content"] = compiled_operation.to_json()
         instance = get_run_model()(
             project_id=project_id,
             user_id=user_id,
@@ -349,7 +349,7 @@ class OperationsService(Service):
         message=None,
         **kwargs,
     ):
-        op_spec = V1Operation.read(run.raw_content)
+        op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
         instance = self.init_run(
             project_id=run.project_id,
             user_id=user_id or run.user_id,
@@ -402,7 +402,7 @@ class OperationsService(Service):
         supported_owners: Set[str] = None,
         **kwargs,
     ) -> BaseRun:
-        op_spec = V1Operation.read(run.raw_content)
+        op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
         meta_info = kwargs.pop("meta_info", {}) or {}
         original_meta_info = run.meta_info or {}
         original_uuid = run.uuid.hex

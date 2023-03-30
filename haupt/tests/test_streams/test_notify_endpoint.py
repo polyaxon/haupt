@@ -13,10 +13,9 @@ from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION
 from polyaxon.connections.kinds import V1ConnectionKind
 from polyaxon.connections.schemas import V1K8sResourceSchema
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from polyaxon.schemas.types import V1ConnectionType
 from polyaxon.utils.test_utils import set_store
-from polyaxon_sdk import V1StatusCondition
 from tests.base.case import BaseTest
 
 

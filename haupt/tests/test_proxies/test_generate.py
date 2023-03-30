@@ -16,6 +16,7 @@ from haupt.proxies.generators import (
     generate_gateway_conf,
     generate_streams_conf,
 )
+from pydantic import ValidationError
 from tests.test_proxies.base import BaseProxiesTestCase
 
 
@@ -67,15 +68,21 @@ class TestGenerate(BaseProxiesTestCase):
     def test_generate_forward_proxy_conf_wrong_kind(self):
         tmp_dir = tempfile.mkdtemp()
         assert os.listdir(tmp_dir) == []
-        settings.PROXIES_CONFIG.forward_proxy_kind = "foo"
+
+        assert settings.PROXIES_CONFIG.forward_proxy_kind is None
+        with self.assertRaises(ValidationError):
+            settings.PROXIES_CONFIG.forward_proxy_kind = "foo"
+
+        assert settings.PROXIES_CONFIG.forward_proxy_kind is None
         generate_forward_proxy_cmd(path=tmp_dir)
         assert os.listdir(tmp_dir) == []
 
+        # Will use default value
         settings.PROXIES_CONFIG.has_forward_proxy = True
         settings.PROXIES_CONFIG.forward_proxy_port = 443
         settings.PROXIES_CONFIG.forward_proxy_host = "123.123.123.123"
         generate_forward_proxy_cmd(path=tmp_dir)
-        assert os.listdir(tmp_dir) == []
+        assert os.listdir(tmp_dir) == ["forward_proxy.sh"]
 
     def test_generate_streams_conf(self):
         tmp_dir = tempfile.mkdtemp()

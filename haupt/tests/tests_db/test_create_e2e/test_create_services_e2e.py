@@ -7,16 +7,13 @@
 
 from django.test import TestCase
 
-from haupt.common.test_cases.fixtures import (
-    get_fxt_service,
-    get_fxt_service_with_inputs,
-)
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification
 from polyaxon.polyflow import V1RunKind
+from polyaxon.utils.fixtures import get_fxt_service, get_fxt_service_with_inputs
 
 
 class TestCreateServices(TestCase):
@@ -62,7 +59,7 @@ class TestCreateServices(TestCase):
             compiled_operation
         )
         CompiledOperationSpecification.apply_runtime_contexts(compiled_operation)
-        run.content = compiled_operation.to_dict(dump=True)
+        run.content = compiled_operation.to_json()
         run.save(update_fields=["content"])
         job_spec = CompiledOperationSpecification.read(run.content)
         job_spec = CompiledOperationSpecification.apply_runtime_contexts(job_spec)

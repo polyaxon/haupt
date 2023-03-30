@@ -8,7 +8,7 @@
 import factory
 
 from haupt.db.abstracts.getter import get_artifact_model
-from polyaxon_sdk import V1ArtifactKind
+from traceml.artifacts import V1ArtifactKind
 
 
 class ArtifactFactory(factory.django.DjangoModelFactory):

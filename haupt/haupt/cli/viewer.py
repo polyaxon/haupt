@@ -6,6 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 
 import os
+
 from collections.abc import Mapping
 from typing import Dict
 
@@ -27,11 +28,12 @@ def sanitize_server_config(server_config: Dict = None) -> Dict:
             index = sc.find("=")
             if index == -1:
                 message = (
-                    "Invalid format for -SC/--server-config option: '%s'. Use -SC name=value." % sc
+                    "Invalid format for -SC/--server-config option: '%s'. Use -SC name=value."
+                    % sc
                 )
                 Printer.error(message, sys_exit=True)
             name = sc[:index]
-            value = sc[index + 1:]
+            value = sc[index + 1 :]
             if name in parsed_server_config:
                 message = "Repeated parameter: '%s'" % name
                 Printer.error(message, sys_exit=True)
@@ -52,6 +54,7 @@ def sanitize_server_config(server_config: Dict = None) -> Dict:
     return {
         key: server_config[key] for key in keys if server_config.get(key) is not None
     }
+
 
 @click.command()
 @click.option(

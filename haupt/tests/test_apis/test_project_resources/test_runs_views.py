@@ -410,14 +410,14 @@ class TestProjectRunsArtifactsViewV1(BaseTest):
 
         # Kind
         resp = self.client.get(
-            self.url + f"?mode=distinct&query=kind:{V1ArtifactKind.METRIC}"
+            self.url + f"?mode=distinct&query=kind:{V1ArtifactKind.METRIC.value}"
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 3
 
         resp = self.client.get(
-            self.url + f"?mode=distinct&query=kind:{V1ArtifactKind.HISTOGRAM}"
+            self.url + f"?mode=distinct&query=kind:{V1ArtifactKind.HISTOGRAM.value}"
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
@@ -833,14 +833,14 @@ class TestProjectRunsListViewV1(BaseTest):
 
         # Artifacts
         resp = self.client.get(
-            self.url + "?query=in_artifact_kind:{}".format(V1ArtifactKind.METRIC)
+            self.url + "?query=in_artifact_kind:{}".format(V1ArtifactKind.METRIC.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 0
 
         resp = self.client.get(
-            self.url + "?query=in_artifact_kind:~{}".format(V1ArtifactKind.METRIC)
+            self.url + "?query=in_artifact_kind:~{}".format(V1ArtifactKind.METRIC.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
@@ -863,14 +863,14 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.data["count"] == 1
 
         resp = self.client.get(
-            self.url + "?query=meta_info.kind:{}".format(V1RunKind.JOB)
+            self.url + "?query=meta_info.kind:{}".format(V1RunKind.JOB.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 1
 
         resp = self.client.get(
-            self.url + "?query=meta_info.kind:~{}".format(V1RunKind.SERVICE)
+            self.url + "?query=meta_info.kind:~{}".format(V1RunKind.SERVICE.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
@@ -891,35 +891,37 @@ class TestProjectRunsListViewV1(BaseTest):
         ArtifactLineage.objects.create(run=self.objects[1], artifact=obj)
 
         resp = self.client.get(
-            self.url + "?query=in_artifact_kind:{}".format(V1ArtifactKind.METRIC)
+            self.url + "?query=in_artifact_kind:{}".format(V1ArtifactKind.METRIC.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 1
 
         resp = self.client.get(
-            self.url + "?query=in_artifact_kind:~{}".format(V1ArtifactKind.METRIC)
+            self.url + "?query=in_artifact_kind:~{}".format(V1ArtifactKind.METRIC.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == len(self.objects) - 1
 
         resp = self.client.get(
-            self.url + "?query=out_artifact_kind:{}".format(V1ArtifactKind.METRIC)
+            self.url + "?query=out_artifact_kind:{}".format(V1ArtifactKind.METRIC.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 1
 
         resp = self.client.get(
-            self.url + "?query=in_artifact_kind:{}".format(V1ArtifactKind.DOCKERFILE)
+            self.url
+            + "?query=in_artifact_kind:{}".format(V1ArtifactKind.DOCKERFILE.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 0
 
         resp = self.client.get(
-            self.url + "?query=out_artifact_kind:{}".format(V1ArtifactKind.DOCKERFILE)
+            self.url
+            + "?query=out_artifact_kind:{}".format(V1ArtifactKind.DOCKERFILE.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None

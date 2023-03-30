@@ -178,7 +178,7 @@ class TestRunArtifactListViewV1(BaseTest):
         assert resp.data["count"] == 0
 
         # Kind
-        resp = self.client.get(self.url + f"?query=kind:{V1ArtifactKind.METRIC}")
+        resp = self.client.get(self.url + f"?query=kind:{V1ArtifactKind.METRIC.value}")
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 3

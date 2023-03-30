@@ -41,7 +41,7 @@ async def get_multi_run_events(
 ) -> Union[UJSONResponse, HttpResponse]:
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
-    if event_kind not in V1ArtifactKind.allowable_values:
+    if event_kind not in V1ArtifactKind.to_set():
         return HttpResponse(
             content="received an unrecognisable event {}.".format(event_kind),
             status=status.HTTP_400_BAD_REQUEST,
@@ -96,7 +96,7 @@ async def get_run_events(
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
     pkg_assets = to_bool(request.GET.get("pkg_assets"), handle_none=True)
-    if event_kind not in V1ArtifactKind.allowable_values:
+    if event_kind not in V1ArtifactKind.to_set():
         return HttpResponse(
             content="received an unrecognisable event {}.".format(event_kind),
             status=status.HTTP_400_BAD_REQUEST,
