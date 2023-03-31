@@ -86,7 +86,7 @@ async def get_logs(
             check_cache=not force,
         )
     data = dict(
-        last_time=datetime_serialize("last_time", {"last_time": last_time}),
+        last_time=datetime_serialize(last_time),
         last_file=last_file,
         logs=operation_logs,
         files=files,
