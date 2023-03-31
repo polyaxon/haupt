@@ -1,0 +1,43 @@
+FROM arm64v8/python:3.11.2-slim-buster
+
+# This dockerfile is intended for dev only purposes
+LABEL maintainer="Polyaxon, Inc. <contact@polyaxon.com>"
+ENV POLYAXON_ENVIRONMENT="local"
+
+RUN apt-get -y update && apt-get install -y --no-install-recommends \
+        openssl \
+        dumb-init \
+        iproute2 \
+        ca-certificates \
+        curl \
+        build-essential \
+        gpg \
+        libpcre3 libpcre3-dev \
+        libpq-dev python3-dev \
+        postgresql-server-dev-all \
+    && apt-get autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN apt-get -y update && \
+    apt-get -y install nginx git && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install -U psycopg2==2.9.5
+
+COPY /haupt/requirements /requirements/
+RUN pip3 install --no-cache-dir -r /requirements/dev.txt
+RUN pip3 install --no-cache-dir -r /requirements/requirements.txt
+RUN pip3 install --no-cache-dir -r /requirements/platform.txt
+RUN pip3 install --no-cache-dir -r /requirements/streams.txt
+RUN pip3 install --no-cache-dir -r /requirements/test.txt
+RUN pip3 install --no-cache-dir -r /requirements/platform-test.txt
+RUN pip3 install --no-cache-dir -r /requirements/master.txt
+
+ENV PYTHONPATH="${PYTHONPATH}:/haupt/haupt"
+
+VOLUME /haupt
+WORKDIR /haupt
