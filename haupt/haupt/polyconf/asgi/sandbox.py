@@ -23,6 +23,7 @@ from polyaxon.env_vars.keys import EV_KEYS_SERVICE, EV_KEYS_UI_IN_SANDBOX
 from polyaxon.services.values import PolyaxonServices
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
+os.environ.setdefault("ASGI_APPLICATION", "haupt.polyconf.asgi.sandbox.application")
 os.environ[EV_KEYS_SERVICE] = PolyaxonServices.API
 os.environ[EV_KEYS_UI_IN_SANDBOX] = "true"
 settings.set_sandbox_config()
