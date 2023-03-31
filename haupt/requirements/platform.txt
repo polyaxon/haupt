@@ -1,4 +1,4 @@
 celery==5.2.7
 psycopg2-binary==2.9.5
-redis==4.3.4
+redis==4.4.4
 whitenoise==6.3.0
