@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import os
 
-from typing import Dict
+from typing import Dict, Optional
 
 from rest_framework import status
 
@@ -22,7 +22,11 @@ from polyaxon.lifecycle import V1ProjectFeature
 
 
 async def get_run_details(
-    request: ASGIRequest, owner: str, project: str, run_uuid: str, methods: Dict = None
+    request: ASGIRequest,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     subpath = os.path.join(run_uuid, ctx_paths.CONTEXT_LOCAL_RUN)
@@ -38,7 +42,11 @@ async def get_run_details(
 
 
 async def get_run_artifact_lineage(
-    request: ASGIRequest, owner: str, project: str, run_uuid: str, methods: Dict = None
+    request: ASGIRequest,
+    owner: str,
+    project: str,
+    run_uuid: str,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     subpath = os.path.join(run_uuid, ctx_paths.CONTEXT_LOCAL_LINEAGES)
@@ -56,7 +64,7 @@ async def get_run_artifact_lineage(
 
 
 async def list_runs(
-    request: ASGIRequest, owner: str, project: str, methods: Dict = None
+    request: ASGIRequest, owner: str, project: str, methods: Optional[Dict] = None
 ) -> HttpResponse:
     validate_methods(request, methods)
     # project = request.path_params["project"]
@@ -83,7 +91,7 @@ async def get_project_details(
     request: ASGIRequest,
     owner: str,
     project: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     data_path = settings.SANDBOX_CONFIG.get_store_path(
@@ -103,7 +111,7 @@ async def get_project_details(
 
 
 async def list_projects(
-    request: ASGIRequest, owner: str, methods: Dict = None
+    request: ASGIRequest, owner: str, methods: Optional[Dict] = None
 ) -> HttpResponse:
     validate_methods(request, methods)
     data_path = settings.SANDBOX_CONFIG.get_store_path(subpath="", entity="project")

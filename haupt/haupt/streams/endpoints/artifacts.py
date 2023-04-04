@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from rest_framework import status
 
@@ -41,7 +41,7 @@ async def handle_artifact(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     if request.method == "GET":
@@ -60,14 +60,17 @@ async def ro_artifact(
     project: str,
     run_uuid: str,
     path: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     return await download_artifact(request, run_uuid, path, True)
 
 
 async def download_artifact(
-    request: ASGIRequest, run_uuid: str, path: str = None, stream: bool = None
+    request: ASGIRequest,
+    run_uuid: str,
+    path: Optional[str] = None,
+    stream: Optional[bool] = None,
 ) -> Union[HttpResponse, FileResponse]:
     filepath = request.GET.get("path", path or "")
     stream = to_bool(request.GET.get("stream", stream), handle_none=True)
@@ -137,7 +140,7 @@ async def handle_artifacts(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     if request.method == "GET":
@@ -198,7 +201,7 @@ async def tree_artifacts(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> UJSONResponse:
     validate_methods(request, methods)
     filepath = request.GET.get("path", "")

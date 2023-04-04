@@ -8,16 +8,17 @@
 import uuid
 
 from collections import namedtuple
+from typing import Optional
 
 
 class OptionOwners(namedtuple("OptionOwners", "user project team organization")):
     @classmethod
     def get_owners(
         cls,
-        user: int = None,
-        project: int = None,
-        team: int = None,
-        organization: int = None,
+        user: Optional[int] = None,
+        project: Optional[int] = None,
+        team: Optional[int] = None,
+        organization: Optional[int] = None,
     ) -> "OptionOwners":
         return cls(user=user, project=project, team=team, organization=organization)
 

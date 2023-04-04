@@ -48,7 +48,7 @@ async def process_operation_event(
     event_kind: str,
     event_name: str,
     orient: str = V1Events.ORIENT_CSV,
-    sample: int = None,
+    sample: Optional[int] = None,
     to_dict: bool = True,
 ) -> Optional[Dict]:
     if not event_path or not os.path.exists(event_path):
@@ -94,7 +94,7 @@ async def get_archived_operation_resource(
     event_name: str,
     orient: str = V1Events.ORIENT_CSV,
     check_cache: bool = True,
-    sample: int = None,
+    sample: Optional[int] = None,
 ) -> Optional[Dict]:
     subpath = get_resource_path(run_path=run_uuid, kind=event_kind, name=event_name)
     event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
@@ -115,7 +115,7 @@ async def get_archived_operation_event(
     event_name: str,
     orient: str = V1Events.ORIENT_CSV,
     check_cache: bool = True,
-    sample: int = None,
+    sample: Optional[int] = None,
 ) -> Optional[Dict]:
     subpath = get_event_path(run_path=run_uuid, kind=event_kind, name=event_name)
     event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
@@ -201,7 +201,7 @@ async def get_archived_operation_resources(
     event_names: Set[str],
     orient: str = V1Events.ORIENT_CSV,
     check_cache: bool = True,
-    sample: int = None,
+    sample: Optional[int] = None,
 ) -> List[Dict]:
     events = []
     if not event_names:
@@ -229,7 +229,7 @@ async def get_archived_operation_events(
     event_names: Set[str],
     orient: str = V1Events.ORIENT_CSV,
     check_cache: bool = True,
-    sample: int = None,
+    sample: Optional[int] = None,
 ) -> List[Dict]:
     events = []
     for event_name in event_names:
@@ -254,7 +254,7 @@ async def get_archived_operations_events(
     event_names: Set[str],
     orient: str = V1Events.ORIENT_CSV,
     check_cache: bool = True,
-    sample: int = None,
+    sample: Optional[int] = None,
 ) -> Dict[str, List]:
     events = {}
     for run_uuid in run_uuids:

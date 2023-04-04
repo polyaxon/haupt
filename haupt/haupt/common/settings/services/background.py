@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from haupt.common.config_manager import ConfigManager
 from haupt.common.settings.apps import set_apps
@@ -17,8 +17,8 @@ def set_background_service(
     config: ConfigManager,
     scheduler_apps: Tuple,
     routes: Dict,
-    schedules: Dict = None,
-    db_app: str = None,
+    schedules: Optional[Dict] = None,
+    db_app: Optional[str] = None,
 ):
     set_apps(
         context=context,

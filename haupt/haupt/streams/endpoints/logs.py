@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import logging
 
-from typing import Dict
+from typing import Dict, Optional
 
 from rest_framework import status
 
@@ -43,7 +43,7 @@ async def get_logs(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> UJSONResponse:
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
@@ -102,7 +102,7 @@ async def collect_logs(
     project: str,
     run_uuid: str,
     run_kind: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     try:

@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+from typing import Optional
 
 from haupt.proxies.schemas.base import clean_config, get_config
 
@@ -25,7 +26,7 @@ include polyaxon/polyaxon.redirect.conf;
 
 
 def get_server_config(
-    root: str = None, use_upstream: bool = False, use_redirect: bool = False
+    root: Optional[str] = None, use_upstream: bool = False, use_redirect: bool = False
 ):
     config = []
     if use_upstream:

@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import logging
 
-from typing import Dict
+from typing import Dict, Optional
 
 import ujson
 
@@ -33,7 +33,7 @@ async def notify(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     body = ujson.loads(request.body)

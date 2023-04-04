@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from typing import List
+from typing import List, Optional
 
 from django.contrib import admin
 from django.urls import include, re_path
@@ -56,7 +56,7 @@ def get_base_health_urlpatterns():
 
 
 def get_urlpatterns(
-    app_patterns: List, no_healthz: bool = False, ui_urlpatterns: List = None
+    app_patterns: List, no_healthz: bool = False, ui_urlpatterns: Optional[List] = None
 ):
     if conf.get(UI_ADMIN_ENABLED):
         app_patterns += [re_path(r"^{}/".format(ADMIN_V1), admin.site.urls)]

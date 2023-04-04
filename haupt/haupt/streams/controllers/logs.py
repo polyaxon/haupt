@@ -31,7 +31,9 @@ async def get_logs_files(fs: FSSystem, run_uuid: str) -> List[str]:
     return sorted([f for f in files["files"].keys()])
 
 
-async def get_next_file(files: List[str], last_file: str = None) -> Optional[str]:
+async def get_next_file(
+    files: List[str], last_file: Optional[str] = None
+) -> Optional[str]:
     if not files:
         return None
 

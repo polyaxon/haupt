@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Dict
+from typing import Dict, Optional
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
@@ -27,7 +27,7 @@ async def k8s_inspect(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)

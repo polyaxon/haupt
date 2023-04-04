@@ -8,12 +8,12 @@
 import os
 
 from collections.abc import Mapping
-from typing import Dict
+from typing import Dict, Optional
 
 import click
 
 
-def sanitize_server_config(server_config: Dict = None) -> Dict:
+def sanitize_server_config(server_config: Optional[Dict] = None) -> Dict:
     from polyaxon.utils.formatting import Printer
 
     if not server_config:

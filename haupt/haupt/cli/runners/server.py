@@ -6,17 +6,19 @@
 # LICENSE-AGPL for a copy of the license.
 import os
 
+from typing import Optional
+
 from haupt.cli.runners.base import start_app
 from polyaxon.services.values import PolyaxonServices
 
 
 def start(
-    host: str = None,
-    port: int = None,
-    log_level: str = None,
-    workers: int = None,
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+    log_level: Optional[str] = None,
+    workers: Optional[int] = None,
     per_core: bool = False,
-    uds: str = None,
+    uds: Optional[str] = None,
 ):
     start_app(
         app="haupt.polyconf.asgi.server:application",

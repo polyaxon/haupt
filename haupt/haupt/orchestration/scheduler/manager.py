@@ -38,9 +38,9 @@ def get_run(
     run_id: int,
     run: Optional[BaseRun],
     use_all: bool = False,
-    only: List[str] = None,
-    defer: List[str] = None,
-    prefetch: List[str] = None,
+    only: Optional[List[str]] = None,
+    defer: Optional[List[str]] = None,
+    prefetch: Optional[List[str]] = None,
 ) -> Optional[BaseRun]:
     if run:
         return run
@@ -110,7 +110,7 @@ def runs_prepare(
     run_id: int,
     run: Optional[BaseRun],
     eager: bool = False,
-    extra_message: str = None,
+    extra_message: Optional[str] = None,
 ) -> bool:
     run = get_run(run_id=run_id, run=run, prefetch=["project"])
     if not run:
@@ -196,7 +196,7 @@ def runs_start(run_id: int, run: Optional[BaseRun]):
     )
     new_run_status(run=run, condition=condition)
 
-    def _log_error(exc: Exception, message: str = None):
+    def _log_error(exc: Exception, message: Optional[str] = None):
         message = message or "Could not start the operation.\n"
         message += "error: {}\n{}".format(repr(exc), traceback.format_exc())
         cond = V1StatusCondition.get_condition(

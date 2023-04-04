@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from haupt.common.config_manager import ConfigManager
 from haupt.common.settings.apps import set_apps
@@ -21,8 +21,8 @@ def set_api_service(
     config: ConfigManager,
     api_apps: Tuple,
     routes: Dict,
-    db_app: str = None,
-    processors: List[str] = None,
+    db_app: Optional[str] = None,
+    processors: Optional[List[str]] = None,
 ):
     project_apps = (
         "haupt.common.apis.apps.CommonApisConfig",

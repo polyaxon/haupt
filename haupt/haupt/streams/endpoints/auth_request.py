@@ -7,7 +7,7 @@
 import logging
 import os
 
-from typing import Dict
+from typing import Dict, Optional
 
 import ujson
 
@@ -92,7 +92,9 @@ async def _check_auth_service(headers: Dict):
 
 
 @transaction.non_atomic_requests
-async def auth_request(request: ASGIRequest, methods: Dict = None) -> HttpResponse:
+async def auth_request(
+    request: ASGIRequest, methods: Optional[Dict] = None
+) -> HttpResponse:
     validate_methods(request, methods)
     # Polyaxon checks for origin headers
     try:

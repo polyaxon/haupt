@@ -130,7 +130,9 @@ class OptionService(Service):
 
     @staticmethod
     def get_owners(
-        user: int = None, project: int = None, organization: int = None
+        user: Optional[int] = None,
+        project: Optional[int] = None,
+        organization: Optional[int] = None,
     ) -> OptionOwners:
         return OptionOwners.get_owners(
             user=user, project=project, organization=organization

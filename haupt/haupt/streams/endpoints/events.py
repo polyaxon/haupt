@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from typing import Dict, Set, Union
+from typing import Dict, Optional, Set, Union
 
 from rest_framework import status
 
@@ -37,7 +37,7 @@ async def get_multi_run_events(
     owner: str,
     project: str,
     event_kind: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> Union[UJSONResponse, HttpResponse]:
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
@@ -91,7 +91,7 @@ async def get_run_events(
     project: str,
     run_uuid: str,
     event_kind: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> Union[UJSONResponse, HttpResponse]:
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
@@ -132,7 +132,7 @@ async def get_run_resources(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> UJSONResponse:
     validate_methods(request, methods)
     event_names = request.GET.get("names")
@@ -160,7 +160,7 @@ async def get_run_importance_correlation(
     owner: str,
     project: str,
     run_uuid: str,
-    methods: Dict = None,
+    methods: Optional[Dict] = None,
 ) -> UJSONResponse:
     validate_methods(request, methods)
     body = await request.json()

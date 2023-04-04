@@ -4,12 +4,14 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Dict
+from typing import Dict, Optional
 
 from haupt.common.config_manager import ConfigManager
 
 
-def set_celery(context, config: ConfigManager, routes: Dict, schedules: Dict = None):
+def set_celery(
+    context, config: ConfigManager, routes: Dict, schedules: Optional[Dict] = None
+):
     context["CELERY_TASK_TRACK_STARTED"] = config.get_boolean(
         "POLYAXON_CELERY_TASK_TRACK_STARTED", is_optional=True, default=True
     )

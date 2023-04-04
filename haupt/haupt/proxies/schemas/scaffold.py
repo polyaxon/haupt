@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import List
+from typing import List, Optional
 
 from haupt import settings
 from haupt.proxies.schemas.buffering import get_buffering_config
@@ -32,10 +32,10 @@ def get_scaffold_config(
     use_ssl_config: bool = False,
     use_assets_config: bool = False,
     use_services_configs: bool = False,
-    resolver: str = None,
-    auth: str = None,
-    api_configs: List[str] = None,
-    api_location_configs: List[str] = None,
+    resolver: Optional[str] = None,
+    auth: Optional[str] = None,
+    api_configs: Optional[List[str]] = None,
+    api_location_configs: Optional[List[str]] = None,
     is_local_streams_service: bool = False,
 ) -> List[str]:
     config = [get_listen_config(is_proxy=is_proxy, port=port)]

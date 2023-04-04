@@ -15,7 +15,7 @@ def set_apps(
     config: ConfigManager,
     third_party_apps: Optional[Tuple],
     project_apps: Tuple,
-    db_app: str = None,
+    db_app: Optional[str] = None,
     use_db_apps: bool = True,
     use_admin_apps: bool = False,
     use_staticfiles_app: bool = True,

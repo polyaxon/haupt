@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import Any, List
+from typing import Any, List, Optional
 
 from haupt.common import auditor
 from haupt.common.events.registry.run import (
@@ -62,7 +62,7 @@ def set_entity_status(entity, condition: V1StatusCondition):
 def new_status(
     entity,
     condition: V1StatusCondition,
-    additional_fields: List[str] = None,
+    additional_fields: Optional[List[str]] = None,
     force: bool = False,
 ):
     previous_status = entity.status
@@ -99,7 +99,7 @@ def bulk_new_entity_status(
     model_class,
     entities: List[Any],
     condition: V1StatusCondition,
-    additional_fields: List[str] = None,
+    additional_fields: Optional[List[str]] = None,
 ):
     for entity in entities:
         set_entity_status(entity=entity, condition=condition)
@@ -112,7 +112,7 @@ def bulk_new_entity_status(
 def bulk_new_run_status(
     runs: List[BaseRun],
     condition: V1StatusCondition,
-    additional_fields: List[str] = None,
+    additional_fields: Optional[List[str]] = None,
 ):
     bulk_new_entity_status(
         model_class=get_run_model(),
@@ -125,7 +125,7 @@ def bulk_new_run_status(
 def new_run_status(
     run: BaseRun,
     condition: V1StatusCondition,
-    additional_fields: List[str] = None,
+    additional_fields: Optional[List[str]] = None,
     force: bool = False,
 ):
     previous_status = new_status(

@@ -38,7 +38,7 @@ class SandboxConfig(BaseAgentConfig):
 
     def __init__(
         self,
-        host: str = None,
+        host: Optional[str] = None,
         **data,
     ):
         super().__init__(

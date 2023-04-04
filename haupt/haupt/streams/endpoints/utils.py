@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import os
 
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from rest_framework import status
 
@@ -19,7 +19,7 @@ from polyaxon.services.values import PolyaxonServices
 
 
 async def _redirect(
-    redirect_path: str, is_file: bool = False, additional_headers: Dict = None
+    redirect_path: str, is_file: bool = False, additional_headers: Optional[Dict] = None
 ) -> HttpResponse:
     headers = {"Content-Type": "", "X-Accel-Redirect": redirect_path}
     if additional_headers:
@@ -35,7 +35,7 @@ async def _redirect(
 
 
 async def redirect_file(
-    archived_path: str, additional_headers: Dict = None
+    archived_path: str, additional_headers: Optional[Dict] = None
 ) -> Union[HttpResponse, FileResponse]:
     if not archived_path:
         return HttpResponse(
@@ -51,7 +51,7 @@ async def redirect_file(
 
 
 async def redirect_api(
-    redirect_path: str, additional_headers: Dict = None
+    redirect_path: str, additional_headers: Optional[Dict] = None
 ) -> HttpResponse:
     if not redirect_path:
         return HttpResponse(

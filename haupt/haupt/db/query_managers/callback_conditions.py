@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Optional, Union
 
 from polyaxon import live_state
 from polyaxon.utils.bool_utils import to_bool
@@ -17,7 +17,7 @@ def archived_condition(
     params: Union[str, Iterable],
     negation: bool,
     query_backend: Any,
-    timezone: str = None,
+    timezone: Optional[str] = None,
     queryset: Any = None,
 ) -> Any:
     """
@@ -38,7 +38,7 @@ def independent_condition(
     params: Union[str, Iterable],
     negation: bool,
     query_backend: Any,
-    timezone: str = None,
+    timezone: Optional[str] = None,
     queryset: Any = None,
 ) -> Any:
     params = to_list(params)
@@ -52,7 +52,7 @@ def metric_condition(
     params: Union[str, Iterable],
     negation: bool,
     query_backend: Any,
-    timezone: str = None,
+    timezone: Optional[str] = None,
 ) -> Any:
     params = to_list(params)
     if len(params) == 1 and to_bool(params[0]) is True:
@@ -65,7 +65,7 @@ def commit_condition(
     params: Union[str, Iterable],
     negation: bool,
     query_backend: Any,
-    timezone: str = None,
+    timezone: Optional[str] = None,
 ) -> Any:
     params = to_list(params)
     if len(params) == 1:
@@ -106,7 +106,7 @@ def in_artifact_kind_condition(
     params: Union[str, Iterable],
     negation: bool,
     query_backend: Any,
-    timezone: str = None,
+    timezone: Optional[str] = None,
 ) -> Any:
     return _artifact_kind_condition(True, queryset, params, negation)
 
@@ -116,6 +116,6 @@ def out_artifact_kind_condition(
     params: Union[str, Iterable],
     negation: bool,
     query_backend: Any,
-    timezone: str = None,
+    timezone: Optional[str] = None,
 ) -> Any:
     return _artifact_kind_condition(False, queryset, params, negation)

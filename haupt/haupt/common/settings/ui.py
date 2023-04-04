@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from typing import List
+from typing import List, Optional
 
 from haupt.common.config_manager import ConfigManager
 from polyaxon.env_vars.keys import (
@@ -18,7 +18,7 @@ from polyaxon.env_vars.keys import (
 )
 
 
-def set_ui(context, config: ConfigManager, processors: List[str] = None):
+def set_ui(context, config: ConfigManager, processors: Optional[List[str]] = None):
     context["ROOT_URLCONF"] = "{}.urls".format(config.config_module)
     platform_host = config.get_string(EV_KEYS_PLATFORM_HOST, is_optional=True)
     context["PLATFORM_HOST"] = platform_host

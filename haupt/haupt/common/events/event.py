@@ -80,12 +80,12 @@ class Event:
 
     def __init__(
         self,
-        uid: str = None,
+        uid: Optional[str] = None,
         datetime: AwareDT = None,
         instance: Any = None,
-        instance_id: int = None,
-        instance_uuid: str = None,
-        ref_id: str = None,
+        instance_id: Optional[int] = None,
+        instance_uuid: Optional[str] = None,
+        ref_id: Optional[str] = None,
         event_data: Mapping = None,
         **items
     ) -> None:

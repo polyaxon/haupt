@@ -119,7 +119,10 @@ class CorePlatformResolver(resolver.BaseResolver):
 
 
 def resolve(
-    run: BaseRun, compiled_at: datetime = None, eager: bool = False, resolver_cls=None
+    run: BaseRun,
+    compiled_at: Optional[datetime] = None,
+    eager: bool = False,
+    resolver_cls=None,
 ):
     resolver_cls = resolver_cls or CorePlatformResolver
     try:
