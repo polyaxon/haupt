@@ -18,7 +18,7 @@ class EventManager(ManagerInterface):
     ) -> Tuple[str, Event]:
         return event.event_type, event
 
-    def subscribe(self, event: Event) -> None:  # pylint:disable=arguments-differ
+    def subscribe(self, event: Event):  # pylint:disable=arguments-differ
         """
         >>> subscribe(SomeEvent)
         """

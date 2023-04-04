@@ -25,12 +25,12 @@ class MemoryCacheManager:
     def __init__(self):
         self._state = {}
 
-    def clear_key(self, key: str, owners: Optional[OptionOwners] = None) -> None:
+    def clear_key(self, key: str, owners: Optional[OptionOwners] = None):
         if owners:
             key = f"{key}:{owners}"
         self._state.pop(key, None)
 
-    def clear(self) -> None:
+    def clear(self):
         self._state = {}
 
     @classmethod
@@ -52,7 +52,7 @@ class MemoryCacheManager:
 
     def set_to_cache(
         self, key: str, value: Any, ttl: int, owners: Optional[OptionOwners] = None
-    ) -> None:
+    ):
         if ttl <= 0 or value is None:
             return
         if owners:

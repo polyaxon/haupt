@@ -26,7 +26,7 @@ class AuditorService(EventService):
         self.workers_service = workers_service
         self.executor_service = executor_service
 
-    def record_event(self, event: Event) -> None:
+    def record_event(self, event: Event):
         """
         Record the event async.
         """
@@ -46,7 +46,7 @@ class AuditorService(EventService):
                 event_type=event.event_type, event_data=serialized_event
             )
 
-    def setup(self) -> None:
+    def setup(self):
         super().setup()
 
         if self.workers_service:

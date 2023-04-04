@@ -84,7 +84,7 @@ class OptionService(Service):
 
         return self._get_value(option=option, value=value, to_dict=to_dict)
 
-    def set(self, key: str, value: Any, owners: Optional[OptionOwners] = None) -> None:
+    def set(self, key: str, value: Any, owners: Optional[OptionOwners] = None):
         if not self.is_setup:
             return
         if not self.can_handle(key=key):
@@ -111,7 +111,7 @@ class OptionService(Service):
             key=key, value=value, ttl=option.cache_ttl, owners=owners
         )
 
-    def delete(self, key: str, owners: Optional[OptionOwners] = None) -> None:
+    def delete(self, key: str, owners: Optional[OptionOwners] = None):
         if not self.is_setup:
             return
         if not self.can_handle(key=key):
@@ -125,7 +125,7 @@ class OptionService(Service):
         # Clear Cache key
         self.cache_manager.clear_key(key=key, owners=owners)
 
-    def clear_cache(self) -> None:
+    def clear_cache(self):
         self.cache_manager.clear()
 
     @staticmethod

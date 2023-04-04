@@ -24,7 +24,7 @@ from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
 
 
 class ConfigManager(BaseConfigManager):
-    def __init__(self, **params) -> None:
+    def __init__(self, **params):
         super().__init__(**params)
         self._env = self.get_string(
             EV_KEYS_ENVIRONMENT, is_optional=True, default="local"

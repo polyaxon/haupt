@@ -54,7 +54,7 @@ class EventService(Service):
         self.record_event(event)
         return event
 
-    def record_event(self, event: Event) -> None:
+    def record_event(self, event: Event):
         """Record an event.
 
         >>> record_event(Event())

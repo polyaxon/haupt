@@ -9,13 +9,13 @@ import os
 
 from haupt.schemas.proxies_config import ProxiesConfig
 from polyaxon.config_reader.manager import ConfigManager
-from polyaxon.managers.base import BaseConfigManager
+from polyaxon.managers.base import BaseConfigManager, ManagerVisibility
 
 
 class ProxiesManager(BaseConfigManager):
     """Manages proxies configuration file."""
 
-    VISIBILITY = BaseConfigManager.VISIBILITY_GLOBAL
+    VISIBILITY = ManagerVisibility.GLOBAL
     CONFIG_FILE_NAME = ".proxies"
     CONFIG = ProxiesConfig
 

@@ -148,7 +148,7 @@ NAME_BLACKLIST = {
 NAME_BLACKLIST |= {"{}s".format(b) for b in NAME_BLACKLIST}
 
 
-def validate_blacklist_name(name: str) -> None:
+def validate_blacklist_name(name: str):
     """Validates slug name against a blacklist"""
     if name is None:
         raise ValidationError("A short name must be supplied.")

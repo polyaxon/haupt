@@ -30,15 +30,13 @@ class SettingsConfHandler(BaseConfHandler):
 
     def set(  # pylint:disable=arguments-differ
         self, option: Option, value: Any, **kwargs
-    ) -> None:
+    ):
         raise ConfException(
             "The settings backend does not allow to set values, "
             "are you sure the key `{}` was correctly defined.".format(option.key)
         )
 
-    def delete(  # pylint:disable=arguments-differ
-        self, option: Option, **kwargs
-    ) -> None:
+    def delete(self, option: Option, **kwargs):  # pylint:disable=arguments-differ
         raise ConfException(
             "The settings backend does not allow to delete values, "
             "are you sure the key `{}` was correctly defined.".format(option.key)

@@ -28,7 +28,7 @@ class Attribute:
         is_datetime: bool = False,
         is_uuid: bool = False,
         is_required: bool = True,
-    ) -> None:
+    ):
         assert name != "instance"
         self.name = name
         self.attr_type = attr_type
@@ -88,7 +88,7 @@ class Event:
         ref_id: Optional[str] = None,
         event_data: Mapping = None,
         **items
-    ) -> None:
+    ):
         self.uuid = UUID(uid) if uid else uuid1()
         self.datetime = datetime or timezone.now()
         self.instance = instance

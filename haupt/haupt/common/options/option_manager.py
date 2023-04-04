@@ -17,7 +17,7 @@ class OptionManager(ManagerInterface):
     ) -> Tuple[str, Option]:
         return option.key, option
 
-    def subscribe(self, option: Option) -> None:  # pylint:disable=arguments-differ
+    def subscribe(self, option: Option):  # pylint:disable=arguments-differ
         """
         >>> subscribe(SomeOption)
         """

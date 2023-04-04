@@ -30,7 +30,7 @@ class ProjectEndpoint(BaseEndpoint):
     PROJECT_NAME_KEY = "name"
     PROJECT_OWNER_NAME_KEY = OWNER_NAME_KEY
 
-    def initialize_object_context(self, request: HttpRequest, *args, **kwargs) -> None:
+    def initialize_object_context(self, request: HttpRequest, *args, **kwargs):
         #  pylint:disable=attribute-defined-outside-init
         self.project = self.get_object()
 

@@ -9,7 +9,7 @@ from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, **options):
         from haupt.common import workers
         from kombu import Exchange
 

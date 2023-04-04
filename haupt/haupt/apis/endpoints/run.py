@@ -35,7 +35,7 @@ class RunEndpoint(ProjectResourceEndpoint):
         self.project = self.run.project
         self._owner_id = self.project.owner_id
 
-    def initialize_object_context(self, request: HttpRequest, *args, **kwargs) -> None:
+    def initialize_object_context(self, request: HttpRequest, *args, **kwargs):
         #  pylint:disable=attribute-defined-outside-init
         self.run = self.get_object()
 
@@ -79,7 +79,7 @@ class RunArtifactEndpoint(RunEndpoint):
         self.project = self.run_artifact.run.project
         self._owner_id = self.project.owner_id
 
-    def initialize_object_context(self, request: HttpRequest, *args, **kwargs) -> None:
+    def initialize_object_context(self, request: HttpRequest, *args, **kwargs):
         #  pylint:disable=attribute-defined-outside-init
         self.run_artifact = self.get_object()
 

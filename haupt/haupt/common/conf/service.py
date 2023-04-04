@@ -12,7 +12,7 @@ from haupt.common.options.option import OptionStores
 
 
 class ConfService(OptionService):
-    def setup(self) -> None:
+    def setup(self):
         super().setup()
         self.stores[OptionStores.SETTINGS] = SettingsConfHandler()
         self.stores[OptionStores.ENV] = EnvConfHandler()

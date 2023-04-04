@@ -28,10 +28,8 @@ class EnvConfHandler(BaseConfHandler):
 
     def set(  # pylint:disable=arguments-differ
         self, option: Option, value: Any, **kwargs
-    ) -> None:
+    ):
         os.environ[option.key] = str(value)
 
-    def delete(  # pylint:disable=arguments-differ
-        self, option: Option, **kwargs
-    ) -> None:
+    def delete(self, option: Option, **kwargs):  # pylint:disable=arguments-differ
         os.environ.pop(option.key, None)

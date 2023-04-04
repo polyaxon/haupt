@@ -66,7 +66,7 @@ class BaseEndpoint(
     def check_request(self, request: HttpRequest):
         pass
 
-    def initialize_context(self, request: HttpRequest, *args, **kwargs) -> None:
+    def initialize_context(self, request: HttpRequest, *args, **kwargs):
         """
         Initializes the endpoint with the context keys based on the passed
         and/or based on the query parameters (request.GET).
@@ -91,7 +91,7 @@ class BaseEndpoint(
             assert self.PROJECT_RESOURCE_KEY is not None
             assert self.PROJECT_RESOURCE_KEY in kwargs
 
-    def initialize_object_context(self, request: HttpRequest, *args, **kwargs) -> None:
+    def initialize_object_context(self, request: HttpRequest, *args, **kwargs):
         pass
 
     def initial(self, request, *args, **kwargs):

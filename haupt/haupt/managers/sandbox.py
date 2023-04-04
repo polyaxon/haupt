@@ -9,13 +9,13 @@ import os
 
 from haupt.schemas.sandbox_config import SandboxConfig
 from polyaxon.config_reader.manager import ConfigManager
-from polyaxon.managers.base import BaseConfigManager
+from polyaxon.managers.base import BaseConfigManager, ManagerVisibility
 
 
 class SandboxConfigManager(BaseConfigManager):
     """Manages sandbox configuration .sandbox file."""
 
-    VISIBILITY = BaseConfigManager.VISIBILITY_ALL
+    VISIBILITY = ManagerVisibility.ALL
     CONFIG_FILE_NAME = ".sandbox"
     CONFIG = SandboxConfig
 

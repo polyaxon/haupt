@@ -9,7 +9,7 @@ from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser) -> None:
+    def add_arguments(self, parser):
         parser.add_argument(
             "--app",
             dest="app",
@@ -33,7 +33,7 @@ class Command(BaseCommand):
             alter_query = "ALTER TABLE auth_user RENAME TO db_user"
             cursor.execute(alter_query)
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, **options):
         from django.conf import settings
         from django.db import connection
 
