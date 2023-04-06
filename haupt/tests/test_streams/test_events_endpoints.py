@@ -9,10 +9,11 @@ import pandas as pd
 import pytest
 import shutil
 
+from clipped.enums_utils import get_enum_value
+from clipped.path_utils import create_path
+
 from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION
-from polyaxon.utils.enums_utils import get_enum_value
-from polyaxon.utils.path_utils import create_path
 from polyaxon.utils.test_utils import set_store
 from tests.base.case import BaseTest
 from traceml.artifacts import V1ArtifactKind

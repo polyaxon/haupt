@@ -11,6 +11,10 @@ from typing import Dict, Optional
 
 import ujson
 
+from clipped.date_utils import DateTimeFormatter
+from clipped.hashing import hash_value
+from clipped.path_utils import check_or_create_path
+from clipped.tz_utils import now
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -31,10 +35,6 @@ from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from polyaxon import settings
 from polyaxon.api import AUTH_V1_LOCATION
 from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
-from polyaxon.utils.date_utils import DateTimeFormatter
-from polyaxon.utils.hashing import hash_value
-from polyaxon.utils.path_utils import check_or_create_path
-from polyaxon.utils.tz_utils import now
 
 logger = logging.getLogger("haupt.streams.auth")
 

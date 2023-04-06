@@ -8,6 +8,9 @@ import logging
 
 from typing import Dict, Optional
 
+from clipped.bool_utils import to_bool
+from clipped.date_utils import parse_datetime
+from clipped.serialization import datetime_serialize
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -28,10 +31,7 @@ from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
 from polyaxon import settings
 from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
-from polyaxon.utils.bool_utils import to_bool
-from polyaxon.utils.date_utils import parse_datetime
 from polyaxon.utils.fqn_utils import get_resource_name, get_resource_name_for_kind
-from polyaxon.utils.serialization import datetime_serialize
 
 logger = logging.getLogger("polyaxon.streams.logs")
 

@@ -9,13 +9,13 @@ import logging
 
 from typing import Dict
 
+from clipped.bool_utils import to_bool
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
-
-from polyaxon.utils.bool_utils import to_bool
 
 _logger = logging.getLogger("haupt.commands")
 

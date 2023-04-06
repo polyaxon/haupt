@@ -7,10 +7,11 @@
 import logging
 import os
 
+from clipped.workers_utils import get_core_workers
+
 import uvicorn
 
 from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
-from polyaxon.utils.workers_utils import get_core_workers
 
 _logger = logging.getLogger("haupt.cli")
 

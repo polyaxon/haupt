@@ -14,7 +14,7 @@ import click
 
 
 def sanitize_server_config(server_config: Optional[Dict] = None) -> Dict:
-    from polyaxon.utils.formatting import Printer
+    from clipped.formatting import Printer
 
     if not server_config:
         return {}

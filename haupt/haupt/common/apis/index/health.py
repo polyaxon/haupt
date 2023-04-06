@@ -5,6 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+from clipped.tz_utils import now
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,7 +17,6 @@ from haupt.db.managers.dummy_key import get_dummy_key
 from polyaxon.cli.session import get_compatibility
 from polyaxon.schemas.cli.cli_config import CliConfig
 from polyaxon.services.values import PolyaxonServices
-from polyaxon.utils.tz_utils import now
 
 
 class HealthView(APIView):

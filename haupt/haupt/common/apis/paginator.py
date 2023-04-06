@@ -5,9 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+from clipped.bool_utils import to_bool
 from rest_framework.pagination import LimitOffsetPagination
-
-from polyaxon.utils.bool_utils import to_bool
 
 
 class PolyaxonBasePagination(LimitOffsetPagination):

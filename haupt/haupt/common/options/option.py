@@ -7,9 +7,10 @@
 
 from typing import Optional, Tuple
 
+from clipped.enums_utils import PEnum
+
 from haupt.common.options.exceptions import OptionException
 from polyaxon.parser import parser
-from polyaxon.utils.enums_utils import PEnum
 
 NAMESPACE_DB_OPTION_MARKER = ":"
 NAMESPACE_DB_CONFIG_MARKER = "__"

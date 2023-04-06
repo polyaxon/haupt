@@ -9,6 +9,8 @@ from typing import List
 
 import ujson
 
+from clipped.path_utils import delete_path
+
 from django.core.exceptions import BadRequest
 
 from asgiref.sync import sync_to_async
@@ -20,7 +22,6 @@ from polyaxon.fs.async_manager import (
     upload_data,
 )
 from polyaxon.fs.types import FSSystem
-from polyaxon.utils.path_utils import delete_path
 from traceml.logging import V1Log, V1Logs
 
 

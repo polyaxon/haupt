@@ -10,9 +10,9 @@ import os
 from email.utils import formatdate
 from typing import Dict, Optional
 
-from django.http import FileResponse
+from clipped.hashing import hash_value
 
-from polyaxon.utils.hashing import hash_value
+from django.http import FileResponse
 
 
 class FilePathResponse(FileResponse):

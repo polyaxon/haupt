@@ -8,6 +8,8 @@
 from collections import namedtuple
 from typing import Dict, List, Optional, Set, Tuple, Union
 
+from clipped.list_utils import to_list
+
 from haupt.common.service_interface import Service
 from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
@@ -33,7 +35,6 @@ from polyaxon.polyflow import (
 )
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
-from polyaxon.utils.list_utils import to_list
 
 
 class OperationInitSpec(

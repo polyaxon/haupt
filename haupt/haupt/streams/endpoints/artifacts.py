@@ -6,6 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict, Optional, Union
 
+from clipped.bool_utils import to_bool
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -27,7 +28,6 @@ from polyaxon.fs.async_manager import (
     download_file,
     list_files,
 )
-from polyaxon.utils.bool_utils import to_bool
 
 
 def clean_path(filepath: str):

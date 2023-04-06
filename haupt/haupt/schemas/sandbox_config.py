@@ -6,6 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Optional
 
+from clipped.http_utils import clean_host
 from pydantic import Field, StrictInt, StrictStr
 
 from polyaxon.env_vars.keys import (
@@ -19,7 +20,6 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_SANDBOX_WORKERS,
 )
 from polyaxon.schemas.cli.agent_config import BaseAgentConfig
-from polyaxon.utils.http_utils import clean_host
 
 
 class SandboxConfig(BaseAgentConfig):

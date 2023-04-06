@@ -7,6 +7,7 @@
 
 from typing import Dict, Optional, Set, Union
 
+from clipped.bool_utils import to_bool
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -24,7 +25,6 @@ from haupt.streams.controllers.events import (
 )
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.endpoints.utils import redirect_file
-from polyaxon.utils.bool_utils import to_bool
 from traceml.artifacts import V1ArtifactKind
 from traceml.events import V1Events
 from traceml.processors.importance_processors import calculate_importance_correlation

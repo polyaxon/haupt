@@ -7,6 +7,7 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
+from clipped.logging_utils import DEFAULT_LOGS_ROOT
 from pydantic import Extra, Field, validator
 
 from polyaxon.api import STATIC_V1
@@ -49,7 +50,6 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_UI_ADMIN_ENABLED,
 )
 from polyaxon.schemas.base import BaseSchemaModel
-from polyaxon.utils.log_utils import DEFAULT_LOGS_ROOT
 
 
 class ProxiesConfig(BaseSchemaModel):

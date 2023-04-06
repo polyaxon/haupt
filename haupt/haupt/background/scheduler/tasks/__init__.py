@@ -6,6 +6,6 @@
 # LICENSE-AGPL for a copy of the license.
 
 
-from polyaxon.utils.imports import import_submodules
+from clipped.imports import import_submodules
 
 import_submodules(globals(), __name__, __path__)

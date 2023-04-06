@@ -5,12 +5,12 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+from clipped.list_utils import to_list
 from pydantic import ValidationError as PydanticValidationError
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from polyaxon.utils.list_utils import to_list
 from traceml.artifacts import V1RunArtifact
 
 

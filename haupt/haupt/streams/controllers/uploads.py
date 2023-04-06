@@ -8,6 +8,7 @@ import os
 
 import ujson
 
+from clipped.path_utils import check_or_create_path, delete_path, untar_file
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -18,7 +19,6 @@ from polyaxon import settings
 from polyaxon.fs.async_manager import upload_dir, upload_file
 from polyaxon.fs.types import FSSystem
 from polyaxon.lifecycle import V1ProjectFeature
-from polyaxon.utils.path_utils import check_or_create_path, delete_path, untar_file
 
 
 async def handle_posted_data(

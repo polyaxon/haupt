@@ -10,6 +10,8 @@ import copy
 from typing import Any, Dict, Iterable, Mapping, Optional, Union
 from uuid import UUID, uuid1
 
+from clipped.date_utils import to_datetime, to_timestamp
+
 from django.db.models import Model
 from django.utils import timezone
 
@@ -17,7 +19,6 @@ from haupt.common import user_system
 from haupt.common.events import event_context
 from haupt.common.json_utils import dumps_htmlsafe
 from polyaxon.types import AwareDT
-from polyaxon.utils.date_utils import to_datetime, to_timestamp
 
 
 class Attribute:

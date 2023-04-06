@@ -8,9 +8,9 @@
 from collections.abc import Mapping
 from typing import Dict, List, Optional
 
-from django.conf import settings
+from clipped.list_utils import to_list
 
-from polyaxon.utils.list_utils import to_list
+from django.conf import settings
 
 
 class TagsMixin:

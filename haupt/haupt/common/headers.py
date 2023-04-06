@@ -5,10 +5,11 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+from clipped.enums_utils import get_enum_value
+
 from django.http import HttpRequest
 
 from polyaxon.services.headers import PolyaxonServiceHeaders
-from polyaxon.utils.enums_utils import get_enum_value
 
 try:
     from rest_framework import HTTP_HEADER_ENCODING

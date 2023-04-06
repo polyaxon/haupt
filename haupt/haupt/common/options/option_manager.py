@@ -7,8 +7,9 @@
 
 from typing import Tuple
 
+from clipped.manager_interface import ManagerInterface
+
 from haupt.common.options.option import Option
-from polyaxon.utils.manager_interface import ManagerInterface
 
 
 class OptionManager(ManagerInterface):

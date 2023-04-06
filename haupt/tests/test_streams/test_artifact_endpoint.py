@@ -8,9 +8,10 @@ import os
 import pytest
 import shutil
 
+from clipped.path_utils import create_path
+
 from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION
-from polyaxon.utils.path_utils import create_path
 from polyaxon.utils.test_utils import create_tmp_files, set_store
 from tests.base.case import BaseTest
 

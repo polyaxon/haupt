@@ -5,6 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
+from clipped.signal_decorators import ignore_raw, ignore_updates
 from rest_framework.exceptions import ValidationError
 
 from django.db.models.signals import post_save
@@ -13,7 +14,6 @@ from django.dispatch import receiver
 from haupt.common import auditor
 from haupt.common.events.registry.run import RUN_CREATED
 from haupt.db.abstracts.getter import get_run_model
-from polyaxon.utils.signal_decorators import ignore_raw, ignore_updates
 
 
 @receiver(post_save, sender=get_run_model(), dispatch_uid="run_created")
