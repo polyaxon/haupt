@@ -6,6 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import logging
 import os
+
 from typing import Optional
 
 from clipped.workers_utils import get_core_workers

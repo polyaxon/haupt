@@ -26,8 +26,6 @@ RUN apt-get -y update && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -U psycopg2==2.9.5
-
 COPY /haupt/requirements /requirements/
 RUN pip3 install --no-cache-dir -r /requirements/dev.txt
 RUN pip3 install --no-cache-dir -r /requirements/requirements.txt
