@@ -137,7 +137,7 @@ async def collect_logs(
         await k8s_manager.close()
     if not operation_logs:
         return HttpResponse(
-            data={"errors": "Operation logs could not be fetched"},
+            content={"errors": "Operation logs could not be fetched"},
             status=status.HTTP_404_NOT_FOUND,
         )
 
