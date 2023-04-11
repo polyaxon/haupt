@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 
 NAME = "haupt"
-VERSION = "2.0.0-rc5"
+VERSION = "2.0.0-rc6"
 DESC = (
     "Lineage metadata API, artifacts streams, sandbox, ML-API, and spaces for Polyaxon."
 )
