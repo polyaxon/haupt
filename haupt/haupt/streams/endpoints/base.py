@@ -5,8 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-import ujson
-
+from clipped.json_utils import orjson_dumps
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -34,7 +33,7 @@ class UJSONResponse(HttpResponse):
         if json_dumps_params is None:
             json_dumps_params = {}
         kwargs.setdefault("content_type", "application/json")
-        data = ujson.dumps(data, ensure_ascii=False, **json_dumps_params)
+        data = orjson_dumps(data, **json_dumps_params)
         super().__init__(content=data, **kwargs)
 
 

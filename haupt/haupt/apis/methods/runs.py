@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-import ujson
+import orjson
 
 from pydantic import ValidationError as PydanticValidationError
 from rest_framework import status
@@ -25,7 +25,7 @@ def clone_run(view, request, *args, **kwargs):
         content = request.data["content"]
     if content and not isinstance(content, dict):
         try:
-            content = ujson.loads(content)
+            content = orjson.loads(content)
         except Exception as e:
             raise ValidationError("Cloning was not successful, error: {}".format(e))
     try:

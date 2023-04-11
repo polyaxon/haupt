@@ -7,7 +7,7 @@
 from datetime import datetime
 from typing import List
 
-import ujson
+import orjson
 
 from clipped.path_utils import delete_path
 
@@ -60,7 +60,7 @@ async def content_to_logs(content, logs_path):
         if ".plx" in logs_path:
             return V1Logs.read_csv(content).logs
         # Legacy logs
-        return ujson.loads(content).get("logs", [])
+        return orjson.loads(content).get("logs", [])
 
     return await convert()
 

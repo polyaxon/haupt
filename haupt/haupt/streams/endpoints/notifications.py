@@ -8,7 +8,7 @@ import logging
 
 from typing import Dict, Optional
 
-import ujson
+import orjson
 
 from rest_framework import status
 
@@ -36,7 +36,7 @@ async def notify(
     methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
-    body = ujson.loads(request.body)
+    body = orjson.loads(request.body)
     run_name = body.get("name")
     condition = body.get("condition")
     if not condition:

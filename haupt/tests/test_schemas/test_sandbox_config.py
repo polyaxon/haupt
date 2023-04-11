@@ -7,8 +7,7 @@
 
 import pytest
 
-import ujson
-
+from clipped.json_utils import orjson_dumps
 from pydantic import ValidationError
 
 from haupt.schemas.sandbox_config import SandboxConfig
@@ -83,7 +82,7 @@ class TestSandboxConfig(BaseTestCase):
 
     def test_agent_config_from_str_envs(self):
         config_dict = {
-            EV_KEYS_AGENT_ARTIFACTS_STORE: ujson.dumps(
+            EV_KEYS_AGENT_ARTIFACTS_STORE: orjson_dumps(
                 {
                     "name": "test1",
                     "kind": V1ConnectionKind.GCS,
@@ -91,7 +90,7 @@ class TestSandboxConfig(BaseTestCase):
                     "secret": V1K8sResourceSchema(name="some").to_dict(),
                 }
             ),
-            EV_KEYS_AGENT_CONNECTIONS: ujson.dumps(
+            EV_KEYS_AGENT_CONNECTIONS: orjson_dumps(
                 [
                     {
                         "name": "test2",
