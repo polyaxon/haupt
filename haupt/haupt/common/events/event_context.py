@@ -8,7 +8,7 @@
 from collections import namedtuple
 from typing import Any, Optional
 
-from clipped.http_utils import absolute_uri
+from clipped.utils.http import absolute_uri
 
 from haupt.common import user_system
 from haupt.common.events import event_subjects

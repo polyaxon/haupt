@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.tz_utils import now
+from clipped.utils.tz import now
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView

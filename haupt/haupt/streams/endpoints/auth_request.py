@@ -11,11 +11,11 @@ from typing import Dict, Optional
 
 import orjson
 
-from clipped.date_utils import DateTimeFormatter
-from clipped.hashing import hash_value
-from clipped.json_utils import orjson_dumps
-from clipped.path_utils import check_or_create_path
-from clipped.tz_utils import now
+from clipped.utils.dates import DateTimeFormatter
+from clipped.utils.hashing import hash_value
+from clipped.utils.json import orjson_dumps
+from clipped.utils.paths import check_or_create_path
+from clipped.utils.tz import now
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest

@@ -9,8 +9,8 @@ import pandas as pd
 import pytest
 import shutil
 
-from clipped.enums_utils import get_enum_value
-from clipped.path_utils import create_path
+from clipped.utils.enums import get_enum_value
+from clipped.utils.paths import create_path
 
 from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION

@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.imports import import_string
+from clipped.utils.imports import import_string
 
 from haupt.common.events.event_service import EventService
 from haupt.common.events.registry import run

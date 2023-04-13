@@ -7,7 +7,7 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
-from clipped.logging_utils import DEFAULT_LOGS_ROOT
+from clipped.utils.logging import DEFAULT_LOGS_ROOT
 from pydantic import Extra, Field, validator
 
 from polyaxon.api import STATIC_V1

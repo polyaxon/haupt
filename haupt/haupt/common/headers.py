@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.enums_utils import get_enum_value
+from clipped.utils.enums import get_enum_value
 
 from django.http import HttpRequest
 

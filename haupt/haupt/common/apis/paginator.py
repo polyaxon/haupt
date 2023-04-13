@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.bool_utils import to_bool
+from clipped.utils.bools import to_bool
 from rest_framework.pagination import LimitOffsetPagination
 
 

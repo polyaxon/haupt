@@ -9,7 +9,7 @@ from typing import List
 
 import orjson
 
-from clipped.path_utils import delete_path
+from clipped.utils.paths import delete_path
 
 from django.core.exceptions import BadRequest
 

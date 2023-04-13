@@ -14,7 +14,7 @@ except ImportError:
     raise ImportError("This module depends on django.")
 
 
-from clipped.string_utils import slugify as core_slugify
+from clipped.utils.strings import slugify as core_slugify
 
 
 def slugify(value: str) -> str:

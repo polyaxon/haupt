@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.json_utils import orjson_dumps
+from clipped.utils.json import orjson_dumps
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest

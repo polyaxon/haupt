@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Any, List, Optional
 
-from clipped.list_utils import to_list
+from clipped.utils.lists import to_list
 
 from haupt.common import auditor
 from haupt.common.events.registry.run import (

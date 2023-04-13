@@ -7,7 +7,7 @@
 
 from typing import Dict, Optional, Set, Union
 
-from clipped.bool_utils import to_bool
+from clipped.utils.bools import to_bool
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest

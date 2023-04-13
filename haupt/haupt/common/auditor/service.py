@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import copy
 
-from clipped.imports import import_string
+from clipped.utils.imports import import_string
 
 from haupt.common.auditor.manager import event_manager
 from haupt.common.events.event import Event

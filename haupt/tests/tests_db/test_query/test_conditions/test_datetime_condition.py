@@ -8,7 +8,7 @@
 import datetime
 import pytest
 
-from clipped.date_utils import DateTimeFormatter
+from clipped.utils.dates import DateTimeFormatter
 
 from django.conf import settings
 from django.db.models import Q

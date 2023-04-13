@@ -8,9 +8,9 @@ import logging
 
 from typing import Dict, Optional
 
-from clipped.bool_utils import to_bool
-from clipped.date_utils import parse_datetime
-from clipped.serialization import datetime_serialize
+from clipped.utils.bools import to_bool
+from clipped.utils.dates import parse_datetime
+from clipped.utils.serialization import datetime_serialize
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest

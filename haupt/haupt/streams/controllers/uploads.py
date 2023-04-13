@@ -8,7 +8,7 @@ import os
 
 import orjson
 
-from clipped.path_utils import check_or_create_path, delete_path, untar_file
+from clipped.utils.paths import check_or_create_path, delete_path, untar_file
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest

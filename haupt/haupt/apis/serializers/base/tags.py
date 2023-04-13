@@ -8,7 +8,7 @@
 from collections.abc import Mapping
 from typing import Dict, List, Optional
 
-from clipped.list_utils import to_list
+from clipped.utils.lists import to_list
 
 from django.conf import settings
 

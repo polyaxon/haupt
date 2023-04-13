@@ -7,8 +7,8 @@
 
 from typing import Any, Iterable, Optional, Union
 
-from clipped.bool_utils import to_bool
-from clipped.list_utils import to_list
+from clipped.utils.bools import to_bool
+from clipped.utils.lists import to_list
 
 from polyaxon import live_state
 from traceml.artifacts import V1ArtifactKind

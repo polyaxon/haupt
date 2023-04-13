@@ -9,7 +9,7 @@ import logging
 
 from typing import Dict
 
-from clipped.bool_utils import to_bool
+from clipped.utils.bools import to_bool
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password

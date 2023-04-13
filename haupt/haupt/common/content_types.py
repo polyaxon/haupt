@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.enums_utils import PEnum
+from clipped.utils.enums import PEnum
 
 
 class ContentTypes(str, PEnum):

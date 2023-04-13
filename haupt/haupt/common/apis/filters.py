@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from clipped.string_utils import strip_spaces
+from clipped.utils.strings import strip_spaces
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.filters import OrderingFilter as BaseOrderingFilter

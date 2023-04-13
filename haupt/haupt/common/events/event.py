@@ -10,7 +10,7 @@ import copy
 from typing import Any, Dict, Iterable, Mapping, Optional, Union
 from uuid import UUID, uuid1
 
-from clipped.date_utils import to_datetime, to_timestamp
+from clipped.utils.dates import to_datetime, to_timestamp
 
 from django.db.models import Model
 from django.utils import timezone

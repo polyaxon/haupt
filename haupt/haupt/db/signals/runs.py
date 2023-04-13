@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from clipped.signal_decorators import ignore_raw, ignore_updates
+from clipped.decorators.signals import ignore_raw, ignore_updates
 from rest_framework.exceptions import ValidationError
 
 from django.db.models.signals import post_save

@@ -10,7 +10,7 @@ import os
 from email.utils import formatdate
 from typing import Dict, Optional
 
-from clipped.hashing import hash_value
+from clipped.utils.hashing import hash_value
 
 from django.http import FileResponse
 

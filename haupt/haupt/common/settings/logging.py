@@ -9,7 +9,7 @@ import os
 
 from typing import Dict
 
-from clipped.logging_utils import DEFAULT_LOGS_ROOT
+from clipped.utils.logging import DEFAULT_LOGS_ROOT
 
 from haupt.common.config_manager import ConfigManager
 from polyaxon.env_vars.keys import EV_KEYS_LOGS_ROOT

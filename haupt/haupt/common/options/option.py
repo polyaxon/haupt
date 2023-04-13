@@ -7,7 +7,7 @@
 
 from typing import Optional, Tuple
 
-from clipped.enums_utils import PEnum
+from clipped.utils.enums import PEnum
 
 from haupt.common.options.exceptions import OptionException
 from polyaxon.parser import parser

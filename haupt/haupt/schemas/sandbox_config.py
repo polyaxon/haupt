@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Optional
 
-from clipped.http_utils import clean_host
+from clipped.utils.http import clean_host
 from pydantic import Field, StrictInt, StrictStr
 
 from polyaxon.env_vars.keys import (

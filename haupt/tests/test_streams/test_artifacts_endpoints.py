@@ -7,7 +7,7 @@
 import os
 import pytest
 
-from clipped.path_utils import create_path
+from clipped.utils.paths import create_path
 
 from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION
