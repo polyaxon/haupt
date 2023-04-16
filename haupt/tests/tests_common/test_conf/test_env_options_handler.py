@@ -10,7 +10,6 @@ from unittest import TestCase
 from haupt.common.conf.exceptions import ConfException
 from haupt.common.conf.handlers.env_handler import EnvConfHandler
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon import types
 
 
 class DummyEnvOption(Option):
@@ -20,7 +19,7 @@ class DummyEnvOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.ENV
-    typing = types.INT
+    typing = "int"
     default = None
     options = None
 
@@ -32,7 +31,7 @@ class DummyOptionalDefaultEnvOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.ENV
-    typing = types.STR
+    typing = "str"
     default = "default_env"
     options = None
 
@@ -44,7 +43,7 @@ class DummyNonOptionalEnvOption(Option):
     is_optional = False
     is_list = False
     store = OptionStores.ENV
-    typing = types.INT
+    typing = "int"
     default = None
     options = None
 
@@ -56,7 +55,7 @@ class DummySecretEnvOption(Option):
     is_optional = False
     is_list = False
     store = OptionStores.ENV
-    typing = types.INT
+    typing = "int"
     default = None
     options = None
 

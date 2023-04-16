@@ -7,7 +7,6 @@
 
 from haupt.common.options import option_namespaces, option_subjects
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon import types
 
 # Global Async Countdown
 SCHEDULER_GLOBAL_COUNTDOWN = "{}_{}".format(
@@ -26,7 +25,7 @@ class SchedulerCountdown(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.INT
+    typing = "int"
     store = OptionStores.SETTINGS
     default = 1
     options = None

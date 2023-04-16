@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List
 
 from haupt import pkg
-from polyaxon.config_reader.manager import ConfigManager as BaseConfigManager
+from polyaxon.config.manager import ConfigManager as BaseConfigManager
 from polyaxon.env_vars.keys import (
     EV_KEYS_DEBUG,
     EV_KEYS_ENVIRONMENT,
@@ -26,47 +26,59 @@ from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
 class ConfigManager(BaseConfigManager):
     def __init__(self, **params):
         super().__init__(**params)
-        self._env = self.get_string(
-            EV_KEYS_ENVIRONMENT, is_optional=True, default="local"
+        self._env = self.get(
+            EV_KEYS_ENVIRONMENT, "str", is_optional=True, default="local"
         )
-        self._config_module = self.get_string(
-            "POLYAXON_CONFIG_MODULE", is_optional=True, default="polyconf"
+        self._config_module = self.get(
+            "POLYAXON_CONFIG_MODULE", "str", is_optional=True, default="polyconf"
         )
         self._root_dir = self.get_value("POLYAXON_CONFIG_ROOT_DIR")
-        self._service = self.get_string(
-            EV_KEYS_SERVICE, is_local=True, is_optional=True
+        self._service = self.get(
+            EV_KEYS_SERVICE, "str", is_local=True, is_optional=True
         )
-        self._is_debug_mode = self.get_boolean(
-            EV_KEYS_DEBUG, is_optional=True, default=False
+        self._is_debug_mode = self.get(
+            EV_KEYS_DEBUG, "bool", is_optional=True, default=False
         )
-        self._db_engine_name = self.get_string(
-            "POLYAXON_DB_ENGINE", default="sqlite", is_optional=True
+        self._db_engine_name = self.get(
+            "POLYAXON_DB_ENGINE", "str", default="sqlite", is_optional=True
         )
-        self._namespace = self.get_string(
-            "POLYAXON_K8S_NAMESPACE", is_optional=True, default=DEFAULT_NAMESPACE
+        self._namespace = self.get(
+            "POLYAXON_K8S_NAMESPACE",
+            "str",
+            is_optional=True,
+            default=DEFAULT_NAMESPACE,
         )
-        self._log_level = self.get_string(
-            EV_KEYS_LOG_LEVEL, is_local=True, is_optional=True, default="WARNING"
+        self._log_level = self.get(
+            EV_KEYS_LOG_LEVEL,
+            "str",
+            is_local=True,
+            is_optional=True,
+            default="WARNING",
         ).upper()
-        self._timezone = self.get_string(
-            EV_KEYS_TIME_ZONE, is_optional=True, default="UTC"
+        self._timezone = self.get(
+            EV_KEYS_TIME_ZONE, "str", is_optional=True, default="UTC"
         )
-        self._scheduler_enabled = self.get_boolean(
-            "POLYAXON_SCHEDULER_ENABLED", is_optional=True, default=False
+        self._scheduler_enabled = self.get(
+            "POLYAXON_SCHEDULER_ENABLED", "bool", is_optional=True, default=False
         )
-        self._chart_version = self.get_string(
-            "POLYAXON_CHART_VERSION", is_optional=True, default=pkg.VERSION
+        self._chart_version = self.get(
+            "POLYAXON_CHART_VERSION", "str", is_optional=True, default=pkg.VERSION
         )
-        self._redis_protocol = self.get_string(
-            "POLYAXON_REDIS_PROTOCOL", is_optional=True, default="redis"
+        self._redis_protocol = self.get(
+            "POLYAXON_REDIS_PROTOCOL", "str", is_optional=True, default="redis"
         )
-        self._broker_backend = self.get_string(
+        self._broker_backend = self.get(
             "POLYAXON_BROKER_BACKEND",
+            "str",
             is_optional=True,
             options=["redis", "rabbitmq"],
         )
-        self._redis_password = self.get_string(
-            "POLYAXON_REDIS_PASSWORD", is_optional=True, is_secret=True, is_local=True
+        self._redis_password = self.get(
+            "POLYAXON_REDIS_PASSWORD",
+            "str",
+            is_optional=True,
+            is_secret=True,
+            is_local=True,
         )
 
     @property
@@ -180,16 +192,17 @@ class ConfigManager(BaseConfigManager):
         return self.broker_backend == "rabbitmq"
 
     def get_redis_url(self, env_url_name) -> str:
-        redis_url = self.get_string(env_url_name)
+        redis_url = self.get(env_url_name, "str")
         if self._redis_password:
             redis_url = ":{}@{}".format(self._redis_password, redis_url)
         return "{}://{}".format(self._redis_protocol, redis_url)
 
     def _get_rabbitmq_broker_url(self) -> str:
-        amqp_url = self.get_string("POLYAXON_AMQP_URL")
-        rabbitmq_user = self.get_string("POLYAXON_RABBITMQ_USER", is_optional=True)
-        rabbitmq_password = self.get_string(
+        amqp_url = self.get("POLYAXON_AMQP_URL", "str")
+        rabbitmq_user = self.get("POLYAXON_RABBITMQ_USER", "str", is_optional=True)
+        rabbitmq_password = self.get(
             "POLYAXON_RABBITMQ_PASSWORD",
+            "str",
             is_secret=True,
             is_local=True,
             is_optional=True,

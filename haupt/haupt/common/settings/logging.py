@@ -19,8 +19,8 @@ def set_logging(
     context,
     config: ConfigManager,
 ) -> Dict:
-    log_dir = config.get_string(
-        EV_KEYS_LOGS_ROOT, is_optional=True, default=DEFAULT_LOGS_ROOT
+    log_dir = config.get(
+        EV_KEYS_LOGS_ROOT, "str", is_optional=True, default=DEFAULT_LOGS_ROOT
     )
     context["LOG_DIRECTORY"] = log_dir
     if not os.path.exists(log_dir):

@@ -5,11 +5,12 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-import json
 import pytest
 
 from unittest.mock import patch
 
+from clipped.utils.json import orjson_dumps
+from clipped.utils.serialization import datetime_deserialize
 from rest_framework import status
 
 from django.conf import settings
@@ -31,7 +32,6 @@ from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
 from polyaxon.api import API_V1
 from polyaxon.lifecycle import V1Statuses
-from polyaxon.parser import parser
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending
 from tests.base.case import BaseTest
@@ -320,7 +320,7 @@ class TestProjectRunsArtifactsViewV1(BaseTest):
             )
 
     def _assert_equal(self, v1, v2):
-        assert {json.dumps(i) for i in v1} == {json.dumps(i) for i in v2}
+        assert {orjson_dumps(i) for i in v1} == {orjson_dumps(i) for i in v2}
 
     def test_all_get(self):
         resp = self.client.get(self.url)
@@ -1110,7 +1110,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
 
     def test_create_op(self):
         data = {
-            "content": json.dumps(
+            "content": orjson_dumps(
                 {
                     "version": 1.1,
                     "kind": "operation",
@@ -1245,15 +1245,15 @@ class TestProjectRunsSyncViewV1(BaseTest):
         xp = Run.objects.last()
         result_data = OfflineRunSerializer(xp).data
         assert result_data.pop("updated_at") is not None
-        assert parser.get_datetime(
-            key="created_at", value=result_data.pop("created_at")
-        ) == parser.get_datetime(key="created_at", value=data.pop("created_at"))
-        assert parser.get_datetime(
-            key="started_at", value=result_data.pop("started_at")
-        ) == parser.get_datetime(key="started_at", value=data.pop("started_at"))
-        assert parser.get_datetime(
-            key="finished_at", value=result_data.pop("finished_at")
-        ) == parser.get_datetime(key="finished_at", value=data.pop("finished_at"))
+        assert datetime_deserialize(
+            result_data.pop("created_at")
+        ) == datetime_deserialize(data.pop("created_at"))
+        assert datetime_deserialize(
+            result_data.pop("started_at")
+        ) == datetime_deserialize(data.pop("started_at"))
+        assert datetime_deserialize(
+            result_data.pop("finished_at")
+        ) == datetime_deserialize(data.pop("finished_at"))
         assert xp.project == self.project
 
     def test_sync_with_invalid_config(self):

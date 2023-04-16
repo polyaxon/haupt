@@ -6,11 +6,12 @@
 # LICENSE-AGPL for a copy of the license.
 
 import datetime
-import json
 import uuid
 
 from collections.abc import Mapping
 from urllib.parse import urlparse
+
+from clipped.utils.json import orjson_dumps
 
 from django.test import Client
 from django.test.client import FakePayload
@@ -51,7 +52,7 @@ class BaseClient(Client):
             validate_data(data)
 
         if content_type == CONTENT_TYPE_APPLICATION_JSON:
-            data = json.dumps(data)
+            data = orjson_dumps(data)
 
         request = self.encode_data(method, path, data, content_type, **extra)
         return self.request(**request)

@@ -15,7 +15,6 @@ from haupt.common.conf.exceptions import ConfException
 from haupt.common.conf.service import ConfService
 from haupt.common.options.option import Option, OptionScope, OptionStores
 from haupt.common.options.option_manager import OptionManager
-from polyaxon import types
 
 
 class DummySettingsService(ConfService):
@@ -45,7 +44,7 @@ class DummySettingsOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -57,7 +56,7 @@ class DummyOptionalDefaultSettingsOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = "default_settings"
     options = None
 
@@ -69,7 +68,7 @@ class DummyNonOptionalSettingsOption(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -81,7 +80,7 @@ class DummyEnvOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.ENV
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
     cache_ttl = 0
@@ -94,7 +93,7 @@ class DummyOptionalDefaultEnvOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.ENV
-    typing = types.STR
+    typing = "str"
     default = "default_env"
     options = None
 
@@ -106,7 +105,7 @@ class DummyNonOptionalEnvOption(Option):
     is_optional = False
     is_list = False
     store = OptionStores.ENV
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -118,7 +117,7 @@ class DummyBoolEnvOption(Option):
     is_optional = True
     is_list = False
     store = OptionStores.ENV
-    typing = types.BOOL
+    typing = "bool"
     default = True
     options = None
 

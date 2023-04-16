@@ -23,8 +23,8 @@ class TestConfigManager(TestCase):
             ]
         )
 
-        assert config.get_string("POLYAXON_ENVIRONMENT") == "testing"
-        assert config.get_string("FOO_BAR_KEY") == "foo_bar"
+        assert config.get("POLYAXON_ENVIRONMENT", "str") == "testing"
+        assert config.get("FOO_BAR_KEY", "str") == "foo_bar"
 
     def test_get_broker(self):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"

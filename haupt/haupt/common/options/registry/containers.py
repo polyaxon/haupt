@@ -7,7 +7,6 @@
 
 from haupt.common.options import option_namespaces, option_subjects
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon import types
 from polyaxon.auxiliaries import (
     V1PolyaxonInitContainer,
     V1PolyaxonSidecarContainer,
@@ -31,7 +30,7 @@ class PolyaxonInitContainer(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.SETTINGS
     options = None
 
@@ -54,7 +53,7 @@ class PolyaxonSidecarContainer(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.DICT
+    typing = "dict"
     store = OptionStores.SETTINGS
     options = None
 

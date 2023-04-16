@@ -14,8 +14,8 @@ from polyaxon.services.headers import PolyaxonServiceHeaders
 def set_cors(context, config: ConfigManager):
     # session settings
     context["CORS_ALLOW_CREDENTIALS"] = True
-    allowed_list = config.get_list(
-        "POLYAXON_CORS_ALLOWED_ORIGINS", is_optional=True, default=[]
+    allowed_list = config.get(
+        "POLYAXON_CORS_ALLOWED_ORIGINS", "list", is_optional=True, default=[]
     )
     context["CORS_ALLOWED_ORIGINS"] = allowed_list
     context["CORS_ALLOW_ALL_ORIGINS"] = False if allowed_list else True
@@ -24,11 +24,11 @@ def set_cors(context, config: ConfigManager):
         default_headers + PolyaxonServiceHeaders.get_headers()
     )
 
-    ssl_enabled = config.get_boolean(
-        "POLYAXON_SSL_ENABLED", is_optional=True, default=False
+    ssl_enabled = config.get(
+        "POLYAXON_SSL_ENABLED", "bool", is_optional=True, default=False
     )
-    ssl_redirect_enabled = config.get_boolean(
-        "POLYAXON_SSL_REDIRECT_ENABLED", is_optional=True, default=False
+    ssl_redirect_enabled = config.get(
+        "POLYAXON_SSL_REDIRECT_ENABLED", "bool", is_optional=True, default=False
     )
     context["SSL_ENABLED"] = ssl_enabled
     context["PROTOCOL"] = "http"

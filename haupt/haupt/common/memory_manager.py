@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+import datetime
 
 from collections import namedtuple
 from datetime import timedelta
@@ -12,7 +13,6 @@ from typing import Any, Optional
 from django.utils import timezone
 
 from haupt.common.options.option_owners import OptionOwners
-from polyaxon.types import AwareDT
 
 
 class CachedOptionSpec(namedtuple("CachedOptionSpec", "value datetime")):
@@ -38,7 +38,7 @@ class MemoryCacheManager:
         return value != cls.INVALIDED_OPTION
 
     @staticmethod
-    def is_valid_cache(value_datetime: AwareDT) -> bool:
+    def is_valid_cache(value_datetime: datetime.datetime) -> bool:
         return timezone.now() < value_datetime
 
     def get_from_cache(self, key: str, owners: Optional[OptionOwners] = None) -> Any:

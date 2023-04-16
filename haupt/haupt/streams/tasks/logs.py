@@ -7,8 +7,7 @@
 from datetime import datetime
 from typing import List
 
-import orjson
-
+from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_path
 
 from django.core.exceptions import BadRequest
@@ -59,8 +58,8 @@ async def content_to_logs(content, logs_path):
         # Version handling
         if ".plx" in logs_path:
             return V1Logs.read_csv(content).logs
-        # Legacy logs
-        return orjson.loads(content).get("logs", [])
+        # Chunked logs
+        return orjson_loads(content).get("logs", [])
 
     return await convert()
 

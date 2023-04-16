@@ -6,7 +6,6 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon import types
 
 LOGGING = "LOGGING"
 DEBUG = "DEBUG"
@@ -48,7 +47,7 @@ class Logging(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.DICT
+    typing = "dict"
     default = None
     options = None
 
@@ -60,7 +59,7 @@ class Debug(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.DICT
+    typing = "dict"
     default = None
     options = None
 
@@ -72,7 +71,7 @@ class Protocol(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -84,7 +83,7 @@ class CeleryBrokerBackend(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -96,7 +95,7 @@ class CeleryBrokerUrl(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -108,7 +107,7 @@ class SecretInternalToken(Option):
     is_optional = False
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -120,7 +119,7 @@ class HealthCheckWorkerTimeout(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.INT
+    typing = "int"
     default = 4
     options = None
 
@@ -132,7 +131,7 @@ class SchedulerEnabled(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.BOOL
+    typing = "bool"
     default = True
     options = None
 
@@ -144,7 +143,7 @@ class UiAdminEnabled(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.BOOL
+    typing = "bool"
     default = True
     options = None
 
@@ -156,7 +155,7 @@ class UiAssetsVersion(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = ""
     options = None
 
@@ -168,7 +167,7 @@ class UiBaseUrl(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = "/"
     options = None
 
@@ -180,7 +179,7 @@ class UiOffline(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.BOOL
+    typing = "bool"
     default = False
     options = None
 
@@ -192,7 +191,7 @@ class UiEnabled(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.BOOL
+    typing = "bool"
     default = False
     options = None
 
@@ -204,6 +203,6 @@ class UiInSandbox(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.BOOL
+    typing = "bool"
     default = False
     options = None

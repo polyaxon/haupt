@@ -6,8 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 import os
 
-import orjson
-
+from clipped.utils.json import orjson_loads
 from clipped.utils.paths import check_or_create_path, delete_path, untar_file
 from rest_framework import status
 
@@ -87,7 +86,7 @@ async def handle_upload(
 ) -> HttpResponse:
     content_file = request.FILES["upload_file"]
     content_json = request.POST.get("json")
-    content_json = orjson.loads(content_json) if content_json else {}
+    content_json = orjson_loads(content_json) if content_json else {}
     overwrite = content_json.get("overwrite", True)
     untar = content_json.get("untar", True)
     path = content_json.get("path", "")

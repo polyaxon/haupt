@@ -8,7 +8,7 @@
 import os
 
 from haupt.schemas.sandbox_config import SandboxConfig
-from polyaxon.config_reader.manager import ConfigManager
+from polyaxon.config.manager import ConfigManager
 from polyaxon.managers.base import BaseConfigManager, ManagerVisibility
 
 

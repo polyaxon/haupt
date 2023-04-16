@@ -9,8 +9,8 @@ from haupt.common.config_manager import ConfigManager
 
 
 def set_admin(context, config: ConfigManager):
-    admin_name = config.get_string("POLYAXON_ADMIN_NAME", is_optional=True)
-    admin_mail = config.get_string("POLYAXON_ADMIN_MAIL", is_optional=True)
+    admin_name = config.get("POLYAXON_ADMIN_NAME", "str", is_optional=True)
+    admin_mail = config.get("POLYAXON_ADMIN_MAIL", "str", is_optional=True)
 
     if admin_mail and admin_mail:
         admins = ((admin_name, admin_mail),)

@@ -10,12 +10,13 @@ from polyaxon.env_vars.keys import EV_KEYS_SECRET_KEY
 
 
 def set_secrets(context, config: ConfigManager):
-    context["SECRET_KEY"] = config.get_string(
+    context["SECRET_KEY"] = config.get(
         EV_KEYS_SECRET_KEY,
+        "str",
         is_secret=True,
         is_optional=True,
         default="default-secret",
     )
-    context["SECRET_INTERNAL_TOKEN"] = config.get_string(
-        "POLYAXON_SECRET_INTERNAL_TOKEN", is_secret=True, is_optional=True
+    context["SECRET_INTERNAL_TOKEN"] = config.get(
+        "POLYAXON_SECRET_INTERNAL_TOKEN", "str", is_secret=True, is_optional=True
     )

@@ -10,7 +10,7 @@ from typing import Optional, Tuple
 from clipped.utils.enums import PEnum
 
 from haupt.common.options.exceptions import OptionException
-from polyaxon.parser import parser
+from polyaxon.config.parser import Parser
 
 NAMESPACE_DB_OPTION_MARKER = ":"
 NAMESPACE_DB_CONFIG_MARKER = "__"
@@ -106,7 +106,7 @@ class Option:
 
     @classmethod
     def parse(cls, value):
-        _value = parser.TYPE_MAPPING[cls.typing](
+        _value = Parser.parse(cls.typing)(
             key=cls.key,
             value=value,
             is_list=cls.is_list,

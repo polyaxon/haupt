@@ -9,7 +9,7 @@ import os
 
 from typing import Dict, List, Optional, Set
 
-import orjson
+from clipped.utils.json import orjson_loads
 
 import aiofiles
 
@@ -154,7 +154,7 @@ async def get_archived_operation_event_and_assets(
         return []
     df = event["data"].df
     try:
-        files = df[event_kind].map(lambda f: orjson.loads(f).get("path")).tolist()
+        files = df[event_kind].map(lambda f: orjson_loads(f).get("path")).tolist()
     except Exception as e:
         logger.warning(
             "During the packaging of %s, the event format found was not correct. "

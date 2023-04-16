@@ -17,7 +17,6 @@ from haupt.common.options.option import (
     OptionStores,
 )
 from haupt.common.options.option_namespaces import FEATURES
-from polyaxon import types
 
 
 class Feature(Option):
@@ -26,7 +25,7 @@ class Feature(Option):
     is_optional = True
     is_list = False
     store = OptionStores(settings.STORE_OPTION)
-    typing = types.BOOL
+    typing = "bool"
     default = True
     options = [True, False]
     immutable = False  # If immutable, the feature cannot be update by the user

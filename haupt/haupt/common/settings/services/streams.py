@@ -4,6 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
+
 from haupt.common.config_manager import ConfigManager
 from haupt.common.settings.apps import set_apps
 from haupt.common.settings.assets import set_assets
@@ -30,8 +31,8 @@ def set_streams_apps(context, config: ConfigManager):
 
 def set_service(context, config: ConfigManager):
     # This is repeated because it's required for using the staticfiles app
-    context["UI_IN_SANDBOX"] = config.get_boolean(
-        EV_KEYS_UI_IN_SANDBOX, is_optional=True, default=False
+    context["UI_IN_SANDBOX"] = config.get(
+        EV_KEYS_UI_IN_SANDBOX, "bool", is_optional=True, default=False
     )
     set_streams_apps(context, config)
     set_core(context=context, config=config, use_db=False)

@@ -8,7 +8,7 @@
 import os
 
 from haupt.schemas.proxies_config import ProxiesConfig
-from polyaxon.config_reader.manager import ConfigManager
+from polyaxon.config.manager import ConfigManager
 from polyaxon.managers.base import BaseConfigManager, ManagerVisibility
 
 

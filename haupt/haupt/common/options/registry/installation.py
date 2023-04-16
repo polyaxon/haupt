@@ -6,7 +6,6 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon import types
 
 POLYAXON_ENVIRONMENT = "POLYAXON_ENVIRONMENT"
 PLATFORM_VERSION = "PLATFORM_VERSION"
@@ -31,7 +30,7 @@ class PlatformEnvironmentVersion(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.SETTINGS
     default = None
     options = None
@@ -43,7 +42,7 @@ class PlatformVersion(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.SETTINGS
     default = None
     options = None
@@ -55,7 +54,7 @@ class PlatformDist(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.SETTINGS
     default = None
     options = None
@@ -68,7 +67,7 @@ class PlatformHost(Option):
     is_optional = True
     is_list = False
     store = OptionStores.SETTINGS
-    typing = types.STR
+    typing = "str"
     default = None
     options = None
 
@@ -79,7 +78,7 @@ class ChartVersion(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.SETTINGS
     default = None
     options = None
@@ -91,7 +90,7 @@ class OrganizationKey(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.ENV
     default = None
     options = None

@@ -8,8 +8,7 @@ import logging
 
 from typing import Dict, Optional
 
-import orjson
-
+from clipped.utils.json import orjson_loads
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -36,7 +35,7 @@ async def notify(
     methods: Optional[Dict] = None,
 ) -> HttpResponse:
     validate_methods(request, methods)
-    body = orjson.loads(request.body)
+    body = orjson_loads(request.body)
     run_name = body.get("name")
     condition = body.get("condition")
     if not condition:

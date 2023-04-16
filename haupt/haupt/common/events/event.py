@@ -6,6 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 
 import copy
+import datetime as _datetime
 
 from typing import Any, Dict, Iterable, Mapping, Optional, Union
 from uuid import UUID, uuid1
@@ -18,7 +19,6 @@ from django.utils import timezone
 from haupt.common import user_system
 from haupt.common.events import event_context
 from haupt.common.json_utils import dumps_htmlsafe
-from polyaxon.types import AwareDT
 
 
 class Attribute:
@@ -82,7 +82,7 @@ class Event:
     def __init__(
         self,
         uid: Optional[str] = None,
-        datetime: AwareDT = None,
+        datetime: _datetime.datetime = None,
         instance: Any = None,
         instance_id: Optional[int] = None,
         instance_uuid: Optional[str] = None,

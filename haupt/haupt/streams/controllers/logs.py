@@ -4,7 +4,7 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-
+import datetime
 import os
 
 from typing import List, Optional, Tuple
@@ -20,7 +20,6 @@ from polyaxon.fs.async_manager import list_files
 from polyaxon.fs.types import FSSystem
 from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
-from polyaxon.types import AwareDT
 from traceml.logging import V1Log
 
 
@@ -77,8 +76,8 @@ async def get_archived_operation_logs(
 
 
 async def get_tmp_operation_logs(
-    fs: FSSystem, run_uuid: str, last_time: Optional[AwareDT]
-) -> Tuple[List[V1Log], Optional[AwareDT]]:
+    fs: FSSystem, run_uuid: str, last_time: Optional[datetime.datetime]
+) -> Tuple[List[V1Log], Optional[datetime.datetime]]:
     logs = []
 
     tmp_logs = await download_tmp_logs(fs=fs, run_uuid=run_uuid)
@@ -106,7 +105,7 @@ async def get_operation_logs(
     k8s_manager: AsyncK8SManager,
     k8s_operation: any,
     instance: str,
-    last_time: Optional[AwareDT],
+    last_time: Optional[datetime.datetime],
 ):
     previous_last = last_time
     operation_logs, last_time = await query_k8s_operation_logs(

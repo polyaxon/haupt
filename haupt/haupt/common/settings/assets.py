@@ -15,18 +15,22 @@ from polyaxon.env_vars.keys import (
 
 
 def set_assets(context, config: ConfigManager):
-    context["MEDIA_ROOT"] = config.get_string(
-        "POLYAXON_MEDIA_ROOT", is_optional=True, default=""
+    context["MEDIA_ROOT"] = config.get(
+        "POLYAXON_MEDIA_ROOT", "str", is_optional=True, default=""
     )
-    context["MEDIA_URL"] = config.get_string(
-        "POLYAXON_MEDIA_URL", is_optional=True, default=""
+    context["MEDIA_URL"] = config.get(
+        "POLYAXON_MEDIA_URL", "str", is_optional=True, default=""
     )
 
-    context["STATIC_ROOT"] = config.get_string(
-        EV_KEYS_STATIC_ROOT, is_optional=True, default=str(config.root_dir / "static")
+    context["STATIC_ROOT"] = config.get(
+        EV_KEYS_STATIC_ROOT,
+        "str",
+        is_optional=True,
+        default=str(config.root_dir / "static"),
     )
-    context["STATIC_URL"] = config.get_string(
+    context["STATIC_URL"] = config.get(
         EV_KEYS_STATIC_URL,
+        "str",
         is_optional=True,
         default="/static/",
     )
@@ -47,11 +51,15 @@ def set_assets(context, config: ConfigManager):
     context["STATICI18N_ROOT"] = STATIC_V1
     context["STATICI18N_OUTPUT_DIR"] = "jsi18n"
 
-    context["ARTIFACTS_ROOT"] = config.get_string(
+    context["ARTIFACTS_ROOT"] = config.get(
         EV_KEYS_ARTIFACTS_ROOT,
+        "str",
         is_optional=True,
         default="/tmp/plx/artifacts_uploads",
     )
-    context["ARCHIVES_ROOT"] = config.get_string(
-        "POLYAXON_ARCHIVES_ROOT", is_optional=True, default="/tmp/plx/archives"
+    context["ARCHIVES_ROOT"] = config.get(
+        "POLYAXON_ARCHIVES_ROOT",
+        "str",
+        is_optional=True,
+        default="/tmp/plx/archives",
     )

@@ -6,7 +6,6 @@
 # LICENSE-AGPL for a copy of the license.
 
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon import types
 
 K8S_NAMESPACE = "K8S_NAMESPACE"
 K8S_IN_CLUSTER = "K8S_IN_CLUSTER"
@@ -20,7 +19,7 @@ class K8SNamespace(Option):
     is_secret = False
     is_optional = False
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores.SETTINGS
     default = None
     options = None
@@ -32,7 +31,7 @@ class K8SInCluster(Option):
     is_secret = False
     is_optional = False
     is_list = False
-    typing = types.BOOL
+    typing = "bool"
     store = OptionStores.SETTINGS
     default = None
     options = None

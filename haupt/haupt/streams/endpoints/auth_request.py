@@ -9,11 +9,9 @@ import os
 
 from typing import Dict, Optional
 
-import orjson
-
 from clipped.utils.dates import DateTimeFormatter
 from clipped.utils.hashing import hash_value
-from clipped.utils.json import orjson_dumps
+from clipped.utils.json import orjson_dumps, orjson_loads
 from clipped.utils.paths import check_or_create_path
 from clipped.utils.tz import now
 from rest_framework import status
@@ -53,7 +51,7 @@ async def _check_auth_cache(request_cache: str) -> bool:
     if os.path.isfile(cache_path):
         try:
             async with aiofiles.open(cache_path, mode="r") as f:
-                last_value = orjson.loads(await f.read())
+                last_value = orjson_loads(await f.read())
                 last_time = DateTimeFormatter.extract_timestamp(
                     last_value["time"],
                     dt_format=DateTimeFormatter.DATETIME_FORMAT,

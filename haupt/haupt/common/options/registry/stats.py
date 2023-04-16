@@ -15,7 +15,6 @@ from haupt.common.options.option import (
     OptionScope,
     OptionStores,
 )
-from polyaxon import types
 
 STATS_DEFAULT_PREFIX = "{}{}{}".format(
     option_namespaces.STATS, NAMESPACE_DB_OPTION_MARKER, option_subjects.DEFAULT_PREFIX
@@ -30,7 +29,7 @@ class StatsDefaultPrefix(Option):
     is_secret = False
     is_optional = True
     is_list = False
-    typing = types.STR
+    typing = "str"
     store = OptionStores(settings.STORE_OPTION)
     default = None
     options = None
