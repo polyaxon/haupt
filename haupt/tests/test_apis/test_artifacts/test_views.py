@@ -205,7 +205,7 @@ class TestRunArtifactListViewV1(BaseTest):
             path="precision",
             summary=dict(last_value=0.8, max_value=0.99, min_value=0.1, max_step=100),
         )
-        data = [metric1.to_dict(), metric2.to_dict()]
+        data = {"artifacts": [metric1.to_dict(), metric2.to_dict()]}
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_201_CREATED
