@@ -188,6 +188,33 @@ class TestRunArtifactListViewV1(BaseTest):
         assert resp.data["next"] is None
         assert resp.data["count"] == 0
 
+    def test_create_backwards_compatibility(self):
+        data = []
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+        metric1 = V1RunArtifact(
+            name="accuracy",
+            kind=V1ArtifactKind.METRIC,
+            path="accuracy",
+            summary=dict(last_value=0.9, max_value=0.99, min_value=0.1, max_step=100),
+        )
+        metric2 = V1RunArtifact(
+            name="precision",
+            kind=V1ArtifactKind.METRIC,
+            path="precision",
+            summary=dict(last_value=0.8, max_value=0.99, min_value=0.1, max_step=100),
+        )
+        data = [metric1.to_dict(), metric2.to_dict()]
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
+        }
+
     def test_create(self):
         data = []
         resp = self.client.post(self.url, data)
