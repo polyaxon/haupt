@@ -9,13 +9,12 @@ import os
 
 from haupt.schemas.sandbox_config import SandboxConfig
 from polyaxon.config.manager import ConfigManager
-from polyaxon.managers.base import BaseConfigManager, ManagerVisibility
 
 
-class SandboxConfigManager(BaseConfigManager):
+class SandboxConfigManager(ConfigManager):
     """Manages sandbox configuration .sandbox file."""
 
-    VISIBILITY = ManagerVisibility.ALL
+    VISIBILITY = ConfigManager.Visibility.ALL
     CONFIG_FILE_NAME = ".sandbox"
     CONFIG = SandboxConfig
 
@@ -23,7 +22,7 @@ class SandboxConfigManager(BaseConfigManager):
     def get_config_from_env(cls):
         config_paths = [os.environ, {"dummy": "dummy"}]
 
-        config = ConfigManager.read_configs(config_paths)
+        config = cls._CONFIG_READER.read_configs(config_paths)
         return cls.CONFIG.from_dict(config.data)
 
     @classmethod

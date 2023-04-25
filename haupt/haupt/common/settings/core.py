@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 
 
-def set_core(context, config: ConfigManager, use_db: bool = True):
+def set_core(context, config: ConfigReader, use_db: bool = True):
     context["DEBUG"] = config.is_debug_mode
     context["POLYAXON_SERVICE"] = config.service
     context["POLYAXON_ENVIRONMENT"] = config.env

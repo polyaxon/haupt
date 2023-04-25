@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict, List, Optional, Tuple
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from haupt.common.settings.apps import set_apps
 from haupt.common.settings.assets import set_assets
 from haupt.common.settings.celery import set_celery
@@ -18,7 +18,7 @@ from haupt.common.settings.ui import set_ui
 
 def set_api_service(
     context,
-    config: ConfigManager,
+    config: ConfigReader,
     api_apps: Tuple,
     routes: Dict,
     db_app: Optional[str] = None,
@@ -47,7 +47,7 @@ def set_api_service(
         set_celery(context=context, config=config, routes=routes)
 
 
-def set_service(context, config: ConfigManager):
+def set_service(context, config: ConfigReader):
     from haupt.background.celeryp.routes import get_routes
 
     api_apps = (

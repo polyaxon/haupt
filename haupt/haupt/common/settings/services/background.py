@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict, Optional, Tuple
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from haupt.common.settings.apps import set_apps
 from haupt.common.settings.celery import set_celery
 from haupt.common.settings.core import set_core
@@ -14,7 +14,7 @@ from haupt.common.settings.core import set_core
 
 def set_background_service(
     context,
-    config: ConfigManager,
+    config: ConfigReader,
     scheduler_apps: Tuple,
     routes: Dict,
     schedules: Optional[Dict] = None,
@@ -31,7 +31,7 @@ def set_background_service(
     set_celery(context=context, config=config, routes=routes, schedules=schedules)
 
 
-def set_service(context, config: ConfigManager):
+def set_service(context, config: ConfigReader):
     from haupt.background.celeryp.routes import get_routes
 
     scheduler_apps = ("haupt.background.scheduler.apps.SchedulerConfig",)

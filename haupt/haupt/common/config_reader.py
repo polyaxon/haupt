@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List
 
 from haupt import pkg
-from polyaxon.config.manager import ConfigManager as BaseConfigManager
+from polyaxon.config.reader import ConfigReader as _ConfigReader
 from polyaxon.env_vars.keys import (
     EV_KEYS_DEBUG,
     EV_KEYS_ENVIRONMENT,
@@ -23,7 +23,7 @@ from polyaxon.env_vars.keys import (
 from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
 
 
-class ConfigManager(BaseConfigManager):
+class ConfigReader(_ConfigReader):
     def __init__(self, **params):
         super().__init__(**params)
         self._env = self.get(
@@ -242,4 +242,4 @@ def get_config(file_path):
     if platform_config and os.path.isfile(platform_config):
         config_values.append(platform_config)
 
-    return ConfigManager.read_configs(config_values)
+    return ConfigReader.read_configs(config_values)

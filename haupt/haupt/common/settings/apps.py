@@ -7,12 +7,12 @@
 
 from typing import Optional, Tuple
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 
 
 def set_apps(
     context,
-    config: ConfigManager,
+    config: ConfigReader,
     third_party_apps: Optional[Tuple],
     project_apps: Tuple,
     db_app: Optional[str] = None,

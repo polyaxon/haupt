@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 
 
-def set_encryption(context, config: ConfigManager):
+def set_encryption(context, config: ConfigReader):
     context["ENCRYPTION_KEY"] = config.get(
         "POLYAXON_ENCRYPTION_KEY", "str", is_optional=True
     )

@@ -5,11 +5,11 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from polyaxon.env_vars.keys import EV_KEYS_SECRET_KEY
 
 
-def set_secrets(context, config: ConfigManager):
+def set_secrets(context, config: ConfigReader):
     context["SECRET_KEY"] = config.get(
         EV_KEYS_SECRET_KEY,
         "str",

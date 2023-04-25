@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 
 
-def set_admin(context, config: ConfigManager):
+def set_admin(context, config: ConfigReader):
     admin_name = config.get("POLYAXON_ADMIN_NAME", "str", is_optional=True)
     admin_mail = config.get("POLYAXON_ADMIN_MAIL", "str", is_optional=True)
 

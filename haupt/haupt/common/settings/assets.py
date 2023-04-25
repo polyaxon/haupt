@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from polyaxon.api import STATIC_V1
 from polyaxon.env_vars.keys import (
     EV_KEYS_ARTIFACTS_ROOT,
@@ -14,7 +14,7 @@ from polyaxon.env_vars.keys import (
 )
 
 
-def set_assets(context, config: ConfigManager):
+def set_assets(context, config: ConfigReader):
     context["MEDIA_ROOT"] = config.get(
         "POLYAXON_MEDIA_ROOT", "str", is_optional=True, default=""
     )

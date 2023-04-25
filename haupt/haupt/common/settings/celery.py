@@ -6,11 +6,11 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict, Optional
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 
 
 def set_celery(
-    context, config: ConfigManager, routes: Dict, schedules: Optional[Dict] = None
+    context, config: ConfigReader, routes: Dict, schedules: Optional[Dict] = None
 ):
     context["CELERY_TASK_TRACK_STARTED"] = config.get(
         "POLYAXON_CELERY_TASK_TRACK_STARTED", "bool", is_optional=True, default=True

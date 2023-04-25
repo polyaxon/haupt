@@ -7,11 +7,11 @@
 
 from corsheaders.defaults import default_headers
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from polyaxon.services.headers import PolyaxonServiceHeaders
 
 
-def set_cors(context, config: ConfigManager):
+def set_cors(context, config: ConfigReader):
     # session settings
     context["CORS_ALLOW_CREDENTIALS"] = True
     allowed_list = config.get(

@@ -6,7 +6,7 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import List, Optional
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from polyaxon.env_vars.keys import (
     EV_KEYS_PLATFORM_HOST,
     EV_KEYS_UI_ADMIN_ENABLED,
@@ -18,7 +18,7 @@ from polyaxon.env_vars.keys import (
 )
 
 
-def set_ui(context, config: ConfigManager, processors: Optional[List[str]] = None):
+def set_ui(context, config: ConfigReader, processors: Optional[List[str]] = None):
     context["ROOT_URLCONF"] = "{}.urls".format(config.config_module)
     platform_host = config.get(EV_KEYS_PLATFORM_HOST, "str", is_optional=True)
     context["PLATFORM_HOST"] = platform_host

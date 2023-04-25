@@ -11,13 +11,13 @@ from typing import Dict
 
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from polyaxon.env_vars.keys import EV_KEYS_LOGS_ROOT
 
 
 def set_logging(
     context,
-    config: ConfigManager,
+    config: ConfigReader,
 ) -> Dict:
     log_dir = config.get(
         EV_KEYS_LOGS_ROOT, "str", is_optional=True, default=DEFAULT_LOGS_ROOT

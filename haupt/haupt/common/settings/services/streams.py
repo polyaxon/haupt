@@ -5,7 +5,7 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 from haupt.common.settings.apps import set_apps
 from haupt.common.settings.assets import set_assets
 from haupt.common.settings.core import set_core
@@ -15,7 +15,7 @@ from haupt.common.settings.ui import set_ui
 from polyaxon.env_vars.keys import EV_KEYS_UI_IN_SANDBOX
 
 
-def set_streams_apps(context, config: ConfigManager):
+def set_streams_apps(context, config: ConfigReader):
     set_apps(
         context=context,
         config=config,
@@ -29,7 +29,7 @@ def set_streams_apps(context, config: ConfigManager):
     )
 
 
-def set_service(context, config: ConfigManager):
+def set_service(context, config: ConfigReader):
     # This is repeated because it's required for using the staticfiles app
     context["UI_IN_SANDBOX"] = config.get(
         EV_KEYS_UI_IN_SANDBOX, "bool", is_optional=True, default=False

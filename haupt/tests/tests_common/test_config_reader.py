@@ -9,14 +9,14 @@ import os
 
 from unittest import TestCase
 
-from haupt.common.config_manager import ConfigManager
+from haupt.common.config_reader import ConfigReader
 
 
-class TestConfigManager(TestCase):
+class TestConfigReader(TestCase):
     def test_get_from_os_env(self):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"
         os.environ["FOO_BAR_KEY"] = "foo_bar"
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -29,7 +29,7 @@ class TestConfigManager(TestCase):
     def test_get_broker(self):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"
         os.environ.pop("POLYAXON_BROKER_BACKEND", None)
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -41,7 +41,7 @@ class TestConfigManager(TestCase):
 
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"
         os.environ.pop("POLYAXON_BROKER_BACKEND", None)
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -52,7 +52,7 @@ class TestConfigManager(TestCase):
         assert config.is_redis_broker is False
         assert config.is_rabbitmq_broker is True
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -67,7 +67,7 @@ class TestConfigManager(TestCase):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"
         os.environ.pop("POLYAXON_RABBITMQ_USER", None)
         os.environ.pop("POLYAXON_RABBITMQ_PASSWORD", None)
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -79,7 +79,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "redis://foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -92,7 +92,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "rediss://foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -105,7 +105,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "redis://:pass@foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -118,7 +118,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "amqp://foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -132,7 +132,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "amqp://foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -146,7 +146,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "amqp://foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
@@ -160,7 +160,7 @@ class TestConfigManager(TestCase):
         )
         assert config.get_broker_url() == "amqp://foo"
 
-        config = ConfigManager.read_configs(
+        config = ConfigReader.read_configs(
             [
                 os.environ,
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",

@@ -18,6 +18,6 @@ class TestProxiesConfigManager(BaseTestCase):
         assert ProxiesManager.is_global() is True
         assert ProxiesManager.is_all_visibility() is False
         assert ProxiesManager.CONFIG_PATH is None
-        assert ProxiesManager.IN_POLYAXON_DIR is False
+        assert ProxiesManager.IN_PROJECT_DIR is False
         assert ProxiesManager.CONFIG_FILE_NAME == ".proxies"
         assert ProxiesManager.CONFIG == ProxiesConfig
