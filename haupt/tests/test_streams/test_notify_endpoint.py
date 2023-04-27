@@ -11,10 +11,8 @@ from mock import patch
 
 from polyaxon import settings
 from polyaxon.api import STREAMS_V1_LOCATION
-from polyaxon.connections.kinds import V1ConnectionKind
-from polyaxon.connections.schemas import V1K8sResourceSchema
+from polyaxon.connections import V1Connection, V1ConnectionKind, V1K8sResource
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
-from polyaxon.schemas.types import V1ConnectionType
 from polyaxon.utils.test_utils import set_store
 from tests.base.case import BaseTest
 
@@ -25,10 +23,10 @@ class TestNotifyEndpoints(BaseTest):
         super().setUp()
         self.store_root = set_store()
         settings.AGENT_CONFIG.connections = [
-            V1ConnectionType(
+            V1Connection(
                 name="slack",
                 kind=V1ConnectionKind.SLACK,
-                secret=V1K8sResourceSchema(name="some"),
+                secret=V1K8sResource(name="some"),
             )
         ]
 
