@@ -36,7 +36,7 @@ class PlatformManager(ConfigManager):
         if config_prefix:
             config_module = "{}.{}".format(config_prefix, config_module)
         glob_path = cls.get_global_config_path()
-        platform_config_path = os.getenv(EV_KEYS_PLATFORM_CONFIG)
+        platform_config_path = os.getenv(EV_KEYS_PLATFORM_CONFIG) or {}
         config_paths = [
             os.environ,
             {
