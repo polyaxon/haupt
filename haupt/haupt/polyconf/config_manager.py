@@ -5,6 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_reader import get_config
+from haupt.managers.platform import PlatformManager
+from polyaxon.settings import HOME_CONFIG
 
-config = get_config(file_path=__file__)
+PlatformManager.set_config_path(HOME_CONFIG.path)
+PLATFORM_CONFIG = PlatformManager.get_config_from_env(file_path=__file__)

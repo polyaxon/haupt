@@ -5,35 +5,16 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_reader import ConfigReader
+from haupt.schemas.platform_config import PlatformConfig
 from polyaxon.api import STATIC_V1
-from polyaxon.env_vars.keys import (
-    EV_KEYS_ARTIFACTS_ROOT,
-    EV_KEYS_STATIC_ROOT,
-    EV_KEYS_STATIC_URL,
-)
 
 
-def set_assets(context, config: ConfigReader):
-    context["MEDIA_ROOT"] = config.get(
-        "POLYAXON_MEDIA_ROOT", "str", is_optional=True, default=""
-    )
-    context["MEDIA_URL"] = config.get(
-        "POLYAXON_MEDIA_URL", "str", is_optional=True, default=""
-    )
+def set_assets(context, config: PlatformConfig):
+    context["MEDIA_ROOT"] = config.media_root
+    context["MEDIA_URL"] = config.media_url
 
-    context["STATIC_ROOT"] = config.get(
-        EV_KEYS_STATIC_ROOT,
-        "str",
-        is_optional=True,
-        default=str(config.root_dir / "static"),
-    )
-    context["STATIC_URL"] = config.get(
-        EV_KEYS_STATIC_URL,
-        "str",
-        is_optional=True,
-        default="/static/",
-    )
+    context["STATIC_ROOT"] = config.static_root or str(config.root_dir / "static")
+    context["STATIC_URL"] = config.static_url or "/static/"
 
     # Additional locations of static files
     context["STATICFILES_DIRS"] = (str(config.root_dir / "public"),)
@@ -51,15 +32,5 @@ def set_assets(context, config: ConfigReader):
     context["STATICI18N_ROOT"] = STATIC_V1
     context["STATICI18N_OUTPUT_DIR"] = "jsi18n"
 
-    context["ARTIFACTS_ROOT"] = config.get(
-        EV_KEYS_ARTIFACTS_ROOT,
-        "str",
-        is_optional=True,
-        default="/tmp/plx/artifacts_uploads",
-    )
-    context["ARCHIVES_ROOT"] = config.get(
-        "POLYAXON_ARCHIVES_ROOT",
-        "str",
-        is_optional=True,
-        default="/tmp/plx/archives",
-    )
+    context["ARTIFACTS_ROOT"] = config.artifacts_root or "/tmp/plx/artifacts_uploads"
+    context["ARCHIVES_ROOT"] = config.archives_root or "/tmp/plx/archives"

@@ -6,24 +6,16 @@
 # LICENSE-AGPL for a copy of the license.
 from typing import Dict, Optional
 
-from haupt.common.config_reader import ConfigReader
+from haupt.schemas.platform_config import PlatformConfig
 
 
 def set_celery(
-    context, config: ConfigReader, routes: Dict, schedules: Optional[Dict] = None
+    context, config: PlatformConfig, routes: Dict, schedules: Optional[Dict] = None
 ):
-    context["CELERY_TASK_TRACK_STARTED"] = config.get(
-        "POLYAXON_CELERY_TASK_TRACK_STARTED", "bool", is_optional=True, default=True
-    )
-
-    context["CELERY_BROKER_POOL_LIMIT"] = config.get(
-        "POLYAXON_CELERY_BROKER_POOL_LIMIT", "int", is_optional=True, default=100
-    )
-
+    context["CELERY_TASK_TRACK_STARTED"] = config.celery_task_track_started
+    context["CELERY_BROKER_POOL_LIMIT"] = config.celery_broker_pool_limit
     context["CELERY_BROKER_BACKEND"] = config.broker_backend
-    confirm_publish = config.get(
-        "POLYAXON_CELERY_CONFIRM_PUBLISH", "bool", is_optional=True, default=True
-    )
+    confirm_publish = config.celery_confirm_publish
     context["CELERY_CONFIRM_PUBLISH"] = confirm_publish
     if config.is_rabbitmq_broker and confirm_publish:
         # see https://github.com/celery/celery/issues/5410 for details
@@ -31,32 +23,20 @@ def set_celery(
 
     context["CELERY_BROKER_URL"] = config.get_broker_url()
 
-    context["INTERNAL_EXCHANGE"] = config.get(
-        "POLYAXON_INTERNAL_EXCHANGE", "str", is_optional=True, default="internal"
-    )
+    context["INTERNAL_EXCHANGE"] = config.internal_exchange
 
-    result_bucked = config.get(
-        "POLYAXON_REDIS_CELERY_RESULT_BACKEND_URL",
-        "str",
-        is_optional=True,
-    )
+    result_bucked = config.celery_result_backend
     if result_bucked:
         context["CELERY_RESULT_BACKEND"] = config.get_redis_url(
-            "POLYAXON_REDIS_CELERY_RESULT_BACKEND_URL"
+            config.celery_result_backend
         )
 
-    context["CELERY_WORKER_PREFETCH_MULTIPLIER"] = config.get(
-        "POLYAXON_CELERY_WORKER_PREFETCH_MULTIPLIER",
-        "int",
-        is_optional=True,
-        default=4,
-    )
+    context[
+        "CELERY_WORKER_PREFETCH_MULTIPLIER"
+    ] = config.celery_worker_prefetch_multiplier
 
-    eager_mode = config.get(
-        "POLYAXON_CELERY_TASK_ALWAYS_EAGER", "bool", is_optional=True, default=False
-    )
-    context["CELERY_TASK_ALWAYS_EAGER"] = eager_mode
-    if eager_mode:
+    context["CELERY_TASK_ALWAYS_EAGER"] = config.celery_task_always_eager
+    if config.celery_task_always_eager:
         context["CELERY_BROKER_TRANSPORT"] = "memory"
 
     context["CELERY_ACCEPT_CONTENT"] = ["application/json"]
@@ -65,45 +45,20 @@ def set_celery(
     context["CELERY_RESULT_SERIALIZER"] = "json"
     context["CELERY_TASK_IGNORE_RESULT"] = True
     context["CELERY_TIMEZONE"] = config.timezone
-    context["CELERY_HARD_TIME_LIMIT_DELAY"] = config.get(
-        "POLYAXON_CELERY_HARD_TIME_LIMIT_DELAY",
-        "int",
-        is_optional=True,
-        default=180,
-    )
-
-    context["CELERY_WORKER_MAX_TASKS_PER_CHILD"] = config.get(
-        "POLYAXON_CELERY_WORKER_MAX_TASKS_PER_CHILD",
-        "int",
-        is_optional=True,
-        default=100,
-    )
-
-    context["CELERY_WORKER_MAX_MEMORY_PER_CHILD"] = config.get(
-        "POLYAXON_CELERY_WORKER_MAX_MEMORY_PER_CHILD",
-        "int",
-        is_optional=True,
-        default=400000,
-    )
+    context["CELERY_HARD_TIME_LIMIT_DELAY"] = config.celery_hard_time_limit_delay
+    context[
+        "CELERY_WORKER_MAX_TASKS_PER_CHILD"
+    ] = config.celery_worker_max_tasks_per_child
+    context[
+        "CELERY_WORKER_MAX_MEMORY_PER_CHILD"
+    ] = config.celery_worker_max_memory_per_child
 
     class Intervals:
         """All intervals are in seconds"""
 
-        OPERATIONS_DEFAULT_RETRY_DELAY = config.get(
-            "POLYAXON_INTERVALS_OPERATIONS_DEFAULT_RETRY_DELAY",
-            "int",
-            is_optional=True,
-            default=60,
-        )
-        OPERATIONS_MAX_RETRY_DELAY = config.get(
-            "POLYAXON_INTERVALS_OPERATIONS_MAX_RETRY_DELAY",
-            "int",
-            is_optional=True,
-            default=60 * 60,
-        )
-        RUNS_SCHEDULER = config.get(
-            "POLYAXON_INTERVALS_RUNS_SCHEDULER", "int", is_optional=True, default=30
-        )
+        OPERATIONS_DEFAULT_RETRY_DELAY = config.intervals_operations_default_retry_delay
+        OPERATIONS_MAX_RETRY_DELAY = config.intervals_operations_max_retry_delay
+        RUNS_SCHEDULER = config.intervals_runs_scheduler
 
     context["Intervals"] = Intervals
     context["CELERY_TASK_ROUTES"] = routes

@@ -5,10 +5,10 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_reader import ConfigReader
+from haupt.schemas.platform_config import PlatformConfig
 
 
-def set_middlewares(context, config: ConfigReader):
+def set_middlewares(context, config: PlatformConfig):
     context["MIDDLEWARE"] = (
         "django.middleware.security.SecurityMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
@@ -29,7 +29,7 @@ def set_middlewares(context, config: ConfigReader):
         context["MIDDLEWARE"] += ("whitenoise.middleware.WhiteNoiseMiddleware",)
 
 
-def set_base_middlewares(context, config: ConfigReader):
+def set_base_middlewares(context, config: PlatformConfig):
     context["MIDDLEWARE"] = ("django.middleware.common.CommonMiddleware",)
     if context["UI_IN_SANDBOX"]:
         context["MIDDLEWARE"] += ("whitenoise.middleware.WhiteNoiseMiddleware",)

@@ -9,7 +9,7 @@ from functools import wraps
 
 from django.utils.text import compress_string
 
-from haupt.polyconf.config_manager import config
+from haupt.polyconf.config_manager import PLATFORM_CONFIG
 
 
 class GzipDecorator:
@@ -21,10 +21,10 @@ class GzipDecorator:
             response = func(self, request, *args, **kwargs)
 
             if (
-                config
-                and config.is_debug_mode
-                and config.is_monolith_service
-                and not config.is_test_env
+                PLATFORM_CONFIG
+                and PLATFORM_CONFIG.is_debug_mode
+                and PLATFORM_CONFIG.is_monolith_service
+                and not PLATFORM_CONFIG.is_test_env
             ):
                 return response
 

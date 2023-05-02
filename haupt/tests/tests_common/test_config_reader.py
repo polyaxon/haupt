@@ -9,7 +9,8 @@ import os
 
 from unittest import TestCase
 
-from haupt.common.config_reader import ConfigReader
+from haupt.schemas.platform_config import PlatformConfig
+from polyaxon.config.reader import ConfigReader
 
 
 class TestConfigReader(TestCase):
@@ -22,9 +23,8 @@ class TestConfigReader(TestCase):
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
             ]
         )
-
-        assert config.get("POLYAXON_ENVIRONMENT", "str") == "testing"
-        assert config.get("FOO_BAR_KEY", "str") == "foo_bar"
+        config = PlatformConfig.from_dict(config.data)
+        assert config.env == "testing"
 
     def test_get_broker(self):
         os.environ["POLYAXON_ENVIRONMENT"] = "testing"
@@ -35,6 +35,7 @@ class TestConfigReader(TestCase):
                 "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.broker_backend is None
         assert config.is_redis_broker is False
         assert config.is_rabbitmq_broker is False
@@ -48,6 +49,7 @@ class TestConfigReader(TestCase):
                 {"POLYAXON_BROKER_BACKEND": "rabbitmq"},
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.broker_backend == "rabbitmq"
         assert config.is_redis_broker is False
         assert config.is_rabbitmq_broker is True
@@ -59,6 +61,7 @@ class TestConfigReader(TestCase):
                 {"POLYAXON_BROKER_BACKEND": "redis"},
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.broker_backend == "redis"
         assert config.is_redis_broker is True
         assert config.is_rabbitmq_broker is False
@@ -77,6 +80,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "redis://foo"
 
         config = ConfigReader.read_configs(
@@ -90,6 +94,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "rediss://foo"
 
         config = ConfigReader.read_configs(
@@ -103,6 +108,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "redis://:pass@foo"
 
         config = ConfigReader.read_configs(
@@ -116,6 +122,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "amqp://foo"
 
         config = ConfigReader.read_configs(
@@ -130,6 +137,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "amqp://foo"
 
         config = ConfigReader.read_configs(
@@ -144,6 +152,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "amqp://foo"
 
         config = ConfigReader.read_configs(
@@ -158,6 +167,7 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "amqp://foo"
 
         config = ConfigReader.read_configs(
@@ -172,4 +182,5 @@ class TestConfigReader(TestCase):
                 },
             ]
         )
+        config = PlatformConfig.from_dict(config.data)
         assert config.get_broker_url() == "amqp://user:pwd@foo"

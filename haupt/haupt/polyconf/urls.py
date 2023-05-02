@@ -5,9 +5,9 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.polyconf.config_manager import config
+from haupt.polyconf.settings import PLATFORM_CONFIG
 
-if config.is_streams_service:
+if PLATFORM_CONFIG.is_streams_service:
     from haupt.streams.patterns import *  # noqa
 else:
     from haupt.apis.patterns import *  # noqa

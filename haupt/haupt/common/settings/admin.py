@@ -5,14 +5,11 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_reader import ConfigReader
+from haupt.schemas.platform_config import PlatformConfig
 
 
-def set_admin(context, config: ConfigReader):
-    admin_name = config.get("POLYAXON_ADMIN_NAME", "str", is_optional=True)
-    admin_mail = config.get("POLYAXON_ADMIN_MAIL", "str", is_optional=True)
-
-    if admin_mail and admin_mail:
-        admins = ((admin_name, admin_mail),)
+def set_admin(context, config: PlatformConfig):
+    if config.admin_mail and config.admin_mail:
+        admins = ((config.admin_name, config.admin_mail),)
         context["ADMINS"] = admins
         context["MANAGERS"] = admins

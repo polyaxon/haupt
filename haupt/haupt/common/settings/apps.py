@@ -7,12 +7,12 @@
 
 from typing import Optional, Tuple
 
-from haupt.common.config_reader import ConfigReader
+from haupt.schemas.platform_config import PlatformConfig
 
 
 def set_apps(
     context,
-    config: ConfigReader,
+    config: PlatformConfig,
     third_party_apps: Optional[Tuple],
     project_apps: Tuple,
     db_app: Optional[str] = None,
@@ -20,10 +20,7 @@ def set_apps(
     use_admin_apps: bool = False,
     use_staticfiles_app: bool = True,
 ):
-    extra_apps = config.get(
-        "POLYAXON_EXTRA_APPS", "str", is_list=True, is_optional=True
-    )
-    extra_apps = tuple(extra_apps) if extra_apps else ()
+    extra_apps = tuple(config.extra_apps) if config.extra_apps else ()
 
     apps = ()
     if use_db_apps:

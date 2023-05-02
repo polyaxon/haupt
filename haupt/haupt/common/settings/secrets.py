@@ -5,18 +5,9 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from haupt.common.config_reader import ConfigReader
-from polyaxon.env_vars.keys import EV_KEYS_SECRET_KEY
+from haupt.schemas.platform_config import PlatformConfig
 
 
-def set_secrets(context, config: ConfigReader):
-    context["SECRET_KEY"] = config.get(
-        EV_KEYS_SECRET_KEY,
-        "str",
-        is_secret=True,
-        is_optional=True,
-        default="default-secret",
-    )
-    context["SECRET_INTERNAL_TOKEN"] = config.get(
-        "POLYAXON_SECRET_INTERNAL_TOKEN", "str", is_secret=True, is_optional=True
-    )
+def set_secrets(context, config: PlatformConfig):
+    context["SECRET_KEY"] = config.secret_key
+    context["SECRET_INTERNAL_TOKEN"] = config.secret_internal_token
