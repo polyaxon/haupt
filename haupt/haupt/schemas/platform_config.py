@@ -62,6 +62,8 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_REDIS_PROTOCOL", default="redis"
     )
     redis_password: Optional[str] = Field(alias="POLYAXON_REDIS_PASSWORD")  # secret
+    redis_sessions_url: Optional[str] = Field(alias="POLYAXON_REDIS_SESSIONS_URL")
+    redis_heartbeat_url: Optional[str] = Field(alias="POLYAXON_REDIS_HEARTBEAT_URL")
     admin_name: Optional[str] = Field(alias="POLYAXON_ADMIN_NAME")
     admin_mail: Optional[str] = Field(alias="POLYAXON_ADMIN_MAIL")
     extra_apps: Optional[List[str]] = Field(alias="POLYAXON_EXTRA_APPS")
@@ -118,8 +120,27 @@ class PlatformConfig(BaseSchemaModel):
     intervals_runs_scheduler: Optional[int] = Field(
         alias="POLYAXON_INTERVALS_RUNS_SCHEDULER", default=30
     )
+    intervals_heartbeat_check: Optional[int] = Field(
+        alias="POLYAXON_INTERVALS_HEARTBEAT_CHECK", default=60
+    )
+    intervals_clean_activity_logs: Optional[int] = Field(
+        alias="POLYAXON_INTERVALS_CLEAN_ACTIVITY_LOGS", default=60
+    )
+    intervals_clean_support_access: Optional[int] = Field(
+        alias="POLYAXON_INTERVALS_CLEAN_SUPPORT_ACCESS", default=60
+    )
+    intervals_clean_notifications: Optional[int] = Field(
+        alias="POLYAXON_INTERVALS_CLEAN_NOTIFICATIONS", default=60
+    )
+    intervals_delete_archived: Optional[int] = Field(
+        alias="POLYAXON_INTERVALS_DELETE_ARCHIVED", default=60
+    )
+
     internal_exchange: Optional[str] = Field(
         alias="POLYAXON_INTERNAL_EXCHANGE", default="internal"
+    )
+    ttl_heartbeat: Optional[int] = Field(
+        alias="POLYAXON_TTL_HEARTBEAT", default=60 * 30
     )
     db_engine_name: Optional[Literal["sqlite", "pgsql"]] = Field(
         alias="POLYAXON_DB_ENGINE", default="sqlite"
@@ -153,12 +174,106 @@ class PlatformConfig(BaseSchemaModel):
     allowed_hosts: Optional[List[str]] = Field(
         alias="POLYAXON_ALLOWED_HOSTS", default=["*"]
     )
+    allowed_versions: Optional[List[str]] = Field(
+        alias="POLYAXON_ALLOWED_VERSIONS", default=[]
+    )
+    acc_password_length: Optional[int] = Field(
+        alias="POLYAXON_PASSWORD_LENGTH", default=6
+    )
+    acc_activation_days: Optional[int] = Field(
+        alias="POLYAXON_ACCOUNT_ACTIVATION_DAYS", default=4
+    )
     pod_ip: Optional[str] = Field(alias="POLYAXON_POD_IP")
     host_ip: Optional[str] = Field(alias="POLYAXON_HOST_IP")
+    all_user_organization: Optional[bool] = Field(
+        alias="POLYAXON_ALLOW_USER_ORGANIZATION", default=False
+    )
     frontend_debug: Optional[bool] = Field(
         alias="POLYAXON_FRONTEND_DEBUG", default=False
     )
     template_debug: Optional[bool] = Field(alias="DJANGO_TEMPLATE_DEBUG")
+    email_from_email: Optional[str] = Field(
+        alias="POLYAXON_EMAIL_FROM", default="<Polyaxon>"
+    )
+    email_host: Optional[str] = Field(alias="POLYAXON_EMAIL_HOST", default="localhost")
+    email_port: Optional[int] = Field(alias="POLYAXON_EMAIL_PORT", default=25)
+    email_user: Optional[str] = Field(alias="POLYAXON_EMAIL_HOST_USER", default="")
+    email_password: Optional[str] = Field(
+        alias="POLYAXON_EMAIL_HOST_PASSWORD", default=""
+    )
+    email_subject_prefix: Optional[str] = Field(
+        alias="POLYAXON_EMAIL_SUBJECT_PREFIX", default="[Polyaxon]"
+    )
+    email_use_tls: Optional[bool] = Field(alias="POLYAXON_EMAIL_USE_TLS", default=False)
+    email_backend: Optional[str] = Field(
+        alias="POLYAXON_EMAIL_BACKEND",
+        default="django.core.mail.backends.console.EmailBackend",
+    )
+    rest_throttle_rates_impersonate: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_IMPERSONATE", default=500
+    )
+    rest_throttle_rates_auth: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_AUTH", default=60
+    )
+    rest_throttle_rates_user: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_USER", default=240
+    )
+    rest_throttle_rates_agent: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_AGENT", default=500
+    )
+    rest_throttle_rates_run_status: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_RUN_STATUS", default=1000
+    )
+    rest_throttle_rates_run_lineage: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_RUN_LINEAGE", default=1000
+    )
+    rest_throttle_rates_run: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_RUN", default=15
+    )
+    rest_throttle_rates_anon: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_ANON", default=30
+    )
+    rest_throttle_rates_checks: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_CHECKS", default=10
+    )
+    services_analytics_backend: Optional[str] = Field(
+        alias="POLYAXON_ANALYTICS_BACKEND"
+    )
+    services_analytics_options: Optional[Dict] = Field(
+        alias="POLYAXON_ANALYTICS_OPTIONS", default={}
+    )
+    services_transactions_backend: Optional[str] = Field(
+        alias="POLYAXON_TRANSACTIONS_BACKEND"
+    )
+    services_transactions_options: Optional[Dict] = Field(
+        alias="POLYAXON_TRANSACTIONS_OPTIONS", default={}
+    )
+    services_metrics_backend: Optional[str] = Field(alias="POLYAXON_METRICS_BACKEND")
+    services_metrics_options: Optional[Dict] = Field(
+        alias="POLYAXON_METRICS_OPTIONS", default={}
+    )
+    services_errors_backend: Optional[str] = Field(alias="POLYAXON_ERRORS_BACKEND")
+    services_errors_options: Optional[Dict] = Field(
+        alias="POLYAXON_ERRORS_OPTIONS", default={}
+    )
+    auth_github_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_GITHUB_OPTIONS", default={}
+    )
+    auth_gitlab_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_GITLAB_OPTIONS", default={}
+    )
+    auth_bitbucket_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_BITBUCKET_OPTIONS", default={}
+    )
+    auth_google_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_GOOGLE_OPTIONS", default={}
+    )
+    auth_azure_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_AZURE_OPTIONS", default={}
+    )
+    auth_saml_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_SAML_OPTIONS", default={}
+    )
     ui_in_sandbox: Optional[bool] = Field(alias=EV_KEYS_UI_IN_SANDBOX, default=False)
     ui_admin_enabled: Optional[bool] = Field(
         alias=EV_KEYS_UI_ADMIN_ENABLED, default=False
