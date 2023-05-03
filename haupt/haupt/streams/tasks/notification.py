@@ -13,8 +13,8 @@ from polyaxon.agents.spawners.async_spawner import AsyncSpawner
 from polyaxon.lifecycle import V1StatusCondition
 from polyaxon.operations import get_notifier_operation
 from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon.polypod import compiler
-from polyaxon.polypod.compiler.converters import PLATFORM_CONVERTERS
+from polyaxon import converter
+from polyaxon.converter.converters import PLATFORM_CONVERTERS
 
 logger = logging.getLogger("haupt.streams.notification")
 
@@ -51,7 +51,7 @@ async def notify_run(
             condition=condition.to_dict(),
         )
         compiled_operation = OperationSpecification.compile_operation(operation)
-        resource = compiler.make(
+        resource = converter.make(
             owner_name=owner,
             project_name=project,
             project_uuid=project,

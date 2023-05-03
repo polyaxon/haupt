@@ -23,10 +23,8 @@ from polyaxon.constants.metadata import (
 from polyaxon.exceptions import PolyaxonCompilerError, PolyaxonSchemaError
 from polyaxon.polyaxonfile import CompiledOperationSpecification
 from polyaxon.polyflow import V1CompiledOperation, V1Init, V1Operation
-from polyaxon.polypod.compiler import resolver
-from polyaxon.polypod.compiler.lineage.artifacts_collector import (
-    collect_lineage_artifacts_path,
-)
+from polyaxon.compiler import resolver
+from polyaxon.compiler.lineage import collect_lineage_artifacts_path
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
 
