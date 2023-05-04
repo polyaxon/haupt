@@ -9,7 +9,7 @@ import logging
 from typing import List
 
 from polyaxon import settings
-from polyaxon.agents.spawners.async_spawner import AsyncSpawner
+from polyaxon.k8s.executor.async_executor import AsyncExecutor
 from polyaxon.k8s import converter
 from polyaxon.lifecycle import V1StatusCondition
 from polyaxon.operations import get_notifier_operation
@@ -27,8 +27,8 @@ async def notify_run(
     condition: V1StatusCondition,
     connections: List[str],
 ):
-    spawner = AsyncSpawner(namespace=namespace)
-    await spawner.k8s_manager.setup()
+    executor = AsyncExecutor(namespace=namespace)
+    await executor.k8s_manager.setup()
     for connection in connections:
         connection_type = settings.AGENT_CONFIG.connections_by_names.get(connection)
         if not connection_type:
@@ -60,7 +60,7 @@ async def notify_run(
             compiled_operation=compiled_operation,
             params=operation.params,
         )
-        await spawner.create(
+        await executor.create(
             run_uuid=run_uuid,
             run_kind=compiled_operation.get_run_kind(),
             resource=resource,
