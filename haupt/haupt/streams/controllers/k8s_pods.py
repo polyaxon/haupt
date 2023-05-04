@@ -4,11 +4,11 @@
 # This file and its contents are licensed under the AGPLv3 License.
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
-from polyaxon.k8s.manager.async_manager import AsyncK8SManager
+from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 
 
 async def get_pods(
-    k8s_manager: AsyncK8SManager,
+    k8s_manager: AsyncK8sManager,
     run_uuid: str,
 ):
     pods = await k8s_manager.list_pods(

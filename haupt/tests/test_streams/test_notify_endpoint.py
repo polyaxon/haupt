@@ -83,7 +83,7 @@ class TestNotifyEndpoints(BaseTest):
             "connections": ["test1", "test2"],
         }
         with patch(
-            "polyaxon.agents.spawners.async_spawner.AsyncK8SManager"
+            "polyaxon.agents.spawners.async_spawner.AsyncK8sManager"
         ) as manager_mock:
             manager_mock.return_value.setup.return_value = Future()
             manager_mock.return_value.setup.return_value.set_result(None)

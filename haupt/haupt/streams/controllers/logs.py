@@ -19,7 +19,7 @@ from haupt.streams.tasks.logs import (
 from polyaxon.fs.async_manager import list_files
 from polyaxon.fs.types import FSSystem
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
-from polyaxon.k8s.manager.async_manager import AsyncK8SManager
+from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 from traceml.logging import V1Log
 
 
@@ -102,7 +102,7 @@ async def get_tmp_operation_logs(
 
 
 async def get_operation_logs(
-    k8s_manager: AsyncK8SManager,
+    k8s_manager: AsyncK8sManager,
     k8s_operation: any,
     instance: str,
     last_time: Optional[datetime.datetime],

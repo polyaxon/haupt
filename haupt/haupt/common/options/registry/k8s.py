@@ -13,7 +13,7 @@ K8S_IN_CLUSTER = "K8S_IN_CLUSTER"
 OPTIONS = {K8S_NAMESPACE, K8S_IN_CLUSTER}
 
 
-class K8SNamespace(Option):
+class K8sNamespace(Option):
     key = K8S_NAMESPACE
     scope = OptionScope.GLOBAL
     is_secret = False
@@ -25,7 +25,7 @@ class K8SNamespace(Option):
     options = None
 
 
-class K8SInCluster(Option):
+class K8sInCluster(Option):
     key = K8S_IN_CLUSTER
     scope = OptionScope.GLOBAL
     is_secret = False

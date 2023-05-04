@@ -30,7 +30,7 @@ from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
 from polyaxon import settings
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
-from polyaxon.k8s.manager.async_manager import AsyncK8SManager
+from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 from polyaxon.utils.fqn_utils import get_resource_name, get_resource_name_for_kind
 
 logger = logging.getLogger("polyaxon.streams.logs")
@@ -56,7 +56,7 @@ async def get_logs(
     if last_time:
         resource_name = get_resource_name(run_uuid=run_uuid)
 
-        k8s_manager = AsyncK8SManager(
+        k8s_manager = AsyncK8sManager(
             namespace=settings.CLIENT_CONFIG.namespace,
             in_cluster=settings.CLIENT_CONFIG.in_cluster,
         )
@@ -115,7 +115,7 @@ async def collect_logs(
             status=status.HTTP_400_BAD_REQUEST,
         )
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid, run_kind=run_kind)
-    k8s_manager = AsyncK8SManager(
+    k8s_manager = AsyncK8sManager(
         namespace=settings.CLIENT_CONFIG.namespace,
         in_cluster=settings.CLIENT_CONFIG.in_cluster,
     )

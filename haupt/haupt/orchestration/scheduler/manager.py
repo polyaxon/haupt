@@ -25,7 +25,7 @@ from polyaxon.agents import manager
 from polyaxon.auxiliaries.default_scheduling import V1DefaultScheduling
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
-    PolyaxonK8SError,
+    PolyaxonK8sError,
     PolypodException,
 )
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
@@ -222,7 +222,7 @@ def runs_start(run_id: int, run: Optional[BaseRun]):
                 default_auth=False,
             )
         return
-    except (PolyaxonK8SError, ApiException) as e:
+    except (PolyaxonK8sError, ApiException) as e:
         _log_error(exc=e, message="Kubernetes manager could not start the operation.\n")
     except PolypodException as e:
         _log_error(exc=e, message="Failed converting the run manifest.\n")
@@ -262,7 +262,7 @@ def runs_stop(
                 namespace=conf.get(K8S_NAMESPACE),
                 in_cluster=in_cluster,
             )
-        except (PolyaxonK8SError, ApiException) as e:
+        except (PolyaxonK8sError, ApiException) as e:
             _logger.warning(
                 "Something went wrong, the run `%s` could not be stopped, error %s",
                 run.uuid,
@@ -282,7 +282,7 @@ def runs_stop(
                     namespace=conf.get(K8S_NAMESPACE),
                     in_cluster=in_cluster,
                 )
-            except (PolyaxonK8SError, ApiException) as e:
+            except (PolyaxonK8sError, ApiException) as e:
                 _logger.warning(
                     "Something went wrong, the run `%s` could not be stopped, error %s",
                     run.uuid,

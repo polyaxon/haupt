@@ -13,7 +13,7 @@ from django.http import HttpResponse
 
 from polyaxon import settings
 from polyaxon.api import K8S_V1_LOCATION
-from polyaxon.k8s.manager.async_manager import AsyncK8SManager
+from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 
 
 def _check_exec(uri_path: List[str], query_params: str):
@@ -50,10 +50,10 @@ async def reverse_k8s(path) -> HttpResponse:
             content="A valid k8s path param is required",
             status=status.HTTP_400_BAD_REQUEST,
         )
-    config = await AsyncK8SManager.load_config(
+    config = await AsyncK8sManager.load_config(
         in_cluster=settings.CLIENT_CONFIG.in_cluster
     )
-    config_auth = AsyncK8SManager.get_config_auth(config)
+    config_auth = AsyncK8sManager.get_config_auth(config)
     return HttpResponse(
         status=status.HTTP_200_OK,
         headers={
