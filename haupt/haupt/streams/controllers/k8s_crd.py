@@ -5,8 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 
-from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.k8s.custom_resources import operation as op_crd
+from polyaxon.k8s.manager.async_manager import AsyncK8SManager
 
 
 async def get_k8s_operation(k8s_manager: AsyncK8SManager, resource_name: str):

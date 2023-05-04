@@ -16,7 +16,7 @@ from haupt.streams.controllers.k8s_crd import get_k8s_operation
 from haupt.streams.controllers.k8s_pods import get_pods
 from haupt.streams.endpoints.base import UJSONResponse
 from polyaxon import settings
-from polyaxon.k8s.async_manager import AsyncK8SManager
+from polyaxon.k8s.manager.async_manager import AsyncK8SManager
 from polyaxon.utils.fqn_utils import get_resource_name_for_kind
 
 

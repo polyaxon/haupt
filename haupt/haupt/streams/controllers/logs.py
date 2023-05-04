@@ -18,8 +18,8 @@ from haupt.streams.tasks.logs import (
 )
 from polyaxon.fs.async_manager import list_files
 from polyaxon.fs.types import FSSystem
-from polyaxon.k8s.async_manager import AsyncK8SManager
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
+from polyaxon.k8s.manager.async_manager import AsyncK8SManager
 from traceml.logging import V1Log
 
 

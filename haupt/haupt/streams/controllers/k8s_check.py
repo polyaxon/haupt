@@ -13,7 +13,7 @@ from django.http import HttpResponse
 
 from polyaxon import settings
 from polyaxon.api import K8S_V1_LOCATION
-from polyaxon.k8s.async_manager import AsyncK8SManager
+from polyaxon.k8s.manager.async_manager import AsyncK8SManager
 
 
 def _check_exec(uri_path: List[str], query_params: str):
