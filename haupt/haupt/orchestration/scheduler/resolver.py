@@ -13,6 +13,8 @@ from rest_framework.exceptions import ValidationError
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.managers.artifacts import set_artifacts
+from polyaxon.compiler import resolver
+from polyaxon.compiler.lineage import collect_lineage_artifacts_path
 from polyaxon.constants.metadata import (
     META_COPY_ARTIFACTS,
     META_DESTINATION_IMAGE,
@@ -23,8 +25,6 @@ from polyaxon.constants.metadata import (
 from polyaxon.exceptions import PolyaxonCompilerError, PolyaxonSchemaError
 from polyaxon.polyaxonfile import CompiledOperationSpecification
 from polyaxon.polyflow import V1CompiledOperation, V1Init, V1Operation
-from polyaxon.compiler import resolver
-from polyaxon.compiler.lineage import collect_lineage_artifacts_path
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
 

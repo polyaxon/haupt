@@ -10,11 +10,10 @@ from typing import List
 
 from polyaxon import settings
 from polyaxon.agents.spawners.async_spawner import AsyncSpawner
+from polyaxon.k8s import converter
 from polyaxon.lifecycle import V1StatusCondition
 from polyaxon.operations import get_notifier_operation
 from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon import converter
-from polyaxon.converter.converters import PLATFORM_CONVERTERS
 
 logger = logging.getLogger("haupt.streams.notification")
 
@@ -60,7 +59,6 @@ async def notify_run(
             run_path=run_uuid,
             compiled_operation=compiled_operation,
             params=operation.params,
-            converters=PLATFORM_CONVERTERS,
         )
         await spawner.create(
             run_uuid=run_uuid,
