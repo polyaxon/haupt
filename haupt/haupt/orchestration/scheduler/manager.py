@@ -18,10 +18,9 @@ from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.managers.artifacts import atomic_set_artifacts
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
-from haupt.orchestration.scheduler import resolver
+from haupt.orchestration.scheduler import executor, resolver
 from kubernetes.client.rest import ApiException
 from polyaxon import operations, settings
-from polyaxon.agents import manager
 from polyaxon.auxiliaries.default_scheduling import V1DefaultScheduling
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
@@ -76,7 +75,7 @@ def runs_artifacts_clean(run: BaseRun):
                 cleaner=settings.AGENT_CONFIG.cleaner,
             )
             try:
-                manager.make_and_create(
+                executor.make_and_create(
                     content=op,
                     owner_name=run.project.owner.name,
                     project_name=run.project.name,
@@ -210,7 +209,7 @@ def runs_start(run_id: int, run: Optional[BaseRun]):
     try:
         in_cluster = conf.get(K8S_IN_CLUSTER)
         if in_cluster and (run.is_service or run.is_job):
-            manager.start(
+            executor.start(
                 content=run.content,
                 owner_name=run.project.owner.name,
                 project_name=run.project.name,
@@ -256,7 +255,7 @@ def runs_stop(
 
     def _clean():
         try:
-            manager.clean(
+            executor.clean(
                 run_uuid=run.uuid.hex,
                 run_kind=run.kind,
                 namespace=conf.get(K8S_NAMESPACE),
@@ -276,7 +275,7 @@ def runs_stop(
             if clean:
                 _clean()
             try:
-                manager.stop(
+                executor.stop(
                     run_uuid=run.uuid.hex,
                     run_kind=run.kind,
                     namespace=conf.get(K8S_NAMESPACE),

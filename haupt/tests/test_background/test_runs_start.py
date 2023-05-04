@@ -18,7 +18,7 @@ from tests.test_background.case import BaseTest
 
 @pytest.mark.background_mark
 class TestRunsStart(BaseTest):
-    @mock.patch("polyaxon.agents.manager.start")
+    @mock.patch("haupt.orchestration.scheduler.executor.start")
     def test_start_run_not_queued(self, manager_start):
         experiment = RunFactory(project=self.project, user=self.user)
         runs_start(run_id=experiment.id)
