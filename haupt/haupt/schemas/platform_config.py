@@ -5,7 +5,8 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 from pathlib import Path
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Optional
+from typing_extensions import Literal
 
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 from pydantic import Extra, Field, validator
