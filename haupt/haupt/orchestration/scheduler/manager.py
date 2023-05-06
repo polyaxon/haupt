@@ -24,8 +24,8 @@ from polyaxon import operations, settings
 from polyaxon.auxiliaries.default_scheduling import V1DefaultScheduling
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
+    PolyaxonConverterError,
     PolyaxonK8sError,
-    PolypodException,
 )
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
 from traceml.artifacts import V1RunArtifact
@@ -223,7 +223,7 @@ def runs_start(run_id: int, run: Optional[BaseRun]):
         return
     except (PolyaxonK8sError, ApiException) as e:
         _log_error(exc=e, message="Kubernetes manager could not start the operation.\n")
-    except PolypodException as e:
+    except PolyaxonConverterError as e:
         _log_error(exc=e, message="Failed converting the run manifest.\n")
     except Exception as e:
         _log_error(exc=e, message="Failed with unknown exception.\n")
