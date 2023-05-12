@@ -67,6 +67,7 @@ def handle_run_approved_triggered(
         # Eager mode
         manager.runs_prepare(run_id=event.instance_id, run=event.instance, eager=True)
 
+    # TODO: Executor
     # Should start
     if run.is_managed and conf.get(SCHEDULER_ENABLED):
         workers_backend.send(
@@ -82,6 +83,7 @@ def handle_run_stopped_triggered(workers_backend, event: "Event") -> None:  # no
     if not run:
         return
 
+    # TODO: Executor
     if run.is_managed and conf.get(SCHEDULER_ENABLED):
         workers_backend.send(
             CoreSchedulerCeleryTasks.RUNS_STOP, kwargs={"run_id": event.instance_id}
@@ -117,6 +119,7 @@ def handle_run_deleted(workers_backend, event: "Event") -> None:  # noqa: F821
         run.delete()
         return
 
+    # TODO: Executor
     if conf.get(SCHEDULER_ENABLED):
         run.delete_in_progress()
         workers_backend.send(

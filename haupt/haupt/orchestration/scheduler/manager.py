@@ -74,6 +74,7 @@ def runs_artifacts_clean(run: BaseRun):
                 ),
                 cleaner=settings.AGENT_CONFIG.cleaner,
             )
+            # TODO: Executor
             try:
                 executor.make_and_create(
                     content=op,
@@ -206,6 +207,7 @@ def runs_start(run_id: int, run: Optional[BaseRun]):
         )
         new_run_status(run=run, condition=cond)
 
+    # TODO: Executor
     try:
         in_cluster = conf.get(K8S_IN_CLUSTER)
         if in_cluster and (run.is_service or run.is_job):
@@ -253,6 +255,7 @@ def runs_stop(
         LifeCycle.is_k8s_stoppable(run.status) or run.status == V1Statuses.STOPPING
     )
 
+    # TODO: Executor
     def _clean():
         try:
             executor.clean(
