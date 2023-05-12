@@ -5,13 +5,14 @@
 # Please see the included NOTICE for copyright information and
 # LICENSE-AGPL for a copy of the license.
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 from typing_extensions import Literal
 
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 from pydantic import Extra, Field, validator
 
 from haupt import pkg
+from polyaxon.config.parser import ConfigParser
 from polyaxon.env_vars.keys import (
     EV_KEYS_ARCHIVES_ROOT,
     EV_KEYS_ARTIFACTS_ROOT,
@@ -33,8 +34,12 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_UI_IN_SANDBOX,
     EV_KEYS_UI_OFFLINE,
 )
+from polyaxon.exceptions import PolyaxonSchemaError
 from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
 from polyaxon.schemas.base import BaseSchemaModel
+
+if TYPE_CHECKING:
+    from pydantic.fields import ModelField
 
 
 class PlatformConfig(BaseSchemaModel):
@@ -288,6 +293,51 @@ class PlatformConfig(BaseSchemaModel):
 
     class Config:
         extra = Extra.ignore
+
+    @validator(
+        "extra_apps",
+        "cors_allowed_origins",
+        "allowed_hosts",
+        "allowed_versions",
+        pre=True,
+    )
+    def validate_str_list(cls, v, field: "ModelField"):
+        if not isinstance(v, str):
+            return v
+        try:
+            return ConfigParser.parse(List)(
+                key=field.name,
+                value=v,
+                is_optional=True,
+            )
+        except PolyaxonSchemaError as e:
+            raise ValueError("Received an invalid {} `{}`".format(field.name, v)) from e
+
+    @validator(
+        "db_options",
+        "services_analytics_options",
+        "services_transactions_options",
+        "services_metrics_options",
+        "services_errors_options",
+        "auth_github_options",
+        "auth_gitlab_options",
+        "auth_bitbucket_options",
+        "auth_google_options",
+        "auth_azure_options",
+        "auth_saml_options",
+        pre=True,
+    )
+    def validate_json_fields(cls, v, field: "ModelField"):
+        if not isinstance(v, str):
+            return v
+        try:
+            return ConfigParser.parse(Dict)(
+                key=field.name,
+                value=v,
+                is_optional=True,
+            )
+        except PolyaxonSchemaError as e:
+            raise ValueError("Received an invalid {} `{}`".format(field.name, v)) from e
 
     @validator("log_level", always=True, pre=True)
     def validate_log_level(cls, v):
