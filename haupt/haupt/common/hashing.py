@@ -1,10 +1,3 @@
-#!/usr/bin/python
-#
-# Copyright 2018-2023 Polyaxon, Inc.
-# This file and its contents are licensed under the AGPLv3 License.
-# Please see the included NOTICE for copyright information and
-# LICENSE-AGPL for a copy of the license.
-
 from hashlib import md5 as _md5
 from hashlib import sha1 as _sha1
 
