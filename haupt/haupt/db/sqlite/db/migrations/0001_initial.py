@@ -12,6 +12,7 @@ from django.conf import settings
 from django.db import migrations, models
 
 import haupt.common.validation.blacklist
+import polyaxon.lifecycle
 
 
 class Migration(migrations.Migration):
@@ -276,6 +277,7 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("state", models.UUIDField(blank=True, db_index=True, null=True)),
                 ("description", models.TextField(blank=True, null=True)),
                 (
                     "live_state",
@@ -308,6 +310,24 @@ class Migration(migrations.Migration):
                 ("finished_at", models.DateTimeField(blank=True, null=True)),
                 ("wait_time", models.IntegerField(blank=True, null=True)),
                 ("duration", models.IntegerField(blank=True, null=True)),
+                (
+                    "schedule_at",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
+                (
+                    "checked_at",
+                    models.DateTimeField(
+                        blank=True,
+                        db_index=True,
+                        default=django.utils.timezone.now,
+                        null=True,
+                    ),
+                ),
+                ("memory", models.FloatField(blank=True, default=0, null=True)),
+                ("cpu", models.FloatField(blank=True, default=0, null=True)),
+                ("gpu", models.FloatField(blank=True, default=0, null=True)),
+                ("custom", models.FloatField(blank=True, default=0, null=True)),
+                ("cost", models.FloatField(blank=True, default=0, null=True)),
                 (
                     "raw_content",
                     models.TextField(
@@ -351,7 +371,7 @@ class Migration(migrations.Migration):
                             ("done", "done"),
                         ],
                         db_index=True,
-                        default="created",
+                        default=polyaxon.lifecycle.V1Statuses["CREATED"],
                         max_length=16,
                         null=True,
                     ),
@@ -466,6 +486,16 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    "controller",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="controller_runs",
+                        to="db.run",
+                    ),
+                ),
+                (
                     "original",
                     models.ForeignKey(
                         blank=True,
@@ -493,19 +523,208 @@ class Migration(migrations.Migration):
                         to="db.project",
                     ),
                 ),
+            ],
+            options={
+                "db_table": "db_run",
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
+            name="RunEdge",
+            fields=[
                 (
-                    "user",
-                    models.ForeignKey(
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("values", models.JSONField(blank=True, null=True)),
+                (
+                    "kind",
+                    models.CharField(
                         blank=True,
+                        choices=[
+                            ("action", "action"),
+                            ("event", "event"),
+                            ("hook", "hook"),
+                            ("dag", "dag"),
+                            ("join", "join"),
+                            ("run", "run"),
+                            ("tb", "tb"),
+                            ("build", "build"),
+                        ],
+                        db_index=True,
+                        max_length=6,
                         null=True,
+                    ),
+                ),
+                (
+                    "statuses",
+                    models.JSONField(
+                        blank=True,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "downstream",
+                    models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="+",
-                        to=settings.AUTH_USER_MODEL,
+                        related_name="upstream_edges",
+                        to="db.run",
+                    ),
+                ),
+                (
+                    "upstream",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="downstream_edges",
+                        to="db.run",
                     ),
                 ),
             ],
             options={
-                "db_table": "db_run",
+                "db_table": "db_runedge",
+            },
+        ),
+        migrations.AddField(
+            model_name="run",
+            name="upstream_runs",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="downstream_runs",
+                through="db.RunEdge",
+                to="db.run",
+            ),
+        ),
+        migrations.AddField(
+            model_name="run",
+            name="user",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="+",
+                to=settings.AUTH_USER_MODEL,
+            ),
+        ),
+        migrations.CreateModel(
+            name="ProjectVersion",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("state", models.UUIDField(blank=True, db_index=True, null=True)),
+                ("description", models.TextField(blank=True, null=True)),
+                (
+                    "tags",
+                    models.JSONField(
+                        blank=True,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("readme", models.TextField(blank=True, null=True)),
+                (
+                    "stage",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("testing", "testing"),
+                            ("staging", "staging"),
+                            ("production", "production"),
+                            ("disabled", "disabled"),
+                        ],
+                        db_index=True,
+                        default=polyaxon.lifecycle.V1Stages["TESTING"],
+                        max_length=16,
+                        null=True,
+                    ),
+                ),
+                (
+                    "stage_conditions",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "kind",
+                    models.CharField(
+                        choices=[
+                            ("component", "component"),
+                            ("model", "model"),
+                            ("artifact", "artifact"),
+                        ],
+                        db_index=True,
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=128,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                re.compile("^[-a-zA-Z0-9_.]+\\Z"),
+                                "Enter a valid “value” consisting of letters, numbers, underscores, hyphens, or dots.",
+                                "invalid",
+                            )
+                        ],
+                    ),
+                ),
+                (
+                    "content",
+                    models.TextField(
+                        blank=True,
+                        help_text="The yaml/json content/metadata.",
+                        null=True,
+                    ),
+                ),
+                (
+                    "lineage",
+                    models.ManyToManyField(
+                        blank=True, related_name="versions", to="db.artifactlineage"
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="versions",
+                        to="db.project",
+                    ),
+                ),
+                (
+                    "run",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="versions",
+                        to="db.run",
+                    ),
+                ),
+            ],
+            options={
+                "db_table": "db_projectversion",
                 "abstract": False,
             },
         ),
@@ -562,6 +781,14 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="run",
             index=models.Index(fields=["name"], name="db_run_name_47fc7c_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="projectversion",
+            index=models.Index(fields=["name"], name="db_projectv_name_3ea950_idx"),
+        ),
+        migrations.AlterUniqueTogether(
+            name="projectversion",
+            unique_together={("project", "name", "kind")},
         ),
         migrations.AlterUniqueTogether(
             name="artifactlineage",

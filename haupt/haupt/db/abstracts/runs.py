@@ -9,7 +9,10 @@ from haupt.db.abstracts.getter import get_db_model_name
 from haupt.db.abstracts.live_state import LiveStateModel
 from haupt.db.abstracts.nameable import NameableModel
 from haupt.db.abstracts.readme import ReadmeModel
+from haupt.db.abstracts.run_pipelines import RunPipelines
+from haupt.db.abstracts.run_resources import RunResources
 from haupt.db.abstracts.spec import SpecModel
+from haupt.db.abstracts.state import OptionalStateModel
 from haupt.db.abstracts.status import StatusModel
 from haupt.db.abstracts.tag import TagModel
 from haupt.db.abstracts.uid import UuidModel
@@ -29,6 +32,9 @@ class BaseRun(
     StatusModel,
     TagModel,
     LiveStateModel,
+    OptionalStateModel,
+    RunPipelines,
+    RunResources,
 ):
     name = models.CharField(
         max_length=128,
@@ -74,13 +80,6 @@ class BaseRun(
         null=True,
         blank=True,
         related_name="clones",
-    )
-    pipeline = models.ForeignKey(
-        "self",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="pipeline_runs",
     )
     cloning_kind = models.CharField(
         max_length=12,
@@ -154,3 +153,6 @@ class BaseRun(
     @property
     def has_notifier_runtime(self):
         return self.runtime == V1RunKind.NOTIFIER
+
+    def get_last_condition(self):
+        return (self.status_conditions or [{}])[-1]
