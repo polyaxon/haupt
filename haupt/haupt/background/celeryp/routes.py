@@ -14,7 +14,6 @@ SCHEDULER_CORE_ROUTES = {
     CoreSchedulerCeleryTasks.RUNS_BUILT: {"queue": CeleryCoreQueues.SCHEDULER_COMPILER},
     # Scheduler runs
     CoreSchedulerCeleryTasks.RUNS_STOP: {"queue": CeleryCoreQueues.SCHEDULER_RUNS},
-    CoreSchedulerCeleryTasks.RUNS_DELETE: {"queue": CeleryCoreQueues.SCHEDULER_RUNS},
     # Scheduler artifacts
     CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS: {
         "queue": CeleryCoreQueues.SCHEDULER_ARTIFACTS,

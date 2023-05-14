@@ -10,8 +10,8 @@ from tests.test_background.case import BaseTest
 
 @pytest.mark.background_mark
 class TestRunsStop(BaseTest):
-    @mock.patch("haupt.orchestration.scheduler.manager.runs_stop")
-    @mock.patch("haupt.orchestration.scheduler.manager.runs_prepare")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager.runs_stop")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager.runs_prepare")
     def test_stop_managed_run(self, runs_prepare, managed_stop):
         with mock.patch("django.db.transaction.on_commit", lambda t: t()):
             managed_stop.return_value = True
@@ -34,7 +34,7 @@ class TestRunsStop(BaseTest):
         assert experiment.status == V1Statuses.STOPPED
 
     @mock.patch("haupt.background.scheduler.tasks.runs_stop.retry")
-    @mock.patch("haupt.orchestration.scheduler.manager.runs_stop")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager.runs_stop")
     @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
     def test_stop_managed_wrong_stop_retries(
         self, mock_resolve, managed_stop, mock_stop_run

@@ -1,7 +1,7 @@
 from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.common import conf
 from haupt.common.options.registry.core import SCHEDULER_ENABLED
-from haupt.orchestration.scheduler import manager
+from haupt.orchestration.scheduler.manager import RunsManager
 from polyaxon.constants.metadata import META_EAGER_MODE
 from polyaxon.lifecycle import V1Statuses
 
@@ -42,7 +42,7 @@ def handle_run_created(workers_backend, event: "Event") -> None:  # noqa: F821
 def handle_run_approved_triggered(
     workers_backend, event: "Event"
 ) -> None:  # noqa: F821
-    run = manager.get_run(run_id=event.instance_id, run=event.instance)
+    run = RunsManager.get_run(run_id=event.instance_id, run=event.instance)
     if not run:
         return
 
@@ -63,7 +63,7 @@ def handle_run_approved_triggered(
 
 
 def handle_run_stopped_triggered(workers_backend, event: "Event") -> None:  # noqa: F821
-    run = manager.get_run(run_id=event.instance_id, run=event.instance)
+    run = RunsManager.get_run(run_id=event.instance_id, run=event.instance)
     if not run:
         return
 
@@ -88,7 +88,7 @@ def handle_new_artifacts(workers_backend, event: "Event") -> None:  # noqa: F821
 
 
 def handle_run_deleted(workers_backend, event: "Event") -> None:  # noqa: F821
-    run = manager.get_run(run_id=event.instance_id, run=event.instance)
+    run = RunsManager.get_run(run_id=event.instance_id, run=event.instance)
     if not run:
         return
 
@@ -97,8 +97,4 @@ def handle_run_deleted(workers_backend, event: "Event") -> None:  # noqa: F821
         return
 
     run.delete_in_progress()
-    workers_backend.send(
-        CoreSchedulerCeleryTasks.RUNS_DELETE,
-        kwargs={"run_id": run.id},
-        eager_kwargs={"run": run},
-    )
+    # TODO: replace

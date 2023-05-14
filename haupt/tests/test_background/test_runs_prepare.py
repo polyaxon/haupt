@@ -14,11 +14,11 @@ from tests.test_background.case import BaseTest
 class TestRunsPrepare(BaseTest):
     def setUp(self):
         super().setUp()
-        patcher = patch("haupt.orchestration.scheduler.manager.runs_start")
+        patcher = patch("haupt.orchestration.scheduler.manager.RunsManager.runs_start")
         patcher.start()
         self.addCleanup(patcher.stop)
 
-        patcher = patch("haupt.orchestration.scheduler.manager.runs_stop")
+        patcher = patch("haupt.orchestration.scheduler.manager.RunsManager.runs_stop")
         patcher.start()
         self.addCleanup(patcher.stop)
 
