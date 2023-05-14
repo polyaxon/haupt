@@ -11,7 +11,7 @@ from haupt.apis.serializers.artifacts import (
     RunArtifactNameSerializer,
     RunArtifactSerializer,
 )
-from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
@@ -204,7 +204,7 @@ class TestRunArtifactListViewV1(BaseTest):
 
         assert workers_send.call_count == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
+            SchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
         }
 
     def test_create(self):
@@ -231,7 +231,7 @@ class TestRunArtifactListViewV1(BaseTest):
 
         assert workers_send.call_count == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
+            SchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
         }
 
 

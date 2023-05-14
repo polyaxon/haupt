@@ -1,4 +1,4 @@
-class CoreSchedulerCeleryTasks:
+class SchedulerCeleryTasks:
     """Scheduler celery tasks.
 
     N.B. make sure that the task name is not < 128.

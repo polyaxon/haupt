@@ -2,7 +2,7 @@ import logging
 
 from typing import Dict, List
 
-from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import workers
 from haupt.orchestration.scheduler.manager import RunsManager
 from haupt.polyconf.settings import Intervals
@@ -10,32 +10,32 @@ from haupt.polyconf.settings import Intervals
 _logger = logging.getLogger("polyaxon.scheduler")
 
 
-@workers.app.task(name=CoreSchedulerCeleryTasks.RUNS_PREPARE, ignore_result=True)
+@workers.app.task(name=SchedulerCeleryTasks.RUNS_PREPARE, ignore_result=True)
 def runs_prepare(run_id):
     if RunsManager.runs_prepare(run_id=run_id, run=None):
         workers.send(
-            CoreSchedulerCeleryTasks.RUNS_START,
+            SchedulerCeleryTasks.RUNS_START,
             kwargs={"run_id": run_id},
         )
 
 
-@workers.app.task(name=CoreSchedulerCeleryTasks.RUNS_START, ignore_result=True)
+@workers.app.task(name=SchedulerCeleryTasks.RUNS_START, ignore_result=True)
 def runs_start(run_id):
     RunsManager.runs_start(run_id=run_id, run=None)
 
 
-@workers.app.task(name=CoreSchedulerCeleryTasks.RUNS_BUILT, ignore_result=True)
+@workers.app.task(name=SchedulerCeleryTasks.RUNS_BUILT, ignore_result=True)
 def runs_built(run_id):
     RunsManager.runs_built(run_id=run_id)
 
 
-@workers.app.task(name=CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS, ignore_result=True)
+@workers.app.task(name=SchedulerCeleryTasks.RUNS_SET_ARTIFACTS, ignore_result=True)
 def runs_set_artifacts(run_id, artifacts: List[Dict]):
     RunsManager.runs_set_artifacts(run_id=run_id, run=None, artifacts=artifacts)
 
 
 @workers.app.task(
-    name=CoreSchedulerCeleryTasks.RUNS_STOP,
+    name=SchedulerCeleryTasks.RUNS_STOP,
     bind=True,
     max_retries=3,
     ignore_result=True,

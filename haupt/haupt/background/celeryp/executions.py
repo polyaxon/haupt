@@ -1,6 +1,6 @@
 from typing import Dict
 
-from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 
 
 class TasksExecutions:
@@ -20,10 +20,10 @@ class TasksExecutions:
         from haupt.orchestration.scheduler.manager import RunsManager
 
         cls._MAPPING = {
-            CoreSchedulerCeleryTasks.SCHEDULER_HEALTH: health_task.health_task,
-            CoreSchedulerCeleryTasks.RUNS_PREPARE: RunsManager.runs_prepare,
-            CoreSchedulerCeleryTasks.RUNS_START: RunsManager.runs_start,
-            CoreSchedulerCeleryTasks.RUNS_BUILT: RunsManager.runs_built,
-            CoreSchedulerCeleryTasks.RUNS_STOP: RunsManager.runs_stop,
-            CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS: RunsManager.runs_set_artifacts,
+            SchedulerCeleryTasks.SCHEDULER_HEALTH: health_task.health_task,
+            SchedulerCeleryTasks.RUNS_PREPARE: RunsManager.runs_prepare,
+            SchedulerCeleryTasks.RUNS_START: RunsManager.runs_start,
+            SchedulerCeleryTasks.RUNS_BUILT: RunsManager.runs_built,
+            SchedulerCeleryTasks.RUNS_STOP: RunsManager.runs_stop,
+            SchedulerCeleryTasks.RUNS_SET_ARTIFACTS: RunsManager.runs_set_artifacts,
         }

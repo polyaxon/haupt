@@ -6,7 +6,7 @@ from rest_framework import status
 
 from haupt.apis.serializers.project_resources import RunSerializer
 from haupt.apis.serializers.runs import RunDetailSerializer, RunStatusSerializer
-from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
@@ -179,7 +179,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
             resp = self.client.delete(self.url)
         assert workers_send.call_count == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_DELETE,
+            SchedulerCeleryTasks.RUNS_DELETE,
         }
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         # Deleted
@@ -198,7 +198,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
             resp = self.client.delete(self.url)
         assert workers_send.call_count == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_DELETE,
+            SchedulerCeleryTasks.RUNS_DELETE,
         }
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         # Deleted
@@ -253,7 +253,7 @@ class TestRestartRunViewV1(BaseRerunRunApi):
         assert self.queryset.count() == 2
         assert len(workers_send.call_args_list) == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
         }
 
         last_experiment = self.queryset.last()
@@ -271,7 +271,7 @@ class TestRestartRunViewV1(BaseRerunRunApi):
         assert self.queryset.count() == 2
         assert len(workers_send.call_args_list) == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
         }
 
         last_experiment = self.queryset.last()
@@ -313,7 +313,7 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         assert self.queryset.count() == 1
         assert len(workers_send.call_args_list) == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
         }
 
         last_experiment = self.queryset.last()
@@ -332,7 +332,7 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         assert self.queryset.count() == 1
         assert len(workers_send.call_args_list) == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
         }
 
         last_experiment = self.queryset.last()
@@ -380,7 +380,7 @@ class TestCopyRunViewV1(BaseRerunRunApi):
         assert resp.status_code == status.HTTP_201_CREATED
         assert len(workers_send.call_args_list) == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
         }
         assert self.queryset.count() == 2
 
@@ -400,7 +400,7 @@ class TestCopyRunViewV1(BaseRerunRunApi):
         assert resp.status_code == status.HTTP_201_CREATED
         assert len(workers_send.call_args_list) == 1
         assert {c[0][0] for c in workers_send.call_args_list} == {
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
         }
         assert self.queryset.count() == 2
 

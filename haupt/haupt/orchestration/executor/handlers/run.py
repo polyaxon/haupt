@@ -1,4 +1,4 @@
-from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import conf
 from haupt.common.options.registry.core import SCHEDULER_ENABLED
 from haupt.orchestration.scheduler.manager import RunsManager
@@ -36,7 +36,7 @@ class RunsHandler:
             return
 
         workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            SchedulerCeleryTasks.RUNS_PREPARE,
             delay=conf.get(SCHEDULER_ENABLED) and not eager,
             kwargs={"run_id": event.instance_id},
             eager_kwargs={"run": event.instance, "eager": eager},
@@ -53,14 +53,14 @@ class RunsHandler:
         # Check if it should prepare
         if run.status == V1Statuses.CREATED:
             workers_backend.send(
-                CoreSchedulerCeleryTasks.RUNS_PREPARE,
+                SchedulerCeleryTasks.RUNS_PREPARE,
                 kwargs={"run_id": event.instance_id},
                 eager_kwargs={"run": event.instance},
             )
             return
         if run.is_managed:
             workers_backend.send(
-                CoreSchedulerCeleryTasks.RUNS_START,
+                SchedulerCeleryTasks.RUNS_START,
                 kwargs={"run_id": event.instance_id},
                 eager_kwargs={"run": event.instance},
             )
@@ -75,7 +75,7 @@ class RunsHandler:
 
         if run.is_managed:
             workers_backend.send(
-                CoreSchedulerCeleryTasks.RUNS_STOP,
+                SchedulerCeleryTasks.RUNS_STOP,
                 kwargs={"run_id": event.instance_id},
                 eager_kwargs={"run": event.instance},
             )
@@ -89,7 +89,7 @@ class RunsHandler:
             return
 
         workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
+            SchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
             kwargs={"run_id": event.instance_id, "artifacts": artifacts},
             eager_kwargs={"run": event.instance},
         )
