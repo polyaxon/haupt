@@ -133,7 +133,7 @@ class TestExecutorHandlers(TestCase):
             instance=MagicMock(meta_info={META_EAGER_MODE: True}, pending=None),
         )
         handle_run_created(DummyWorkers, event=event)
-        assert States.workers is None
+        assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_PREPARE
 
     def test_stop_run_handler_managed_run(self):
         States.workers = None

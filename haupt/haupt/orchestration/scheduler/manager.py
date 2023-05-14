@@ -290,3 +290,8 @@ def runs_stop(
 
     new_run_stop_status(run=run, message=message)
     return True
+
+
+def runs_built(run_id):
+    # Move to CE
+    return run_id

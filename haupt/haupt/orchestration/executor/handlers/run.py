@@ -31,14 +31,12 @@ def handle_run_created(workers_backend, event: "Event") -> None:  # noqa: F821
     if event.instance.pending is not None:
         return
 
-    if conf.get(SCHEDULER_ENABLED) and not eager:
-        workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_PREPARE, kwargs={"run_id": event.instance_id}
-        )
-        return
-
-    # Eager mode
-    manager.runs_prepare(run_id=event.instance_id, run=event.instance, eager=True)
+    workers_backend.send(
+        CoreSchedulerCeleryTasks.RUNS_PREPARE,
+        delay=conf.get(SCHEDULER_ENABLED) and not eager,
+        kwargs={"run_id": event.instance_id},
+        eager_kwargs={"run": event.instance, "eager": eager},
+    )
 
 
 def handle_run_approved_triggered(
@@ -50,25 +48,18 @@ def handle_run_approved_triggered(
 
     # Check if it should prepare
     if run.status == V1Statuses.CREATED:
-        if conf.get(SCHEDULER_ENABLED):
-            workers_backend.send(
-                CoreSchedulerCeleryTasks.RUNS_PREPARE,
-                kwargs={"run_id": event.instance_id},
-            )
-            return
-
-        # Eager mode
-        manager.runs_prepare(run_id=event.instance_id, run=event.instance, eager=True)
-
-    # TODO: Executor
-    # Should start
-    if run.is_managed and conf.get(SCHEDULER_ENABLED):
         workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_START, kwargs={"run_id": event.instance_id}
+            CoreSchedulerCeleryTasks.RUNS_PREPARE,
+            kwargs={"run_id": event.instance_id},
+            eager_kwargs={"run": event.instance},
         )
         return
-
-    manager.runs_start(run_id=event.instance_id, run=event.instance)
+    if run.is_managed:
+        workers_backend.send(
+            CoreSchedulerCeleryTasks.RUNS_START,
+            kwargs={"run_id": event.instance_id},
+            eager_kwargs={"run": event.instance},
+        )
 
 
 def handle_run_stopped_triggered(workers_backend, event: "Event") -> None:  # noqa: F821
@@ -76,14 +67,12 @@ def handle_run_stopped_triggered(workers_backend, event: "Event") -> None:  # no
     if not run:
         return
 
-    # TODO: Executor
-    if run.is_managed and conf.get(SCHEDULER_ENABLED):
+    if run.is_managed:
         workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_STOP, kwargs={"run_id": event.instance_id}
+            CoreSchedulerCeleryTasks.RUNS_STOP,
+            kwargs={"run_id": event.instance_id},
+            eager_kwargs={"run": event.instance},
         )
-        return
-
-    manager.runs_stop(run_id=event.instance_id, run=event.instance)
 
 
 def handle_new_artifacts(workers_backend, event: "Event") -> None:  # noqa: F821
@@ -91,15 +80,10 @@ def handle_new_artifacts(workers_backend, event: "Event") -> None:  # noqa: F821
     if not artifacts:
         return
 
-    if conf.get(SCHEDULER_ENABLED):
-        workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
-            kwargs={"run_id": event.instance_id, "artifacts": artifacts},
-        )
-        return
-
-    manager.runs_set_artifacts(
-        run_id=event.instance_id, run=event.instance, artifacts=artifacts
+    workers_backend.send(
+        CoreSchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
+        kwargs={"run_id": event.instance_id, "artifacts": artifacts},
+        eager_kwargs={"run": event.instance},
     )
 
 
@@ -112,11 +96,9 @@ def handle_run_deleted(workers_backend, event: "Event") -> None:  # noqa: F821
         run.delete()
         return
 
-    # TODO: Executor
-    if conf.get(SCHEDULER_ENABLED):
-        run.delete_in_progress()
-        workers_backend.send(
-            CoreSchedulerCeleryTasks.RUNS_DELETE, kwargs={"run_id": run.id}
-        )
-    else:
-        manager.runs_delete(run_id=run.id, run=run)
+    run.delete_in_progress()
+    workers_backend.send(
+        CoreSchedulerCeleryTasks.RUNS_DELETE,
+        kwargs={"run_id": run.id},
+        eager_kwargs={"run": run},
+    )
