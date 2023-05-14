@@ -6,10 +6,7 @@ from haupt.background.celeryp.tasks import CoreSchedulerCeleryTasks
 from haupt.common import auditor
 from haupt.common.events.registry import run as run_events
 from haupt.orchestration import executor
-from haupt.orchestration.executor.handlers.run import (
-    handle_run_created,
-    handle_run_stopped_triggered,
-)
+from haupt.orchestration.executor.handlers.run import RunsHandler
 from polyaxon.constants.metadata import META_EAGER_MODE
 from polyaxon.schemas import V1RunPending
 
@@ -60,26 +57,26 @@ class TestExecutorHandlers(TestCase):
     def test_create_run_handler_non_managed_run(self):
         States.workers = None
         event = MagicMock(data={"is_managed": False})
-        handle_run_created(None, event=event)
+        RunsHandler.handle_run_created(None, event=event)
         assert States.workers is None
 
     def test_create_run_handler_pipeline_run(self):
         States.workers = None
         data = {"is_managed": True, "pipeline_id": 1}
         event = MagicMock(data=data)
-        handle_run_created(None, event=event)
+        RunsHandler.handle_run_created(None, event=event)
         assert States.workers is None
 
     def test_create_run_handler(self):
         States.workers = None
         data = {"id": 1, "is_managed": True, "pipeline_id": None}
         event = MagicMock(data=data, instance=MagicMock(meta_info=None, pending=None))
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_PREPARE
 
         States.workers = None
         event = MagicMock(data=data, instance=MagicMock(meta_info={}, pending=None))
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_PREPARE
 
         States.workers = None
@@ -89,7 +86,7 @@ class TestExecutorHandlers(TestCase):
                 meta_info={"is_approved": False}, pending=V1RunPending.APPROVAL
             ),
         )
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers is None
 
         States.workers = None
@@ -99,7 +96,7 @@ class TestExecutorHandlers(TestCase):
                 meta_info={"is_approved": False}, pending=V1RunPending.UPLOAD
             ),
         )
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers is None
 
         States.workers = None
@@ -109,14 +106,14 @@ class TestExecutorHandlers(TestCase):
                 meta_info={"is_approved": False}, pending=V1RunPending.BUILD
             ),
         )
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers is None
 
         States.workers = None
         event = MagicMock(
             data=data, instance=MagicMock(meta_info={"is_approved": True}, pending=None)
         )
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_PREPARE
 
         States.workers = None
@@ -124,7 +121,7 @@ class TestExecutorHandlers(TestCase):
             data=data,
             instance=MagicMock(meta_info={META_EAGER_MODE: False}, pending=None),
         )
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_PREPARE
 
         States.workers = None
@@ -132,11 +129,11 @@ class TestExecutorHandlers(TestCase):
             data=data,
             instance=MagicMock(meta_info={META_EAGER_MODE: True}, pending=None),
         )
-        handle_run_created(DummyWorkers, event=event)
+        RunsHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_PREPARE
 
     def test_stop_run_handler_managed_run(self):
         States.workers = None
         event = MagicMock(data={"id": 1, "is_managed": True})
-        handle_run_stopped_triggered(DummyWorkers, event=event)
+        RunsHandler.handle_run_stopped_triggered(DummyWorkers, event=event)
         assert States.workers["task"] == CoreSchedulerCeleryTasks.RUNS_STOP

@@ -118,6 +118,10 @@ class RunsManager:
             raise PolyaxonCompilerError("Compilation Error: %s" % e) from e
 
     @staticmethod
+    def _capture_exception(e: Exception):
+        return
+
+    @staticmethod
     def get_run(
         run_id: int,
         run: Optional[BaseRun],
