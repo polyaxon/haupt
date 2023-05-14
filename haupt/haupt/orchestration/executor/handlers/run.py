@@ -23,13 +23,16 @@ class RunsHandler:
             eager = (
                 not event.data["is_managed"]
                 and event.instance
-                and event.instance.content is not None
+                and event.instance.content
             )
         # Run is not managed by Polyaxon
         if not event.data["is_managed"] and not eager:
             return
         # Run is managed by a pipeline
-        if event.data.get("pipeline_id") is not None:
+        if (
+            event.data.get("pipeline_id") is not None
+            and event.instance.status != V1Statuses.RESUMING
+        ):
             return
         # Run is pending
         if event.instance.pending is not None:
@@ -50,20 +53,17 @@ class RunsHandler:
         if not run:
             return
 
-        # Check if it should prepare
-        if run.status == V1Statuses.CREATED:
-            workers_backend.send(
-                SchedulerCeleryTasks.RUNS_PREPARE,
-                kwargs={"run_id": event.instance_id},
-                eager_kwargs={"run": event.instance},
-            )
-            return
-        if run.is_managed:
-            workers_backend.send(
-                SchedulerCeleryTasks.RUNS_START,
-                kwargs={"run_id": event.instance_id},
-                eager_kwargs={"run": event.instance},
-            )
+        task = (
+            SchedulerCeleryTasks.RUNS_PREPARE
+            if run.status == V1Statuses.CREATED
+            else SchedulerCeleryTasks.RUNS_START
+        )
+
+        workers_backend.send(
+            task,
+            kwargs={"run_id": event.instance_id},
+            eager_kwargs={"run": event.instance},
+        )
 
     @classmethod
     def handle_run_stopped_triggered(
