@@ -35,7 +35,7 @@ class TestRunsStop(BaseTest):
 
     @mock.patch("haupt.background.scheduler.tasks.runs_stop.retry")
     @mock.patch("haupt.orchestration.scheduler.manager.RunsManager.runs_stop")
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_stop_managed_wrong_stop_retries(
         self, mock_resolve, managed_stop, mock_stop_run
     ):

@@ -1,24 +1,32 @@
 import logging
 import traceback
 
+from datetime import datetime
 from typing import Dict, List, Optional
+
+from pydantic import ValidationError as PydanticValidationError
+from rest_framework.exceptions import ValidationError
 
 from django.utils.timezone import now
 
 from haupt.common import conf
+from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.common.options.registry.k8s import K8S_IN_CLUSTER, K8S_NAMESPACE
 from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.managers.artifacts import atomic_set_artifacts
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
-from haupt.orchestration.scheduler import executor, resolver
+from haupt.orchestration.scheduler.resolver import PlatformResolver
 from kubernetes.client.rest import ApiException
+from polyaxon.compiler import resolver
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
     PolyaxonConverterError,
     PolyaxonK8sError,
+    PolyaxonSchemaError,
 )
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.polyflow import V1CompiledOperation, V1Operation
 from traceml.artifacts import V1RunArtifact
 
 _logger = logging.getLogger("polyaxon.scheduler")
@@ -26,6 +34,88 @@ _logger = logging.getLogger("polyaxon.scheduler")
 
 class RunsManager:
     DEFAULT_PREFETCH = ["project"]
+    RESOLVER = PlatformResolver
+
+    @classmethod
+    def _resolve(
+        cls,
+        run: BaseRun,
+        compiled_at: Optional[datetime] = None,
+        eager: bool = False,
+    ):
+        try:
+            compiled_operation = V1CompiledOperation.read(
+                run.content
+            )  # TODO: Use construct
+            project = run.project
+            return resolver.resolve(
+                run=run,
+                compiled_operation=compiled_operation,
+                owner_name=project.owner.name,
+                project_name=project.name,
+                project_uuid=project.uuid.hex,
+                run_uuid=run.uuid.hex,
+                run_name=run.name,
+                run_path=run.subpath,
+                resolver_cls=cls.RESOLVER,
+                params=None,
+                compiled_at=compiled_at,
+                created_at=run.created_at,
+                cloning_kind=run.cloning_kind,
+                original_uuid=run.original.uuid.hex if run.original_id else None,
+                is_independent=bool(run.pipeline_id),
+                eager=eager,
+            )
+        except (
+            AccessNotAuthorized,
+            AccessNotFound,
+        ) as e:
+            raise PolyaxonCompilerError("Access Error: %s" % e) from e
+        except (
+            AccessNotAuthorized,
+            AccessNotFound,
+            PydanticValidationError,
+            PolyaxonSchemaError,
+            ValidationError,
+        ) as e:
+            raise PolyaxonCompilerError("Compilation Error: %s" % e) from e
+
+    @classmethod
+    def _resolve_hooks(cls, run: BaseRun) -> List[V1Operation]:
+        try:
+            compiled_operation = V1CompiledOperation.read(
+                run.content
+            )  # TODO: Use construct
+            project = run.project
+            return resolver.resolve_hooks(
+                run=run,
+                compiled_operation=compiled_operation,
+                owner_name=project.owner.name,
+                project_name=project.name,
+                project_uuid=project.uuid.hex,
+                run_uuid=run.uuid.hex,
+                run_name=run.name,
+                run_path=run.subpath,
+                resolver_cls=cls.RESOLVER,
+                params=None,
+                compiled_at=None,
+                created_at=run.created_at,
+                cloning_kind=run.cloning_kind,
+                original_uuid=run.original.uuid.hex if run.original_id else None,
+            )
+        except (
+            AccessNotAuthorized,
+            AccessNotFound,
+        ) as e:
+            raise PolyaxonCompilerError("Access Error: %s" % e) from e
+        except (
+            AccessNotAuthorized,
+            AccessNotFound,
+            PydanticValidationError,
+            PolyaxonSchemaError,
+            ValidationError,
+        ) as e:
+            raise PolyaxonCompilerError("Compilation Error: %s" % e) from e
 
     @staticmethod
     def get_run(
@@ -77,7 +167,7 @@ class RunsManager:
 
         try:
             compiled_at = now()
-            _, compiled_operation = resolver.resolve(
+            _, compiled_operation = cls._resolve(
                 run=run, compiled_at=compiled_at, eager=eager
             )
         except PolyaxonCompilerError as e:

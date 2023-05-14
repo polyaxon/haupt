@@ -1,11 +1,5 @@
-from datetime import datetime
 from typing import List, Optional
 
-from pydantic import ValidationError as PydanticValidationError
-from rest_framework.exceptions import ValidationError
-
-from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
-from haupt.db.abstracts.runs import BaseRun
 from haupt.db.managers.artifacts import set_artifacts
 from polyaxon.compiler import resolver
 from polyaxon.compiler.lineage import collect_lineage_artifacts_path
@@ -16,14 +10,13 @@ from polyaxon.constants.metadata import (
     META_REWRITE_PATH,
     META_UPLOAD_ARTIFACTS,
 )
-from polyaxon.exceptions import PolyaxonCompilerError, PolyaxonSchemaError
 from polyaxon.polyaxonfile import CompiledOperationSpecification
-from polyaxon.polyflow import V1CompiledOperation, V1Init, V1Operation
+from polyaxon.polyflow import V1Init
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
 
 
-class CorePlatformResolver(resolver.BaseResolver):
+class PlatformResolver(resolver.BaseResolver):
     def resolve_params(self):
         self.params = self.run.params or {}
 
@@ -108,86 +101,3 @@ class CorePlatformResolver(resolver.BaseResolver):
             update_fields.append("pending")
         self.run.save(update_fields=update_fields)
         self._resolve_artifacts_lineage_state()
-
-
-def resolve(
-    run: BaseRun,
-    compiled_at: Optional[datetime] = None,
-    eager: bool = False,
-    resolver_cls=None,
-):
-    resolver_cls = resolver_cls or CorePlatformResolver
-    try:
-        compiled_operation = V1CompiledOperation.read(
-            run.content
-        )  # TODO: Use construct
-        project = run.project
-        return resolver.resolve(
-            run=run,
-            compiled_operation=compiled_operation,
-            owner_name=project.owner.name,
-            project_name=project.name,
-            project_uuid=project.uuid.hex,
-            run_uuid=run.uuid.hex,
-            run_name=run.name,
-            run_path=run.subpath,
-            resolver_cls=resolver_cls,
-            params=None,
-            compiled_at=compiled_at,
-            created_at=run.created_at,
-            cloning_kind=run.cloning_kind,
-            original_uuid=run.original.uuid.hex if run.original_id else None,
-            is_independent=bool(run.pipeline_id),
-            eager=eager,
-        )
-    except (
-        AccessNotAuthorized,
-        AccessNotFound,
-    ) as e:
-        raise PolyaxonCompilerError("Access Error: %s" % e) from e
-    except (
-        AccessNotAuthorized,
-        AccessNotFound,
-        PydanticValidationError,
-        PolyaxonSchemaError,
-        ValidationError,
-    ) as e:
-        raise PolyaxonCompilerError("Compilation Error: %s" % e) from e
-
-
-def resolve_hooks(run: BaseRun, resolver_cls=None) -> List[V1Operation]:
-    resolver_cls = resolver_cls or CorePlatformResolver
-    try:
-        compiled_operation = V1CompiledOperation.read(
-            run.content
-        )  # TODO: Use construct
-        project = run.project
-        return resolver.resolve_hooks(
-            run=run,
-            compiled_operation=compiled_operation,
-            owner_name=project.owner.name,
-            project_name=project.name,
-            project_uuid=project.uuid.hex,
-            run_uuid=run.uuid.hex,
-            run_name=run.name,
-            run_path=run.subpath,
-            resolver_cls=resolver_cls,
-            params=None,
-            compiled_at=None,
-            created_at=run.created_at,
-            cloning_kind=run.cloning_kind,
-            original_uuid=run.original.uuid.hex if run.original_id else None,
-        )
-    except (
-        AccessNotAuthorized,
-        AccessNotFound,
-    ) as e:
-        raise PolyaxonCompilerError("Access Error: %s" % e) from e
-    except (
-        AccessNotAuthorized,
-        AccessNotFound,
-        PydanticValidationError,
-        PolyaxonSchemaError,
-        ValidationError,
-    ) as e:
-        raise PolyaxonCompilerError("Compilation Error: %s" % e) from e

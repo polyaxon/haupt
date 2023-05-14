@@ -22,7 +22,7 @@ class TestRunsPrepare(BaseTest):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_prepare_run_of_already_queued_run(self, mock_resolve):
         spec_run = MagicMock(cache=None)
         mock_resolve.return_value = (None, spec_run)
@@ -41,7 +41,7 @@ class TestRunsPrepare(BaseTest):
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
 
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_prepare_run_of_already_stopped_run(self, mock_resolve):
         spec_run = MagicMock(cache=V1Cache(disable=False))
         mock_resolve.return_value = (None, spec_run)
@@ -60,7 +60,7 @@ class TestRunsPrepare(BaseTest):
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
 
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_prepare_run_of_already_stopping_run(self, mock_resolve):
         spec_run = MagicMock(cache=V1Cache(disable=False))
         mock_resolve.return_value = (None, spec_run)
@@ -79,7 +79,7 @@ class TestRunsPrepare(BaseTest):
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
 
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_prepare_run_of_already_skipped_run(self, mock_resolve):
         spec_run = MagicMock(cache=V1Cache(disable=False))
         mock_resolve.return_value = (None, spec_run)
@@ -98,7 +98,7 @@ class TestRunsPrepare(BaseTest):
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
 
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_prepare_run_of_already_failed_run(self, mock_resolve):
         spec_run = MagicMock(cache=V1Cache(disable=False))
         mock_resolve.return_value = (None, spec_run)
@@ -119,7 +119,7 @@ class TestRunsPrepare(BaseTest):
 
     @mock.patch("haupt.background.scheduler.tasks.runs_start.apply_async")
     @mock.patch("haupt.background.scheduler.tasks.runs_prepare.apply_async")
-    @mock.patch("haupt.orchestration.scheduler.resolver.resolve")
+    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager._resolve")
     def test_prepare_run_of_already_failed_run_mock(
         self, mock_resolve, mock_prepare_run, mock_start_run
     ):
