@@ -19,8 +19,8 @@ from haupt.common.endpoints.base import (
     ListEndpoint,
     PostEndpoint,
 )
+from haupt.db.defs import Models
 from haupt.db.queries import artifacts as artifacts_queries
-from haupt.db.queries import runs as runs_queries
 from haupt.db.queries.artifacts import clean_sqlite_distinct_artifacts
 from haupt.db.queries.runs import DEFAULT_COLUMNS_DEFER
 from haupt.db.query_managers.artifact import ArtifactQueryManager
@@ -54,7 +54,7 @@ class ProjectRunsDeleteView(ProjectResourceListEndpoint, DestroyEndpoint):
 
 
 class ProjectRunsListView(ProjectResourceListEndpoint, ListEndpoint, CreateEndpoint):
-    queryset = runs_queries.run_model.all.defer(*DEFAULT_COLUMNS_DEFER)
+    queryset = Models.Run.all.defer(*DEFAULT_COLUMNS_DEFER)
     filter_backends = (QueryFilter, OrderingFilter)
     query_manager = RunQueryManager
     check_alive = RunQueryManager.CHECK_ALIVE
@@ -71,7 +71,7 @@ class ProjectRunsListView(ProjectResourceListEndpoint, ListEndpoint, CreateEndpo
 
 
 class ProjectRunsSyncView(ProjectResourceListEndpoint, CreateEndpoint):
-    queryset = runs_queries.run_model.all.all()
+    queryset = Models.Run.all.all()
     serializer_class = OfflineRunSerializer
 
     def perform_create(self, serializer):

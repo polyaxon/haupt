@@ -16,7 +16,7 @@ from haupt.common.endpoints.base import (
     RetrieveEndpoint,
     UpdateEndpoint,
 )
-from haupt.db.queries import projects as projects_queries
+from haupt.db.defs import Models
 from haupt.db.query_managers.project import ProjectQueryManager
 
 
@@ -25,7 +25,7 @@ class ProjectCreateView(BaseEndpoint, CreateAPIView):
 
 
 class ProjectListView(BaseEndpoint, ListEndpoint):
-    queryset = projects_queries.project_model.all.only(
+    queryset = Models.Project.all.only(
         "uuid",
         "name",
         "description",
@@ -44,9 +44,7 @@ class ProjectListView(BaseEndpoint, ListEndpoint):
 
 
 class ProjectNameListView(BaseEndpoint, ListEndpoint):
-    queryset = projects_queries.project_model.objects.only("name").order_by(
-        "-updated_at"
-    )
+    queryset = Models.Project.objects.only("name").order_by("-updated_at")
     serializer_class = ProjectNameSerializer
     pagination_class = LargeLimitOffsetPagination
 
@@ -54,5 +52,5 @@ class ProjectNameListView(BaseEndpoint, ListEndpoint):
 class ProjectDetailView(
     ProjectEndpoint, RetrieveEndpoint, UpdateEndpoint, DestroyEndpoint
 ):
-    queryset = projects_queries.project_model.all
+    queryset = Models.Project.all
     serializer_class = ProjectDetailSerializer

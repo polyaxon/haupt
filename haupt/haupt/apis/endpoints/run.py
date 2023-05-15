@@ -10,12 +10,11 @@ from haupt.common.apis.regex import (
     RUN_UUID_KEY,
     UUID_KEY,
 )
-from haupt.db.queries import artifacts as artifacts_queries
-from haupt.db.queries import runs as runs_queries
+from haupt.db.defs import Models
 
 
 class RunEndpoint(ProjectResourceEndpoint):
-    queryset = runs_queries.run_model.all.select_related("project")
+    queryset = Models.Run.all.select_related("project")
     lookup_field = UUID_KEY
     lookup_url_kwarg = RUN_UUID_KEY
     CONTEXT_KEYS = (OWNER_NAME_KEY, PROJECT_NAME_KEY, RUN_UUID_KEY)
@@ -41,7 +40,7 @@ class RunResourceListEndpoint(RunEndpoint):
             return self._object
 
         self._object = get_object_or_404(
-            runs_queries.run_model.all.select_related("project"),
+            Models.Run.all.select_related("project"),
             uuid=self.run_uuid,
             project__name=self.project_name,
         )
@@ -80,7 +79,7 @@ class RunArtifactEndpoint(RunEndpoint):
         queryset = self.filter_queryset(self.get_queryset())
         try:
             return queryset.get(artifact__name=self.artifact_name)
-        except artifacts_queries.lineage_model.DoesNotExist:
+        except Models.ArtifactLineage.DoesNotExist:
             raise Http404(
                 "No %s matches the given query." % self.queryset.model._meta.object_name
             )

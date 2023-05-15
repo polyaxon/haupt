@@ -8,7 +8,7 @@ from haupt.common.events.registry.run import (
     RUN_DELETED_ACTOR,
     RUN_STOPPED_ACTOR,
 )
-from haupt.db.abstracts.getter import get_run_model
+from haupt.db.defs import Models
 from haupt.db.managers.statuses import bulk_new_run_status
 from polyaxon import live_state
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
@@ -22,8 +22,7 @@ def create_runs_tags(view, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK, data={})
 
     updated = []
-    run_model = get_run_model()
-    queryset = view.enrich_queryset(run_model.all)
+    queryset = view.enrich_queryset(Models.Run.all)
     queryset = queryset.filter(uuid__in=uuids)
     for run in queryset.only("id", "tags"):
         run.tags = TagsMixin.validated_tags({"tags": tags, "merge": True}, run.tags)[
@@ -31,14 +30,14 @@ def create_runs_tags(view, request, *args, **kwargs):
         ]
         updated.append(run)
 
-        run_model.objects.bulk_update(updated, ["tags"])
+        Models.Run.objects.bulk_update(updated, ["tags"])
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def stop_runs(view, request, actor, *args, **kwargs):
     uuids = request.data.get("uuids", [])
     # Immediate stop
-    queryset = view.enrich_queryset(get_run_model().restorable)
+    queryset = view.enrich_queryset(Models.Run.restorable)
     queryset = queryset.filter(uuid__in=uuids)
     queryset = queryset.filter(status__in=LifeCycle.SAFE_STOP_VALUES)
     condition = V1StatusCondition.get_condition(
@@ -49,7 +48,7 @@ def stop_runs(view, request, actor, *args, **kwargs):
     )
     bulk_new_run_status(queryset, condition)
 
-    queryset = view.enrich_queryset(get_run_model().restorable)
+    queryset = view.enrich_queryset(Models.Run.restorable)
     queryset = queryset.filter(uuid__in=uuids)
     queryset = queryset.exclude(status__in=LifeCycle.DONE_OR_IN_PROGRESS_VALUES)
     runs = [r for r in queryset]
@@ -78,7 +77,7 @@ def stop_runs(view, request, actor, *args, **kwargs):
 
 def approve_runs(view, request, actor, *args, **kwargs):
     uuids = request.data.get("uuids", [])
-    queryset = view.enrich_queryset(get_run_model().objects)
+    queryset = view.enrich_queryset(Models.Run.objects)
     queryset = queryset.filter(uuid__in=uuids)
     queryset = queryset.filter(
         pending__in={V1RunPending.APPROVAL, V1RunPending.CACHE},
@@ -103,7 +102,7 @@ def approve_runs(view, request, actor, *args, **kwargs):
 
 def delete_runs(view, request, actor, *args, **kwargs):
     uuids = request.data.get("uuids", [])
-    queryset = view.enrich_queryset(get_run_model().restorable)
+    queryset = view.enrich_queryset(Models.Run.restorable)
     runs = queryset.filter(uuid__in=uuids)
     # Delete non managed immediately
     runs.filter(is_managed=False).delete()

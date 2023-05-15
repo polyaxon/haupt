@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
-from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
+from haupt.db.defs import Models
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1CompiledOperation, V1RunKind
 from polyaxon.schemas import V1RunPending
@@ -17,7 +17,7 @@ def create_run(
     raw_content: Optional[str] = None,
     meta_info: Optional[Dict] = None,
 ) -> BaseRun:
-    instance = get_run_model().objects.create(
+    instance = Models.Run.objects.create(
         project_id=project_id,
         user_id=user_id,
         name=name,

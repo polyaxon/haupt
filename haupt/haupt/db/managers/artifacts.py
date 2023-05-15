@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Set
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 
-from haupt.db.abstracts.getter import get_artifact_model, get_lineage_model
 from haupt.db.abstracts.projects import Owner
 from haupt.db.abstracts.runs import BaseRun
+from haupt.db.defs import Models
 from traceml.artifacts import V1RunArtifact
 
 
@@ -36,12 +36,11 @@ def get_artifacts_by_keys(
 
 
 def set_run_lineage(run: BaseRun, artifacts_by_keys: Dict, query: Any):
-    artifacts_to_link = (
-        get_artifact_model().objects.filter(query).only("id", "name", "state")
+    artifacts_to_link = Models.Artifact.objects.filter(query).only(
+        "id", "name", "state"
     )
-    lineage_model = get_lineage_model()
     for m in artifacts_to_link:
-        lineage_model.objects.get_or_create(
+        Models.ArtifactLineage.objects.get_or_create(
             artifact_id=m.id,
             run_id=run.id,
             is_input=artifacts_by_keys[(m.name, m.state)].is_input,
@@ -56,14 +55,14 @@ def update_artifacts(to_update: Set, artifacts_by_keys: Dict):
         m.path = artifact.path
         m.summary = artifact.summary
         updated.append(m)
-    get_artifact_model().objects.bulk_update(updated, ["kind", "path", "summary"])
+    Models.Artifact.objects.bulk_update(updated, ["kind", "path", "summary"])
 
 
 def set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
     if not artifacts:
         return
 
-    artifact_model = get_artifact_model()
+    artifact_model = Models.Artifact
     namespace = Owner.uuid
 
     artifacts_by_keys = get_artifacts_by_keys(

@@ -1,5 +1,3 @@
-from haupt.db.abstracts.getter import get_run_model
-
 STATUS_UPDATE_COLUMNS_ONLY = [
     "id",
     "status",
@@ -26,7 +24,3 @@ STATUS_UPDATE_COLUMNS_DEFER = [
     "pending",
 ]
 DEFAULT_COLUMNS_DEFER = ["description", "readme", "content", "raw_content"]
-
-run_model = get_run_model()
-
-runs = run_model.objects

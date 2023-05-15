@@ -1,8 +1,8 @@
 from django.db import models
 
 from haupt.db.abstracts.diff import DiffModel
-from haupt.db.abstracts.getter import get_db_model_name
 from haupt.db.abstracts.state import StateModel
+from haupt.db.defs import Models
 from traceml.artifacts import V1ArtifactKind
 
 
@@ -22,12 +22,12 @@ class BaseArtifact(DiffModel, StateModel):
 
 class BaseArtifactLineage(DiffModel):
     run = models.ForeignKey(
-        get_db_model_name("Run"),
+        Models.get_db_model_name("Run"),
         on_delete=models.CASCADE,
         related_name="artifacts_lineage",
     )
     artifact = models.ForeignKey(
-        get_db_model_name("Artifact"),
+        Models.get_db_model_name("Artifact"),
         on_delete=models.CASCADE,
         related_name="runs_lineage",
     )

@@ -12,8 +12,8 @@ from haupt.common.events.registry.run import (
     RUN_STOPPED,
     RUN_SUCCEEDED,
 )
-from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
+from haupt.db.defs import Models
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
 
 
@@ -110,7 +110,7 @@ def bulk_new_run_status(
     additional_fields: Optional[List[str]] = None,
 ):
     bulk_new_entity_status(
-        model_class=get_run_model(),
+        model_class=Models.Run,
         entities=runs,
         condition=condition,
         additional_fields=additional_fields,

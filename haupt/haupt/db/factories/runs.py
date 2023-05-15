@@ -1,6 +1,6 @@
 import factory
 
-from haupt.db.abstracts.getter import get_run_model
+from haupt.db.defs import Models
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 
@@ -13,4 +13,4 @@ class RunFactory(factory.django.DjangoModelFactory):
     is_managed = False
 
     class Meta:
-        model = get_run_model()
+        model = Models.Run

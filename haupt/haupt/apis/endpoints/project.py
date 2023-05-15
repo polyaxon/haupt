@@ -10,11 +10,11 @@ from haupt.common.apis.regex import (
     UUID_KEY,
 )
 from haupt.common.endpoints.base import BaseEndpoint
-from haupt.db.queries import projects as projects_queries
+from haupt.db.defs import Models
 
 
 class ProjectEndpoint(BaseEndpoint):
-    queryset = projects_queries.project_model.objects
+    queryset = Models.Project.objects
     lookup_field = NAME_KEY
     lookup_url_kwarg = PROJECT_NAME_KEY
     CONTEXT_KEYS = (OWNER_NAME_KEY, PROJECT_NAME_KEY)
@@ -38,7 +38,7 @@ class ProjectResourceListEndpoint(ProjectEndpoint):
         if self._object:
             return self._object
         self._object = get_object_or_404(
-            projects_queries.project_model,
+            Models.Project,
             name=self.project_name,
         )
         return self._object

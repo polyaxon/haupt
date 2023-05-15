@@ -27,14 +27,14 @@ from haupt.common.events.registry.run import (
     RUN_STOPPED_ACTOR,
 )
 from haupt.common.options.registry.k8s import K8S_NAMESPACE
-from haupt.db.queries import runs as runs_queries
+from haupt.db.defs import Models
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_DEFER
 from haupt.orchestration import operations
 from polyaxon.lifecycle import LifeCycle
 
 
 class RunDetailView(RunEndpoint, RetrieveEndpoint, DestroyEndpoint, UpdateEndpoint):
-    queryset = runs_queries.run_model.all.select_related("original", "project")
+    queryset = Models.Run.all.select_related("original", "project")
     serializer_class = RunDetailSerializer
     AUDITOR_EVENT_TYPES = {
         "DELETE": RUN_DELETED_ACTOR,
@@ -114,9 +114,7 @@ class RunCopyView(RunCloneView):
 
 
 class RunStatusListView(RunEndpoint, RetrieveEndpoint, CreateEndpoint):
-    queryset = runs_queries.run_model.restorable.defer(
-        *STATUS_UPDATE_COLUMNS_DEFER
-    ).select_related(
+    queryset = Models.Run.restorable.defer(*STATUS_UPDATE_COLUMNS_DEFER).select_related(
         "project",
     )
     serializer_class = RunStatusSerializer
@@ -124,7 +122,7 @@ class RunStatusListView(RunEndpoint, RetrieveEndpoint, CreateEndpoint):
     def perform_create(self, serializer):
         try:
             methods.create_status(view=self, serializer=serializer)
-        except runs_queries.run_model.DoesNotExit:
+        except Models.Run.DoesNotExit:
             raise Http404
 
 

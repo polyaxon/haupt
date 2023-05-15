@@ -1,6 +1,6 @@
 import factory
 
-from haupt.db.abstracts.getter import get_artifact_model
+from haupt.db.defs import Models
 from traceml.artifacts import V1ArtifactKind
 
 
@@ -11,4 +11,4 @@ class ArtifactFactory(factory.django.DjangoModelFactory):
     path = "accuracy"
 
     class Meta:
-        model = get_artifact_model()
+        model = Models.Artifact

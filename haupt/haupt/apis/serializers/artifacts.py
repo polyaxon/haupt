@@ -1,6 +1,6 @@
 from rest_framework import fields, serializers
 
-from haupt.db.abstracts.getter import get_lineage_model
+from haupt.db.defs import Models
 
 
 class RunArtifactLightSerializer(serializers.ModelSerializer):
@@ -8,7 +8,7 @@ class RunArtifactLightSerializer(serializers.ModelSerializer):
     kind = fields.SerializerMethodField()
 
     class Meta:
-        model = get_lineage_model()
+        model = Models.ArtifactLineage
         fields = ("name", "kind", "is_input")
 
     def get_name(self, obj):
@@ -72,7 +72,7 @@ class RunArtifactNameSerializer(serializers.ModelSerializer):
     name = fields.SerializerMethodField()
 
     class Meta:
-        model = get_lineage_model()
+        model = Models.ArtifactLineage
         fields = ("name",)
 
     def get_name(self, obj):

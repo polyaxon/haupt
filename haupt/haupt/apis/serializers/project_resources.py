@@ -9,7 +9,7 @@ from haupt.apis.serializers.base.is_managed import IsManagedMixin
 from haupt.apis.serializers.base.pipeline import PipelineMixin
 from haupt.apis.serializers.base.settings import SettingsMixin
 from haupt.apis.serializers.base.tags import TagsMixin
-from haupt.db.abstracts.getter import get_run_model
+from haupt.db.defs import Models
 from haupt.db.managers.runs import create_run
 from haupt.orchestration import operations
 from polyaxon.exceptions import PolyaxonException
@@ -32,7 +32,7 @@ class RunSerializer(
     settings = fields.SerializerMethodField()
 
     class Meta:
-        model = get_run_model()
+        model = Models.Run
         fields = (
             "uuid",
             "name",
@@ -68,7 +68,7 @@ class OfflineRunSerializer(
     created_at = fields.DateTimeField()
 
     class Meta:
-        model = get_run_model()
+        model = Models.Run
         fields = (
             "uuid",
             "name",
@@ -113,7 +113,7 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
     is_approved = fields.BooleanField(write_only=True, allow_null=True, required=False)
 
     class Meta:
-        model = get_run_model()
+        model = Models.Run
         fields = (
             "uuid",
             "name",

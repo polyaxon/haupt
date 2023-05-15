@@ -3,7 +3,7 @@ from rest_framework import fields, serializers
 from haupt.apis.serializers.base.is_managed import IsManagedMixin
 from haupt.apis.serializers.base.project import ProjectMixin
 from haupt.apis.serializers.project_resources import RunSerializer
-from haupt.db.abstracts.getter import get_run_model
+from haupt.db.defs import Models
 
 
 class RunStatusSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class RunStatusSerializer(serializers.ModelSerializer):
     force = fields.BooleanField(write_only=True, required=False)
 
     class Meta:
-        model = get_run_model()
+        model = Models.Run
         fields = (
             "uuid",
             "status",

@@ -1,10 +1,10 @@
 import factory
 
-from haupt.db.abstracts.getter import get_project_model
+from haupt.db.defs import Models
 
 
 class ProjectFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence("project-{}".format)
 
     class Meta:
-        model = get_project_model()
+        model = Models.Project

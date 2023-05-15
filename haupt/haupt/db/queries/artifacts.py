@@ -2,16 +2,14 @@ from typing import Dict, List
 
 from django.conf import settings
 
-from haupt.db.abstracts.getter import get_lineage_model
+from haupt.db.defs import Models
 
-lineage_model = get_lineage_model()
-
-artifacts_names = lineage_model.objects.prefetch_related("artifact").only(
+artifacts_names = Models.ArtifactLineage.objects.prefetch_related("artifact").only(
     "artifact__id", "artifact__name"
 )
 
 artifacts = (
-    lineage_model.objects.prefetch_related("artifact")
+    Models.ArtifactLineage.objects.prefetch_related("artifact")
     .only(
         "is_input",
         "artifact__id",
@@ -25,7 +23,7 @@ artifacts = (
 )
 
 project_runs_artifacts = (
-    lineage_model.objects.prefetch_related("artifact", "run")
+    Models.ArtifactLineage.objects.prefetch_related("artifact", "run")
     .only(
         "is_input",
         "artifact__id",
@@ -41,7 +39,7 @@ project_runs_artifacts = (
     .distinct()
 )
 
-project_runs_artifacts_distinct = lineage_model.objects.prefetch_related(
+project_runs_artifacts_distinct = Models.ArtifactLineage.objects.prefetch_related(
     "artifact"
 ).only(
     "is_input",

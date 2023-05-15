@@ -14,8 +14,8 @@ from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import conf, workers
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.common.options.registry.k8s import K8S_IN_CLUSTER, K8S_NAMESPACE
-from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
+from haupt.db.defs import Models
 from haupt.db.managers.artifacts import atomic_set_artifacts
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.orchestration.scheduler.resolver import PlatformResolver
@@ -134,8 +134,7 @@ class RunsManager:
     ) -> Optional[BaseRun]:
         if run:
             return run
-        run_model = get_run_model()
-        query = run_model.all if use_all else run_model.objects
+        query = Models.Run.all if use_all else Models.Run.objects
         if only:
             query = query.only(*only)
         if defer:
@@ -145,7 +144,7 @@ class RunsManager:
 
         try:
             return query.get(id=run_id)
-        except run_model.DoesNotExist:
+        except Models.Run.DoesNotExist:
             _logger.info(
                 "Something went wrong, the run `%s` does not exist anymore.", run_id
             )

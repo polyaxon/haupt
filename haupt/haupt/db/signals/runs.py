@@ -6,10 +6,10 @@ from django.dispatch import receiver
 
 from haupt.common import auditor
 from haupt.common.events.registry.run import RUN_CREATED
-from haupt.db.abstracts.getter import get_run_model
+from haupt.db.defs import Models
 
 
-@receiver(post_save, sender=get_run_model(), dispatch_uid="run_created")
+@receiver(post_save, sender=Models.Run, dispatch_uid="run_created")
 @ignore_updates
 @ignore_raw
 def run_created(sender, **kwargs):

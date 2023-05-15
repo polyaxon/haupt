@@ -4,12 +4,12 @@ from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
 
 from haupt.apis.serializers.base.tags import TagsMixin
-from haupt.db.abstracts.getter import get_project_model
+from haupt.db.defs import Models
 
 
 class ProjectNameSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_project_model()
+        model = Models.Project
         fields = ("name",)
 
 
@@ -17,7 +17,7 @@ class ProjectSerializer(TagsMixin, serializers.ModelSerializer):
     uuid = fields.UUIDField(format="hex", read_only=True)
 
     class Meta:
-        model = get_project_model()
+        model = Models.Project
         fields = (
             "uuid",
             "name",

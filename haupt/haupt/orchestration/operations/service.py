@@ -4,8 +4,8 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 from clipped.utils.lists import to_list
 
 from haupt.common.service_interface import Service
-from haupt.db.abstracts.getter import get_run_model
 from haupt.db.abstracts.runs import BaseRun
+from haupt.db.defs import Models
 from haupt.db.managers.statuses import new_run_status
 from polyaxon.constants.metadata import (
     META_COPY_ARTIFACTS,
@@ -258,7 +258,7 @@ class OperationsService(Service):
             )
             self.supports_kind(kind, runtime, supported_kinds, is_managed)
             kwargs["content"] = compiled_operation.to_json()
-        instance = get_run_model()(
+        instance = Models.Run(
             project_id=project_id,
             user_id=user_id,
             name=name,

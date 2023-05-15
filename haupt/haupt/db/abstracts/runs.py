@@ -5,7 +5,6 @@ from django.db import models
 from haupt.db.abstracts.describable import DescribableModel
 from haupt.db.abstracts.diff import DiffModel
 from haupt.db.abstracts.duration import DurationModel
-from haupt.db.abstracts.getter import get_db_model_name
 from haupt.db.abstracts.live_state import LiveStateModel
 from haupt.db.abstracts.nameable import NameableModel
 from haupt.db.abstracts.readme import ReadmeModel
@@ -16,6 +15,7 @@ from haupt.db.abstracts.state import OptionalStateModel
 from haupt.db.abstracts.status import StatusModel
 from haupt.db.abstracts.tag import TagModel
 from haupt.db.abstracts.uid import UuidModel
+from haupt.db.defs import Models
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending
@@ -57,7 +57,9 @@ class BaseRun(
         blank=True,
     )
     project = models.ForeignKey(
-        get_db_model_name("Project"), on_delete=models.CASCADE, related_name="runs"
+        Models.get_db_model_name("Project"),
+        on_delete=models.CASCADE,
+        related_name="runs",
     )
     is_managed = models.BooleanField(
         default=True, help_text="If this entity is managed by the platform."
@@ -88,9 +90,9 @@ class BaseRun(
         choices=V1CloningKind.to_choices(),
     )
     artifacts = models.ManyToManyField(
-        get_db_model_name("Artifact"),
+        Models.get_db_model_name("Artifact"),
         blank=True,
-        through=get_db_model_name("ArtifactLineage"),
+        through=Models.get_db_model_name("ArtifactLineage"),
         related_name="runs",
     )
 
