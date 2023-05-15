@@ -10,6 +10,7 @@ SCHEDULER_CORE_ROUTES = {
     SchedulerCeleryTasks.RUNS_BUILT: {"queue": CeleryCoreQueues.SCHEDULER_COMPILER},
     # Scheduler runs
     SchedulerCeleryTasks.RUNS_STOP: {"queue": CeleryCoreQueues.SCHEDULER_RUNS},
+    SchedulerCeleryTasks.RUNS_HOOKS: {"queue": CeleryCoreQueues.SCHEDULER_RUNS},
     # Scheduler artifacts
     SchedulerCeleryTasks.RUNS_SET_ARTIFACTS: {
         "queue": CeleryCoreQueues.SCHEDULER_ARTIFACTS,

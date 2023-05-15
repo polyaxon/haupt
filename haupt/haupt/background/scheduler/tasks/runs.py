@@ -12,11 +12,12 @@ _logger = logging.getLogger("polyaxon.scheduler")
 
 @workers.app.task(name=SchedulerCeleryTasks.RUNS_PREPARE, ignore_result=True)
 def runs_prepare(run_id):
-    if RunsManager.runs_prepare(run_id=run_id, run=None):
-        workers.send(
-            SchedulerCeleryTasks.RUNS_START,
-            kwargs={"run_id": run_id},
-        )
+    RunsManager.runs_prepare(run_id=run_id, run=None)
+
+
+@workers.app.task(name=SchedulerCeleryTasks.RUNS_HOOKS, ignore_result=True)
+def runs_hooks(run_id):
+    RunsManager.runs_hooks(run_id=run_id, run=None)
 
 
 @workers.app.task(name=SchedulerCeleryTasks.RUNS_START, ignore_result=True)

@@ -12,3 +12,4 @@ class SchedulerCeleryTasks:
     RUNS_STOP = "runs_stop"
     RUNS_DELETE = "runs_delete"
     RUNS_SET_ARTIFACTS = "runs_set_artifacts"
+    RUNS_HOOKS = "runs_hooks"

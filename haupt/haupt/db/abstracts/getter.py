@@ -38,3 +38,11 @@ def get_artifact_model():
 
 def get_lineage_model():
     return get_db_model("ArtifactLineage")
+
+
+def get_run_edge_model():
+    return get_db_model("RunEdge")
+
+
+def get_project_version_model():
+    return get_db_model("ProjectVersion")

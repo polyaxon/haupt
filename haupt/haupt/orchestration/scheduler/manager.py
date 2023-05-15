@@ -9,7 +9,9 @@ from rest_framework.exceptions import ValidationError
 
 from django.utils.timezone import now
 
-from haupt.common import conf
+from haupt.orchestration.scheduler.workflows.hooks import execute_hooks
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
+from haupt.common import conf, workers
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.common.options.registry.k8s import K8S_IN_CLUSTER, K8S_NAMESPACE
 from haupt.db.abstracts.getter import get_run_model
@@ -346,6 +348,71 @@ class RunsManager:
 
         new_run_stop_status(run=run, message=message)
         return True
+
+    @classmethod
+    def runs_hooks(cls, run_id: int, run: Optional[BaseRun]):
+        run = cls.get_run(run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH)
+        if not run:
+            return
+
+        if not LifeCycle.is_done(run.status):
+            _logger.info(
+                "Run `%s` has a current status `%s`. "
+                "Scheduler cannot execute hooks before the run is done.",
+                run_id,
+                run.status,
+            )
+            return None
+
+        try:
+            hook_ops = cls._resolve_hooks(run=run)
+        except PolyaxonCompilerError as e:
+            condition = V1StatusCondition.get_condition(
+                type=V1Statuses.FAILED,
+                status="True",
+                reason="SchedulerHooksResolve",
+                message=f"Hooks resolution failed.\n{e}",
+            )
+            new_run_status(run=run, condition=condition)
+            return None
+        except Exception as e:
+            cls._capture_exception(e)
+            condition = V1StatusCondition.get_condition(
+                type=V1Statuses.FAILED,
+                status="True",
+                reason="SchedulerHooksResolve",
+                message="Compiler received an unexpected error.",
+            )
+            new_run_status(run=run, condition=condition)
+            return None
+
+        try:
+            hook_runs = execute_hooks(run, hook_ops)
+        except PolyaxonCompilerError as e:
+            condition = V1StatusCondition.get_condition(
+                type=V1Statuses.FAILED,
+                status="True",
+                reason="SchedulerHooksExecute",
+                message=f"Hooks execution failed.\n{e}",
+            )
+            new_run_status(run=run, condition=condition)
+            return None
+        except Exception as e:
+            cls._capture_exception(e)
+            condition = V1StatusCondition.get_condition(
+                type=V1Statuses.FAILED,
+                status="True",
+                reason="SchedulerHooksExecute",
+                message="Compiler received an unexpected error.",
+            )
+            new_run_status(run=run, condition=condition)
+            return None
+
+        for hook_run_id in hook_runs:
+            workers.send(
+                SchedulerCeleryTasks.RUNS_PREPARE,
+                kwargs={"run_id": hook_run_id},
+            )
 
     @classmethod
     def runs_built(cls, run_id):
