@@ -1,8 +1,10 @@
+import sqlite3
 import uuid
 
 from typing import List, Union
 
 from clipped.utils.json import orjson_dumps
+from clipped.utils.versions import compare_versions
 
 from django.conf import settings
 from django.test import TestCase
@@ -327,3 +329,8 @@ class TestRawBulkUpdater(TestCase):
         assert Run.objects.filter(tags__contains=["new"]).count() == 2
         assert Run.objects.filter(tags__contains=["tag1"]).count() == 1
         assert Run.objects.filter(tags__contains=["tag2"]).count() == 1
+
+
+if settings.DB_ENGINE_NAME == "sqlite" and compare_versions(sqlite3.sqlite_version, "3.30.0", "<"):
+    del TestRawBulkInserter
+    del TestRawBulkUpdater
