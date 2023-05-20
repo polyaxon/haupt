@@ -152,11 +152,14 @@ class RunsResolver(resolver.BaseResolver):
             for param_specs in upstream_run_params_by_names.values()
             for param_spec in param_specs
         }
+        runs_queryset = Models.Run.objects
+        if settings.HAS_ORG_MANAGEMENT:
+            runs_queryset = runs_queryset.filter(project__owner__id=owner_id)
         run_ids_by_uuids = {
             v["uuid"].hex: v
-            for v in Models.Run.objects.filter(
-                project__owner__id=owner_id, uuid__in=run_uuids
-            ).values("id", "uuid", "meta_info")
+            for v in runs_queryset.filter(uuid__in=run_uuids).values(
+                "id", "uuid", "meta_info"
+            )
         }
         if len(run_uuids) != len(run_ids_by_uuids):
             raise ValueError(
@@ -693,7 +696,9 @@ class RunsResolver(resolver.BaseResolver):
             connections=self.compiled_operation.run.get_all_connections(),
             containers=self.compiled_operation.run.get_all_containers(),
             namespace=self.project.uuid,
-            component_state=self.run.component_state,
+            component_state=self.run.component_state
+            if hasattr(self.run, "component_state")
+            else None,
         )
 
     def persist_state(self):
