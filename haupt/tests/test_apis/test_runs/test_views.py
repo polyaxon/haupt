@@ -4,8 +4,11 @@ from unittest.mock import patch
 
 from rest_framework import status
 
-from haupt.apis.serializers.project_resources import RunSerializer
-from haupt.apis.serializers.runs import RunDetailSerializer, RunStatusSerializer
+from haupt.apis.serializers.runs import (
+    RunDetailSerializer,
+    RunSerializer,
+    RunStatusSerializer,
+)
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
@@ -18,7 +21,11 @@ from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.polyflow import V1RunKind
 from polyaxon.schemas import V1RunPending
-from tests.base.case import BaseTest
+from tests.base.case import (
+    BaseTest,
+    BaseTestBookmarkCreateView,
+    BaseTestBookmarkDeleteView,
+)
 
 
 class BaseTestRunApi(BaseTest):
@@ -177,10 +184,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
         assert self.model_class.objects.count() == 1
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.delete(self.url)
-        assert workers_send.call_count == 1
-        assert {c[0][0] for c in workers_send.call_args_list} == {
-            SchedulerCeleryTasks.RUNS_DELETE,
-        }
+        assert workers_send.call_count == 0
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         # Deleted
         assert self.model_class.objects.count() == 0
@@ -196,10 +200,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
         assert self.model_class.objects.count() == 1
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.delete(self.url)
-        assert workers_send.call_count == 1
-        assert {c[0][0] for c in workers_send.call_args_list} == {
-            SchedulerCeleryTasks.RUNS_DELETE,
-        }
+        assert workers_send.call_count == 0
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         # Deleted
         assert self.model_class.objects.count() == 0
@@ -210,6 +211,36 @@ class TestRunDetailViewV1(BaseTestRunApi):
         )
 
 
+@pytest.mark.run_mark
+class TestRunArchiveRestoreViewV1(BaseTestRunApi):
+    def test_archive_schedule_deletion(self):
+        new_run_status(
+            self.object,
+            condition=V1StatusCondition.get_condition(
+                type=V1Statuses.RUNNING, status=True
+            ),
+        )
+        assert self.model_class.objects.count() == 1
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url + "archive/")
+        assert workers_send.call_count == 0
+        assert resp.status_code == status.HTTP_200_OK
+        assert self.model_class.objects.count() == 0
+        assert self.model_class.all.count() == 1
+
+    def test_restore(self):
+        self.object.archive()
+        assert self.model_class.objects.count() == 0
+        assert self.model_class.all.count() == 1
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url + "restore/")
+        assert workers_send.call_count == 0
+        assert resp.status_code == status.HTTP_200_OK
+        assert self.model_class.objects.count() == 1
+        assert self.model_class.all.count() == 1
+
+
+@pytest.mark.run_mark
 class BaseRerunRunApi(BaseTestRunApi):
     def setUp(self):
         super().setUp()
@@ -423,6 +454,40 @@ class TestCopyRunViewV1(BaseRerunRunApi):
 
 
 @pytest.mark.run_mark
+class TestTransferRunViewV1(BaseTestRunApi):
+    def setUp(self):
+        super().setUp()
+        self.same_owner_project = ProjectFactory()
+
+    def test_transfer(self):
+        data = {"project": self.same_owner_project.name}
+        assert self.queryset.count() == 1
+        assert Run.objects.filter(project=self.project).count() == 1
+        assert Run.objects.filter(project=self.same_owner_project).count() == 0
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url + "transfer/", data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert len(workers_send.call_args_list) == 0
+        assert self.queryset.count() == 1
+        assert Run.objects.filter(project=self.project).count() == 0
+        assert Run.objects.filter(project=self.same_owner_project).count() == 1
+
+    def test_transfer_same_project(self):
+        data = {"project": self.project.name}
+        assert self.queryset.count() == 1
+        assert Run.objects.filter(project=self.project).count() == 1
+        assert Run.objects.filter(project=self.same_owner_project).count() == 0
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url + "transfer/", data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 0
+        assert len(workers_send.call_args_list) == 0
+        assert self.queryset.count() == 1
+        assert Run.objects.filter(project=self.project).count() == 1
+        assert Run.objects.filter(project=self.same_owner_project).count() == 0
+
+
+@pytest.mark.run_mark
 class TestRunStatusListViewV1(BaseTestRunApi):
     serializer_class = RunStatusSerializer
     num_objects = 3
@@ -604,7 +669,7 @@ class TestStopRunViewV1(BaseTestRunApi):
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
-        assert workers_send.call_count == 1
+        assert workers_send.call_count == 0
         assert self.queryset.count() == 1
         assert self.queryset.last().status == V1Statuses.STOPPING
 
@@ -617,7 +682,7 @@ class TestStopRunViewV1(BaseTestRunApi):
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
-        assert workers_send.call_count == 0
+        assert workers_send.call_count == 1
         assert self.queryset.count() == 1
         assert self.queryset.last().status == V1Statuses.STOPPED
 
@@ -650,6 +715,21 @@ class TestApproveRunViewV1(BaseTestRunApi):
             resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert workers_send.call_count == 1
+        assert self.queryset.count() == 1
+        assert self.queryset.last().pending is None
+
+    def test_approve_cache(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.pending = V1RunPending.CACHE
+        last_run.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_PREPARE,
+        }
         assert self.queryset.count() == 1
         assert self.queryset.last().pending is None
 
@@ -758,3 +838,101 @@ class TestApproveRunViewV1(BaseTestRunApi):
         assert resp.status_code == status.HTTP_200_OK
         assert self.queryset.count() == 1
         assert self.queryset.last().pending is None
+
+    def test_approve_pipeline_dag_does_not_approve_subtasks(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.pending = V1RunPending.APPROVAL
+        last_run.kind = V1RunKind.DAG
+        last_run.save()
+        RunFactory(
+            project=self.project,
+            user=self.user,
+            pipeline=last_run,
+            controller=last_run,
+            pending=V1RunPending.APPROVAL,
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(project=self.project, user=self.user, controller=last_run)
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_PREPARE,
+        }
+        assert self.queryset.count() == 4
+        assert self.queryset.last().pending is None
+        assert set(last_run.controller_runs.values_list("pending", flat=True)) == {
+            None,
+            V1RunPending.APPROVAL,
+        }
+
+    def test_approve_pipeline_matrix(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.pending = V1RunPending.APPROVAL
+        last_run.kind = V1RunKind.MATRIX
+        last_run.status = V1Statuses.COMPILED
+        last_run.save()
+        RunFactory(
+            project=self.project,
+            user=self.user,
+            pipeline=last_run,
+            controller=last_run,
+            pending=V1RunPending.APPROVAL,
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(project=self.project, user=self.user, controller=last_run)
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_START,
+        }
+        assert self.queryset.count() == 4
+        last_run.refresh_from_db()
+        assert self.queryset.last().pending is None
+        assert set(last_run.controller_runs.values_list("pending", flat=True)) == {
+            None,
+            V1RunPending.APPROVAL,
+        }
+
+
+@pytest.mark.run_mark
+class TestRunBookmarkCreateView(BaseTestBookmarkCreateView):
+    model_class = Run
+    factory_class = RunFactory
+
+    def get_url(self):
+        return "/{}/{}/{}/runs/{}/bookmark/".format(
+            API_V1, self.user.username, self.project.name, self.object.uuid.hex
+        )
+
+    def create_object(self):
+        self.project = ProjectFactory()
+        return self.factory_class(user=self.user, project=self.project)
+
+
+@pytest.mark.run_mark
+class TestRunBookmarkDeleteView(BaseTestBookmarkDeleteView):
+    model_class = Run
+    factory_class = RunFactory
+
+    def get_url(self):
+        return "/{}/{}/{}/runs/{}/unbookmark/".format(
+            API_V1, self.user.username, self.project.name, self.object.uuid.hex
+        )
+
+    def create_object(self):
+        self.project = ProjectFactory()
+        return self.factory_class(user=self.user, project=self.project)
+
+
+del BaseTestBookmarkCreateView
+del BaseTestBookmarkDeleteView

@@ -15,6 +15,7 @@ from polyaxon.constants.metadata import (
     META_HAS_JOBS,
     META_HAS_MATRICES,
     META_HAS_SERVICES,
+    META_ITERATION,
     META_UPLOAD_ARTIFACTS,
 )
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
@@ -24,7 +25,9 @@ from polyaxon.polyflow import (
     V1CompiledOperation,
     V1MatrixKind,
     V1Operation,
+    V1RunEdgeKind,
     V1RunKind,
+    V1ScheduleKind,
 )
 from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
@@ -44,8 +47,9 @@ class OperationInitSpec(
 
 
 class OperationsService(Service):
-    SUPPORTS_OP_BUILD = False
-    DEFAULT_KINDS = V1RunKind.default_runtime_values()
+    SUPPORTS_OP_BUILD = True
+    DEFAULT_KINDS = V1RunKind.to_set() | V1MatrixKind.to_set() | V1ScheduleKind.to_set()
+
     __all__ = (
         "init_run",
         "init_and_save_run",
@@ -108,6 +112,9 @@ class OperationsService(Service):
 
     @classmethod
     def _finalize_meta_info(cls, meta_info: Dict, **kwargs):
+        iteration = kwargs.pop(META_ITERATION, None)
+        if iteration is not None:
+            meta_info[META_ITERATION] = iteration
         return meta_info
 
     @classmethod
@@ -148,13 +155,9 @@ class OperationsService(Service):
 
     @staticmethod
     def sanitize_kwargs(**kwargs):
-        results = {}
-        if kwargs.get("raw_content"):
-            results["raw_content"] = kwargs["raw_content"]
-        if kwargs.get("content"):
-            results["content"] = kwargs["content"]
-
-        return results
+        kwargs.pop(META_ITERATION, None)
+        kwargs.pop("supported_owners", None)
+        return kwargs
 
     def is_valid(self, compiled_operation: V1CompiledOperation):
         compiled_operation.validate_build()
@@ -174,14 +177,40 @@ class OperationsService(Service):
         pending: Optional[str] = None,
         **kwargs,
     ):
-        raise ValueError(
-            "You cannot create this operation. "
-            "The build section is not supported in your plan."
+        instance = self.init_run(
+            project_id=project_id,
+            user_id=user_id,
+            op_spec=V1Operation.from_build(compiled_operation.build, contexts=inputs),
+            pending=pending,
+            meta_info=meta_info,
+            supported_owners=kwargs.get("supported_owners"),
+        ).instance
+        instance.runtime = V1RunKind.BUILDER
+        return instance
+
+    def _clone_build(self, original_run, run):
+        build = (
+            original_run.upstream_runs.filter(
+                downstream_edges__kind=V1RunEdgeKind.BUILD
+            )
+            .order_by("created_at")
+            .only("id")
+            .last()
         )
+        Models.RunEdge(
+            upstream_id=build.id,
+            downstream_id=run.id,
+            kind=V1RunEdgeKind.BUILD,
+        ).save()
 
     @staticmethod
     def save_build_relation(run_init_spec: OperationInitSpec):
-        pass
+        run_init_spec.related_instance.save()
+        Models.RunEdge(
+            upstream_id=run_init_spec.related_instance.id,
+            downstream_id=run_init_spec.instance.id,
+            kind=V1RunEdgeKind.BUILD,
+        ).save()
 
     def init_run(
         self,
@@ -378,9 +407,6 @@ class OperationsService(Service):
             force=True,
         )
         return run
-
-    def _clone_build(self, original_run: BaseRun, run: BaseRun):
-        pass
 
     def _clone_run(
         self,

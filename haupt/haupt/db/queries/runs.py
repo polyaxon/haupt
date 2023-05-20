@@ -22,5 +22,8 @@ STATUS_UPDATE_COLUMNS_DEFER = [
     "content",
     "is_managed",
     "pending",
+    "controller",
+    "pipeline",
+    "state",
 ]
 DEFAULT_COLUMNS_DEFER = ["description", "readme", "content", "raw_content"]

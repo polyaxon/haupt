@@ -20,6 +20,7 @@ class APIsConfig(AppConfig):
         auditor.validate_and_setup()
 
         import haupt.db.signals.runs  # noqa
+        import haupt.db.signals.versions  # noqa
 
         import haupt.common.options.conf_subscriptions  # noqa
         from haupt.common.events import auditor_subscriptions  # noqa

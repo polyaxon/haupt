@@ -1,0 +1,10 @@
+from haupt.common import auditor
+from haupt.common.events.registry import component_version
+
+auditor.subscribe(component_version.ComponentVersionDeletedEvent)
+auditor.subscribe(component_version.ComponentVersionCreatedActorEvent)
+auditor.subscribe(component_version.ComponentVersionUpdatedActorEvent)
+auditor.subscribe(component_version.ComponentVersionViewedActorEvent)
+auditor.subscribe(component_version.ComponentVersionDeletedActorEvent)
+auditor.subscribe(component_version.ComponentVersionTransferredActorEvent)
+auditor.subscribe(component_version.ComponentVersionNewStageEvent)

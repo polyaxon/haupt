@@ -5,13 +5,14 @@ from functools import reduce
 from operator import or_
 from typing import Any, Dict, List, Set
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 
 from haupt.db.abstracts.projects import Owner
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from traceml.artifacts import V1RunArtifact
+from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 
 
 def get_artifacts_by_keys(
@@ -62,24 +63,35 @@ def set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
     if not artifacts:
         return
 
-    artifact_model = Models.Artifact
-    namespace = Owner.uuid
+    owner = run.project.owner
+    namespace = owner.uuid if settings.HAS_ORG_MANAGEMENT else Owner.uuid
 
     artifacts_by_keys = get_artifacts_by_keys(
         run=run, namespace=namespace, artifacts=artifacts
     )
     artifacts_keys = list(artifacts_by_keys.keys())
     query = reduce(or_, (Q(name=name, state=state) for name, state in artifacts_keys))
-    to_update = artifact_model.objects.filter(query)
-    _to_update = {(m.name, m.state) for m in to_update}
-    to_create = {m for m in artifacts_keys if m not in _to_update}
+    if settings.HAS_ORG_MANAGEMENT:
+        query = Q(owner=owner) & query
+    to_update = Models.Artifact.objects.filter(query)
+    to_create = {
+        m for m in artifacts_keys if m not in {(n.name, n.state) for n in to_update}
+    }
 
+    has_iteration_kind = False
+    has_metrics = False
+    owner_filter = {"owner": owner} if settings.HAS_ORG_MANAGEMENT else {}
     if to_create:
         artifacts_to_create = []
         for m in to_create:
             a = artifacts_by_keys[m]
+            if a.kind == V1ArtifactKind.METRIC and not a.is_input:
+                has_metrics = True
+            if a.kind == V1ArtifactKind.ITERATION and not a.is_input:
+                has_iteration_kind = True
             artifacts_to_create.append(
-                artifact_model(
+                Models.Artifact(
+                    **owner_filter,
                     name=a.name,
                     kind=a.kind,
                     path=a.path,
@@ -87,10 +99,14 @@ def set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
                     summary=a.summary,
                 )
             )
-        artifact_model.objects.bulk_create(artifacts_to_create)
+        Models.Artifact.objects.bulk_create(artifacts_to_create)
 
     update_artifacts(to_update=to_update, artifacts_by_keys=artifacts_by_keys)
     set_run_lineage(run=run, artifacts_by_keys=artifacts_by_keys, query=query)
+    # Handle iteration lineage
+    # if has_iteration_kind:
+    #     workers.send(SchedulerCeleryTasks.RUNS_ITERATE, kwargs={"run_id": run.id})
+    # TODO: Add intermediate metric early
 
 
 @transaction.atomic

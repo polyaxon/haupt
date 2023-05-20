@@ -2,6 +2,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from uuid import uuid1
 
+from django.test import override_settings
+
 from haupt.common import user_system
 from haupt.common.events.event import Attribute, Event
 from haupt.common.events.registry import run
@@ -138,7 +140,10 @@ class TestEvents(TestCase):
         assert event_serialized["data"]["attr2.attr3"] == "test2"
         assert event_serialized["data"]["attr2.attr4"] is None
 
-    def test_actor(self):
+    @override_settings(
+        HAS_ORG_MANAGEMENT=True,
+    )
+    def test_required_actor(self):
         class DummyEvent1(Event):
             event_type = "dummy.event"
             actor = True
@@ -167,6 +172,63 @@ class TestEvents(TestCase):
         # Providing actor_id and not actor_name raises
         with self.assertRaises(ValueError):
             DummyEvent1.from_instance(obj, actor_id=1)
+
+        # Providing system actor id without actor_name does not raise
+        event = DummyEvent1.from_instance(obj, actor_id=user_system.USER_SYSTEM_ID)
+        assert event.data["actor_id"] == user_system.USER_SYSTEM_ID
+        assert event.data["actor_name"] == user_system.USER_SYSTEM_NAME
+
+        # Providing actor_id and actor_name does not raise
+        event = DummyEvent1.from_instance(obj, actor_id=1, actor_name="foo")
+        assert event.data["actor_id"] == 1
+        assert event.data["actor_name"] == "foo"
+
+        # Using an instance that has the actor properties
+        obj2 = DummyObject2()
+        event = DummyEvent2.from_instance(obj2)
+        assert event.data["some_actor_id"] == 1
+        assert event.data["some_actor_name"] == "foo"
+
+        # Using an instance that has the actor properties and overriding the actor
+        event = DummyEvent2.from_instance(
+            obj2,
+            some_actor_id=user_system.USER_SYSTEM_ID,
+            some_actor_name=user_system.USER_SYSTEM_NAME,
+        )
+        assert event.data["some_actor_id"] == user_system.USER_SYSTEM_ID
+        assert event.data["some_actor_name"] == user_system.USER_SYSTEM_NAME
+
+    def test_actor(self):
+        class DummyEvent1(Event):
+            event_type = "dummy.event"
+            actor = True
+            attributes = (Attribute("attr1"),)
+
+        class DummyEvent2(Event):
+            event_type = "dummy.event"
+            actor = True
+            actor_id = "some_actor_id"
+            actor_name = "some_actor_name"
+            attributes = (Attribute("attr1"),)
+
+        class DummyObject1:
+            attr1 = "test"
+
+        class DummyObject2:
+            attr1 = "test"
+            some_actor_id = 1
+            some_actor_name = "foo"
+
+        # Not providing actor_id does not raises for no org management
+        obj = DummyObject1()
+        event = DummyEvent1.from_instance(obj)
+        assert event.data["actor_id"] == user_system.USER_SYSTEM_ID
+        assert event.data["actor_name"] == user_system.USER_SYSTEM_NAME
+
+        # Providing actor_id and not actor_name raises
+        event = DummyEvent1.from_instance(obj, actor_id=1)
+        assert event.data["actor_id"] == 1
+        assert event.data["actor_name"] == user_system.USER_SYSTEM_NAME
 
         # Providing system actor id without actor_name does not raise
         event = DummyEvent1.from_instance(obj, actor_id=user_system.USER_SYSTEM_ID)

@@ -1,3 +1,6 @@
+import tempfile
+
+from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
 
@@ -12,6 +15,8 @@ class PolyaxonBaseTest(TestCase):
         self.mock_send_task()
         super().setUp()
         self.worker_send = {}
+        settings.ARTIFACTS_ROOT = tempfile.mkdtemp()
+        settings.ARCHIVES_ROOT = tempfile.mkdtemp()
 
     def mock_send_task(self):
         from celery import current_app

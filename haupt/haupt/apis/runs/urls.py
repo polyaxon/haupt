@@ -14,6 +14,13 @@ runs_urlpatterns = [
     re_path(runs.URLS_RUNS_APPROVE, views.RunApproveView.as_view()),
     re_path(runs.URLS_RUNS_STATUSES, views.RunStatusListView.as_view()),
     re_path(runs.URLS_RUNS_NAMESPACE, views.RunNamespaceView.as_view()),
+    re_path(runs.URLS_RUNS_TRANSFER, views.RunTransferView.as_view()),
+    re_path(runs.URLS_RUNS_INVALIDATE, views.RunInvalidateView.as_view()),
+    re_path(runs.URLS_RUNS_ARCHIVE, views.RunArchiveView.as_view()),
+    re_path(runs.URLS_RUNS_RESTORE, views.RunRestoreView.as_view()),
+    re_path(runs.URLS_RUNS_BOOKMARK, views.RunBookmarkCreateView.as_view()),
+    re_path(runs.URLS_RUNS_UNBOOKMARK, views.RunBookmarkDeleteView.as_view()),
+    re_path(runs.URLS_RUNS_STATS, views.RunStatsView.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(runs_urlpatterns)

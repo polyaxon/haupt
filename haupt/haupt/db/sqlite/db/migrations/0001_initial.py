@@ -5,7 +5,6 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.core.serializers.json
 import django.core.validators
-import django.db.models.deletion
 import django.utils.timezone
 
 from django.conf import settings
@@ -19,6 +18,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ("contenttypes", "0002_remove_content_type_name"),
         ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
@@ -198,6 +198,30 @@ class Migration(migrations.Migration):
             ],
             options={
                 "db_table": "db_artifactlineage",
+            },
+        ),
+        migrations.CreateModel(
+            name="Bookmark",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("enabled", models.BooleanField(default=True)),
+                ("object_id", models.PositiveIntegerField()),
+            ],
+            options={
+                "verbose_name": "bookmark",
+                "verbose_name_plural": "bookmarks",
+                "db_table": "db_bookmark",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
@@ -731,6 +755,15 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="project",
             index=models.Index(fields=["name"], name="db_project_name_4bfc0e_idx"),
+        ),
+        migrations.AddField(
+            model_name="bookmark",
+            name="content_type",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="+",
+                to="contenttypes.contenttype",
+            ),
         ),
         migrations.AddField(
             model_name="artifactlineage",

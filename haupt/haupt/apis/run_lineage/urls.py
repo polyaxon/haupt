@@ -17,6 +17,11 @@ run_lineages_urlpatterns = [
         runs.URLS_RUNS_ARTIFACTS_LINEAGE_DETAILS_V0,
         views.RunArtifactDetailView.as_view(),
     ),
+    re_path(runs.URLS_RUNS_CLONES_LINEAGE_LIST, views.RunClonesListView.as_view()),
+    re_path(runs.URLS_RUNS_UPSTREAM_LINEAGE_LIST, views.RunUpstreamListView.as_view()),
+    re_path(
+        runs.URLS_RUNS_DOWNSTREAM_LINEAGE_LIST, views.RunDownstreamListView.as_view()
+    ),
     re_path(runs.URLS_RUNS_ARTIFACTS_LINEAGE_LIST, views.RunArtifactListView.as_view()),
     re_path(
         runs.URLS_RUNS_ARTIFACTS_LINEAGE_NAMES, views.RunArtifactNameListView.as_view()

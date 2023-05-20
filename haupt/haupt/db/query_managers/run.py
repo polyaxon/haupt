@@ -1,7 +1,11 @@
+from collections import namedtuple
+
 from django.conf import settings
 
+from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.db.query_managers import callback_conditions
 from haupt.db.query_managers.manager import BaseQueryManager
+from polyaxon.polyflow import V1Join
 from polyaxon.pql.builder import (
     ArrayCondition,
     BoolCondition,
@@ -282,3 +286,38 @@ class RunQueryManager(BaseQueryManager):
         # Connections
         "connections": ValueCondition,
     }
+
+
+class RunsFilterRequest(namedtuple("RunsFilterRequest", "query_params")):
+    pass
+
+
+class RunsOfflineFilter:
+    serializer_class = "_"
+    queryset = "_"
+    filter_backends = (QueryFilter, OrderingFilter)
+    query_manager = RunQueryManager
+    check_alive = RunQueryManager.CHECK_ALIVE
+    ordering_fields = RunQueryManager.FIELDS_ORDERING
+    ordering_proxy_fields = RunQueryManager.FIELDS_ORDERING_PROXY
+    raise_original = True
+
+    def filter_join(self, queryset, join: V1Join):
+        request = RunsFilterRequest(query_params=join.to_dict())
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(request, queryset, self)
+        return queryset
+
+    def filter_stats(self, queryset, request):
+        # We only use QueryFilter, order can change the annotations/aggregations
+        queryset = QueryFilter().filter_queryset(request, queryset, self)
+        return queryset
+
+    @staticmethod
+    def positive_int(integer_string, strict=False, cutoff=None):
+        ret = int(integer_string)
+        if ret < 0 or (ret == 0 and strict):
+            raise ValueError()
+        if cutoff:
+            return min(ret, cutoff)
+        return ret

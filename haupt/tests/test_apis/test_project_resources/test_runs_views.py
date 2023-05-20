@@ -1,4 +1,5 @@
 import pytest
+import uuid
 
 from unittest.mock import patch
 
@@ -12,17 +13,23 @@ from haupt.apis.serializers.artifacts import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
 )
-from haupt.apis.serializers.project_resources import (
+from haupt.apis.serializers.runs import (
+    BookmarkedRunSerializer,
+    BookmarkedTimelineRunSerializer,
+    GraphRunSerializer,
     OfflineRunSerializer,
     OperationCreateSerializer,
-    RunSerializer,
 )
 from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
+from haupt.db.managers.flows import get_run_graph
+from haupt.db.managers.live_state import archive_run, restore_run
 from haupt.db.models.artifacts import Artifact, ArtifactLineage
+from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
+from polyaxon import live_state
 from polyaxon.api import API_V1
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
@@ -32,10 +39,94 @@ from traceml.artifacts import V1ArtifactKind
 
 
 @pytest.mark.projects_resources_mark
+class TestProjectRunsInvalidateViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.objects = [
+            self.factory_class(project=self.project, state=self.project.uuid)
+            for _ in range(3)
+        ]
+        self.objects.append(self.factory_class(project=self.project, user=self.user))
+
+        project = ProjectFactory()
+        self.another_object = self.factory_class(project=project, user=self.user)
+        self.url = "/{}/{}/{}/runs/invalidate/".format(
+            API_V1, self.user.username, self.project.name
+        )
+        self.queryset = self.model_class.objects.filter(project=self.project).order_by(
+            "created_at"
+        )
+
+    def test_invalidate(self):
+        data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
+        assert list(self.queryset.values_list("state", flat=True)) == [
+            self.project.uuid,
+            self.project.uuid,
+            self.project.uuid,
+            None,
+        ]
+        assert self.another_object.state is None
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert list(self.queryset.values_list("state", flat=True)) == [
+            None,
+            None,
+            self.project.uuid,
+            None,
+        ]
+        self.another_object.refresh_from_db()
+        assert self.another_object.state is None
+
+
+@pytest.mark.projects_resources_mark
+class TestProjectRunsBookmarkViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.objects = [
+            self.factory_class(
+                project=self.project, user=self.user, state=self.project.uuid
+            )
+            for _ in range(4)
+        ]
+        # Bookmark one
+        Bookmark.objects.create(content_object=self.objects[0])
+        # Unbookmkar one
+        Bookmark.objects.create(content_object=self.objects[1], enabled=False)
+        self.url = "/{}/{}/{}/runs/bookmark/".format(
+            API_V1, self.user.username, self.project.name
+        )
+
+    def test_bookmark(self):
+        data = {
+            "uuids": [
+                self.objects[0].uuid.hex,
+                self.objects[1].uuid.hex,
+                self.objects[2].uuid.hex,
+            ]
+        }
+        assert list(Bookmark.objects.values_list("enabled", flat=True)) == [True, False]
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert list(Bookmark.objects.values_list("enabled", flat=True)) == [
+            True,
+            True,
+            True,
+        ]
+        assert Bookmark.objects.count() == 3
+
+
+@pytest.mark.projects_resources_mark
 class TestProjectRunsTagViewV1(BaseTest):
     model_class = Run
     factory_class = RunFactory
-    HAS_AUTH = True
 
     def setUp(self):
         super().setUp()
@@ -92,7 +183,6 @@ class TestProjectRunsTagViewV1(BaseTest):
 class TestProjectRunsStopViewV1(BaseTest):
     model_class = Run
     factory_class = RunFactory
-    HAS_AUTH = True
 
     def setUp(self):
         super().setUp()
@@ -148,10 +238,127 @@ class TestProjectRunsStopViewV1(BaseTest):
 
 
 @pytest.mark.projects_resources_mark
+class TestProjectRunsTransferViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.objects = [
+            self.factory_class(project=self.project, user=self.user) for _ in range(4)
+        ]
+        self.same_owner_project = ProjectFactory()
+        self.url = "/{}/{}/{}/runs/transfer/".format(
+            API_V1, self.user.username, self.project.name
+        )
+
+    @patch("haupt.common.workers.send")
+    def test_transfer(self, _):
+        data = {
+            "uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex],
+            "project": self.same_owner_project.name,
+        }
+        assert Run.objects.count() == 4
+        assert Run.objects.filter(project=self.project).count() == 4
+        assert Run.objects.filter(project=self.same_owner_project).count() == 0
+        with patch("haupt.common.auditor.record") as auditor_record:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert auditor_record.call_count == 2
+        assert Run.objects.count() == 4
+        assert Run.objects.filter(project=self.project).count() == 2
+        assert Run.objects.filter(project=self.same_owner_project).count() == 2
+
+    @patch("haupt.common.workers.send")
+    def test_transfer_same_project(self, _):
+        data = {
+            "uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex],
+            "project": self.project.name,
+        }
+        assert Run.objects.count() == 4
+        assert Run.objects.filter(project=self.project).count() == 4
+        assert Run.objects.filter(project=self.same_owner_project).count() == 0
+        with patch("haupt.common.auditor.record") as auditor_record:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert auditor_record.call_count == 0
+        assert Run.objects.count() == 4
+        assert Run.objects.filter(project=self.project).count() == 4
+        assert Run.objects.filter(project=self.same_owner_project).count() == 0
+
+
+@pytest.mark.projects_resources_mark
+class TestProjectRunsArchiveViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.objects = [
+            self.factory_class(project=self.project, user=self.user) for _ in range(4)
+        ]
+        self.url = "/{}/{}/{}/runs/archive/".format(
+            API_V1, self.user.username, self.project.name
+        )
+
+    @patch("haupt.common.workers.send")
+    def test_archive(self, _):
+        data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
+        assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
+            live_state.STATE_LIVE,
+        }
+        with patch("haupt.common.auditor.record") as auditor_record:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
+            live_state.STATE_LIVE,
+            live_state.STATE_ARCHIVED,
+        }
+        assert auditor_record.call_count == 2
+
+
+@pytest.mark.projects_resources_mark
+class TestProjectRunsRestoreViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.objects = [
+            self.factory_class(
+                project=self.project,
+                user=self.user,
+                live_state=live_state.STATE_ARCHIVED,
+            )
+            for _ in range(4)
+        ]
+        self.url = "/{}/{}/{}/runs/restore/".format(
+            API_V1, self.user.username, self.project.name
+        )
+
+    @patch("haupt.common.workers.send")
+    def test_restore(self, _):
+        data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
+        assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
+            live_state.STATE_ARCHIVED,
+        }
+        with patch("haupt.common.auditor.record") as auditor_record:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
+            live_state.STATE_LIVE,
+            live_state.STATE_ARCHIVED,
+        }
+        assert auditor_record.call_count == 2
+
+
+@pytest.mark.projects_resources_mark
 class TestProjectRunsApproveViewV1(BaseTest):
     model_class = Run
     factory_class = RunFactory
-    HAS_AUTH = True
 
     def setUp(self):
         super().setUp()
@@ -225,7 +432,6 @@ class TestProjectRunsApproveViewV1(BaseTest):
 class TestProjectRunsDeleteViewV1(BaseTest):
     model_class = Run
     factory_class = RunFactory
-    HAS_AUTH = True
 
     def setUp(self):
         super().setUp()
@@ -268,7 +474,7 @@ class TestProjectRunsDeleteViewV1(BaseTest):
         assert resp.status_code == status.HTTP_200_OK
         assert Run.objects.count() == 1
         assert Run.all.count() == 3
-        assert workers_send.call_count == 2
+        assert workers_send.call_count == 0
 
 
 @pytest.mark.projects_resources_mark
@@ -429,7 +635,7 @@ class TestProjectRunsArtifactsViewV15(TestProjectRunsArtifactsViewV1):
 
 @pytest.mark.projects_resources_mark
 class TestProjectRunsListViewV1(BaseTest):
-    serializer_class = RunSerializer
+    serializer_class = BookmarkedRunSerializer
     model_class = Run
     factory_class = RunFactory
     num_objects = 3
@@ -440,8 +646,10 @@ class TestProjectRunsListViewV1(BaseTest):
 
         self.url = "/{}/polyaxon/{}/runs/".format(API_V1, self.project.name)
         self.objects = [
-            self.factory_class(project=self.project, user=self.user)
-            for _ in range(self.num_objects)
+            self.factory_class(
+                project=self.project, user=self.user, name="n-{}".format(i)
+            )
+            for i in range(self.num_objects)
         ]
         self.queryset = self.model_class.objects.filter(project=self.project).order_by(
             "-updated_at"
@@ -469,6 +677,21 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.status_code == status.HTTP_200_OK
         data = resp.data["results"]
         assert len(data) == 1
+
+    def test_get_with_bookmarked_objects(self):
+        resp = self.client.get(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        self.assertEqual(
+            len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]), 0
+        )
+
+        Bookmark.objects.create(content_object=self.objects[0])
+
+        resp = self.client.get(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert (
+            len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]) == 1
+        )
 
     def test_pagination(self):
         limit = self.num_objects - 1
@@ -613,11 +836,82 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.data["next"] is None
         assert resp.data["count"] == len(self.objects)
 
+        # Bookmarks
+        resp = self.client.get(self.url + "?bookmarks=1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?bookmarks=0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 3
+
+        # Adding bookmarks
+        Bookmark.objects.create(content_object=self.objects[0])
+        Bookmark.objects.create(content_object=self.objects[1])
+
+        # Bookmarks
+        resp = self.client.get(self.url + "?bookmarks=1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+
+        resp = self.client.get(self.url + "?bookmarks=0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Bookmarks with filters
+        resp = self.client.get(self.url + "?bookmarks=1&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?bookmarks=0&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        # Delete all bookmarks
+        Bookmark.objects.all().delete()
+        resp = self.client.get(self.url + "?bookmarks=1&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?bookmarks=0&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
         # Archived
         resp = self.client.get(self.url + "?query=live_state:0")
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 0
+
+        archive_run(self.objects[0])
+
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        restore_run(self.objects[0])
+
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
 
         # Set metrics
         optimizers = ["sgd", "sgd", "adam"]
@@ -833,7 +1127,21 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.data["count"] == 0
 
         resp = self.client.get(
+            self.url + "?query=artifacts.kind:{}".format(V1ArtifactKind.METRIC.value)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
             self.url + "?query=in_artifact_kind:~{}".format(V1ArtifactKind.METRIC.value)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        resp = self.client.get(
+            self.url + "?query=artifacts.kind:~{}".format(V1ArtifactKind.METRIC.value)
         )
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
@@ -931,9 +1239,10 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.data["next"] is None
         assert resp.data["count"] == len(self.objects)
 
+        state = uuid.uuid4().hex
         obj = ArtifactFactory(
             name="commit1",
-            state=self.project.uuid,
+            state=state,
             kind=V1ArtifactKind.CODEREF,
         )
         ArtifactLineage.objects.create(
@@ -945,10 +1254,97 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.data["next"] is None
         assert resp.data["count"] == 1
 
+        resp = self.client.get(self.url + "?query=artifacts:{}".format(state))
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?query=artifacts.state:{}".format(state))
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?query=artifacts.name:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
         resp = self.client.get(self.url + "?query=commit:~commit1")
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == len(self.objects) - 1
+
+        resp = self.client.get(self.url + "?query=artifacts:~{}".format(state))
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        # Upstream/downstream
+        resp = self.client.get(
+            self.url + "?query=downstream:{}".format(self.objects[0].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url + "?query=downstream.name:{}".format(self.objects[1].name)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url + "?query=upstream.name:{}".format(self.objects[2].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        self.objects[0].upstream_runs.set(self.objects[2:])
+        self.objects[1].upstream_runs.set(self.objects[2:])
+
+        resp = self.client.get(
+            self.url + "?query=downstream:{}".format(self.objects[0].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+        data = resp.data["results"]
+        assert data == [self.serializer_class(self.objects[2]).data]
+
+        resp = self.client.get(
+            self.url + "?query=downstream.name:{}".format(self.objects[1].name)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+        data = resp.data["results"]
+        assert data == [self.serializer_class(self.objects[2]).data]
+
+        resp = self.client.get(
+            self.url + "?query=upstream.id:{}".format(self.objects[2].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+        data = resp.data["results"]
+        assert data == [
+            self.serializer_class(obj).data
+            for obj in self.queryset.filter(id__in={o.id for o in self.objects[:2]})
+        ]
+
+    def test_get_runs_for_pipeline(self):
+        self.factory_class(
+            project=self.project, user=self.user, pipeline=self.objects[0]
+        )
+        resp = self.client.get(
+            self.url + f"?query=pipeline.uuid:{self.objects[0].uuid.hex}"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
 
     def test_get_runs_for_original(self):
         self.factory_class(
@@ -1008,6 +1404,927 @@ class TestProjectRunsListViewV1(BaseTest):
         data = resp.data["results"]
         assert len(data) == 1
         assert data == self.serializer_class(self.queryset[limit:], many=True).data
+
+    def test_get_timeline(self):
+        resp = self.client.get(self.url + "?mode=timeline")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        assert data == BookmarkedTimelineRunSerializer(self.queryset, many=True).data
+
+        # Test other
+        resp = self.client.get(self.other_url)
+        assert resp.status_code == status.HTTP_200_OK
+        data = resp.data["results"]
+        assert len(data) == 1
+
+    def test_get_timeline_with_bookmarked_objects(self):
+        resp = self.client.get(self.url + "?mode=timeline")
+        assert resp.status_code == status.HTTP_200_OK
+        self.assertEqual(
+            len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]), 0
+        )
+
+        Bookmark.objects.create(content_object=self.objects[0])
+
+        resp = self.client.get(self.url + "?mode=timeline")
+        assert resp.status_code == status.HTTP_200_OK
+        assert (
+            len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]) == 1
+        )
+
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
+    def test_get_timeline_filter(self):  # pylint:disable=too-many-statements
+        # Wrong filter raises
+        resp = self.client.get(self.url + "?mode=timeline&query=created_at<2010-01-01")
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+        resp = self.client.get(self.url + "?mode=timeline&query=created_at:<2010-01-01")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=created_at:>=2010-01-01,status:Finished"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=created_at:>=2010-01-01,status:created|running"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        assert data == BookmarkedTimelineRunSerializer(self.queryset, many=True).data
+
+        # Id
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=uuid:{}|{}".format(
+                self.objects[0].uuid.hex, self.objects[1].uuid.hex
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+
+        # Name
+        self.objects[0].name = "exp_foo"
+        self.objects[0].save()
+
+        resp = self.client.get(self.url + "?mode=timeline&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Name Regex
+        resp = self.client.get(self.url + "?mode=timeline&query=name:%foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=project.name:{}".format(self.project.name)
+        )
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Archived
+        resp = self.client.get(self.url + "?mode=timeline&query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        archive_run(self.objects[0])
+
+        resp = self.client.get(self.url + "?mode=timeline&query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?mode=timeline&query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        restore_run(self.objects[0])
+
+        resp = self.client.get(self.url + "?mode=timeline&query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?mode=timeline&query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Set metrics
+        optimizers = ["sgd", "sgd", "adam"]
+        if settings.DB_ENGINE_NAME == "sqlite":
+            tags = [{"tag1": ""}, {"tag1": "", "tag2": ""}, {"tag2": ""}]
+        else:
+            tags = [["tag1"], ["tag1", "tag2"], ["tag2"]]
+        losses = [0.1, 0.2, 0.9]
+        for i, obj in enumerate(self.objects[:3]):
+            obj.outputs = {"loss": losses[i]}
+            obj.inputs = {"optimizer": optimizers[i]}
+            obj.tags = tags[i]
+            obj.save()
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=created_at:>=2010-01-01,"
+            "params.optimizer:sgd,"
+            "metrics.loss:>=0.2,"
+            "tags:tag1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Test that metrics works as well
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=created_at:>=2010-01-01,"
+            "params.optimizer:sgd,"
+            "metrics.loss:>=0.2,"
+            "tags:tag1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=created_at:>=2010-01-01,"
+            "params.optimizer:sgd|adam,"
+            "metrics.loss:>=0.2,"
+            "tags:tag1|tag2"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+
+        # Order by metrics
+        resp = self.client.get(self.url + "?mode=timeline&sort=-metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        assert data == [
+            BookmarkedTimelineRunSerializer(obj).data for obj in reversed(self.objects)
+        ]
+
+        resp = self.client.get(self.url + "?mode=timeline&sort=metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        assert data == [
+            BookmarkedTimelineRunSerializer(obj).data for obj in self.objects
+        ]
+
+        # Order by metrics
+        resp = self.client.get(self.url + "?mode=timeline&sort=-metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        assert data == [
+            BookmarkedTimelineRunSerializer(obj).data for obj in reversed(self.objects)
+        ]
+
+        resp = self.client.get(self.url + "?mode=timeline&sort=metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        assert data == [
+            BookmarkedTimelineRunSerializer(obj).data for obj in self.objects
+        ]
+
+        # Order by params
+        resp = self.client.get(self.url + "?mode=timeline&sort=-params.optimizer")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+
+        resp = self.client.get(self.url + "?mode=timeline&sort=params.optimizer")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+
+        # Artifacts
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=in_artifact_kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=artifacts.kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=in_artifact_kind:~{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=artifacts.kind:~{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Add meta
+        self.objects[0].meta_info = {"has_events": True, "kind": V1RunKind.JOB}
+        self.objects[0].save()
+        self.objects[1].meta_info = {"has_tensorboard": True, "kind": V1RunKind.SERVICE}
+        self.objects[1].save()
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=meta_flags.has_events:1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=meta_flags.has_tensorboard:1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=meta_info.kind:{}".format(V1RunKind.JOB.value)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=meta_info.kind:~{}".format(V1RunKind.SERVICE.value)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Add artifacts
+        obj = ArtifactFactory(name="m1", state=self.project.uuid)
+        ArtifactLineage.objects.create(run=self.objects[0], artifact=obj, is_input=True)
+        obj = ArtifactFactory(
+            name="in1",
+            state=self.project.uuid,
+            kind=V1ArtifactKind.DOCKERFILE,
+        )
+        ArtifactLineage.objects.create(
+            run=self.objects[0], artifact=obj, is_input=False
+        )
+        obj = ArtifactFactory(name="m2", state=self.project.uuid)
+        ArtifactLineage.objects.create(run=self.objects[1], artifact=obj)
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=in_artifact_kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=in_artifact_kind:~{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=out_artifact_kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=in_artifact_kind:{}".format(
+                V1ArtifactKind.DOCKERFILE.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=out_artifact_kind:{}".format(
+                V1ArtifactKind.DOCKERFILE.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        # Add commit
+        resp = self.client.get(self.url + "?mode=timeline&query=commit:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?mode=timeline&query=artifacts.name:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?mode=timeline&query=commit:~commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=artifacts.name:~commit1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        state = uuid.uuid4().hex
+        obj = ArtifactFactory(
+            name="commit1",
+            state=state,
+            kind=V1ArtifactKind.CODEREF,
+        )
+        ArtifactLineage.objects.create(
+            run=self.objects[0], artifact=obj, is_input=False
+        )
+
+        resp = self.client.get(self.url + "?mode=timeline&query=commit:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=artifacts:{}".format(state)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=artifacts.state:{}".format(state)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?mode=timeline&query=artifacts.name:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?mode=timeline&query=commit:~commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=artifacts.name:~commit1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        resp = self.client.get(
+            self.url + "?mode=timeline&query=artifacts:~{}".format(state)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        # Upstream/downstream
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=downstream:{}".format(self.objects[0].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=downstream.name:{}".format(self.objects[1].name)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=upstream.name:{}".format(self.objects[2].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        self.objects[0].upstream_runs.set(self.objects[2:])
+        self.objects[1].upstream_runs.set(self.objects[2:])
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=downstream:{}".format(self.objects[0].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+        data = resp.data["results"]
+        assert data == [BookmarkedTimelineRunSerializer(self.objects[2]).data]
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=downstream.name:{}".format(self.objects[1].name)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+        data = resp.data["results"]
+        assert data == [BookmarkedTimelineRunSerializer(self.objects[2]).data]
+
+        resp = self.client.get(
+            self.url
+            + "?mode=timeline&query=upstream.id:{}".format(self.objects[2].uuid.hex)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+        data = resp.data["results"]
+        assert data == [
+            BookmarkedTimelineRunSerializer(obj).data
+            for obj in self.queryset.filter(id__in={o.id for o in self.objects[:2]})
+        ]
+
+    def _asset_graph_data(self, result, expected):
+        for d in result:
+            assert d.pop("graph") == {"downstream": []}
+        for d in expected:
+            assert d.pop("graph") is None
+        assert result == expected
+
+    def test_get_graph(self):
+        resp = self.client.get(self.url + "?mode=graph")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        expected = GraphRunSerializer(self.queryset, many=True).data
+        self._asset_graph_data(data, expected)
+
+        # Test other
+        resp = self.client.get(self.other_url)
+        assert resp.status_code == status.HTTP_200_OK
+        data = resp.data["results"]
+        assert len(data) == 1
+
+    def test_get_pipeline_with_graph_objects(self):
+        pipeline_run = RunFactory(project=self.project, user=self.user)
+        runs = [
+            RunFactory(project=self.project, user=self.user, pipeline=pipeline_run)
+            for _ in range(4)
+        ]
+        runs[0].upstream_runs.set(runs[2:])
+        runs[1].upstream_runs.set(runs[2:])
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=pipeline:{}".format(pipeline_run.uuid)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert {
+            obj.get("uuid"): obj.get("graph") for obj in resp.data["results"]
+        } == get_run_graph({"pipeline_id": pipeline_run.id})
+
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
+    def test_get_graph_filter(self):  # pylint:disable=too-many-statements
+        # Wrong filter raises
+        resp = self.client.get(self.url + "?mode=graph&query=created_at<2010-01-01")
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+        resp = self.client.get(self.url + "?mode=graph&query=created_at:<2010-01-01")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=created_at:>=2010-01-01,status:Finished"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=created_at:>=2010-01-01,status:created|running"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        self._asset_graph_data(data, GraphRunSerializer(self.queryset, many=True).data)
+
+        # Id
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=uuid:{}|{}".format(
+                self.objects[0].uuid.hex, self.objects[1].uuid.hex
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+
+        # Name
+        self.objects[0].name = "exp_foo"
+        self.objects[0].save()
+
+        resp = self.client.get(self.url + "?mode=graph&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Name Regex
+        resp = self.client.get(self.url + "?mode=graph&query=name:%foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=project.name:{}".format(self.project.name)
+        )
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Archived
+        resp = self.client.get(self.url + "?mode=graph&query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        archive_run(self.objects[0])
+
+        resp = self.client.get(self.url + "?mode=graph&query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?mode=graph&query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        restore_run(self.objects[0])
+
+        resp = self.client.get(self.url + "?mode=graph&query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?mode=graph&query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Set metrics
+        optimizers = ["sgd", "sgd", "adam"]
+        if settings.DB_ENGINE_NAME == "sqlite":
+            tags = [{"tag1": ""}, {"tag1": "", "tag2": ""}, {"tag2": ""}]
+        else:
+            tags = [["tag1"], ["tag1", "tag2"], ["tag2"]]
+        losses = [0.1, 0.2, 0.9]
+        for i, obj in enumerate(self.objects[:3]):
+            obj.outputs = {"loss": losses[i]}
+            obj.inputs = {"optimizer": optimizers[i]}
+            obj.tags = tags[i]
+            obj.save()
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=created_at:>=2010-01-01,"
+            "params.optimizer:sgd,"
+            "metrics.loss:>=0.2,"
+            "tags:tag1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Test that metrics works as well
+        resp = self.client.get(
+            self.url + "?mode=graph&query=created_at:>=2010-01-01,"
+            "params.optimizer:sgd,"
+            "metrics.loss:>=0.2,"
+            "tags:tag1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=created_at:>=2010-01-01,"
+            "params.optimizer:sgd|adam,"
+            "metrics.loss:>=0.2,"
+            "tags:tag1|tag2"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+
+        # Order by metrics
+        resp = self.client.get(self.url + "?mode=graph&sort=-metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        self._asset_graph_data(
+            data, [GraphRunSerializer(obj).data for obj in reversed(self.objects)]
+        )
+
+        resp = self.client.get(self.url + "?mode=graph&sort=metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        self._asset_graph_data(
+            data, [GraphRunSerializer(obj).data for obj in self.objects]
+        )
+
+        # Order by metrics
+        resp = self.client.get(self.url + "?mode=graph&sort=-metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        self._asset_graph_data(
+            data, [GraphRunSerializer(obj).data for obj in reversed(self.objects)]
+        )
+
+        resp = self.client.get(self.url + "?mode=graph&sort=metrics.loss")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+        self._asset_graph_data(
+            data, [GraphRunSerializer(obj).data for obj in self.objects]
+        )
+
+        # Order by params
+        resp = self.client.get(self.url + "?mode=graph&sort=-params.optimizer")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+
+        resp = self.client.get(self.url + "?mode=graph&sort=params.optimizer")
+        assert resp.status_code == status.HTTP_200_OK
+
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        data = resp.data["results"]
+        assert len(data) == self.queryset.count()
+
+        # Artifacts
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=in_artifact_kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=in_artifact_kind:~{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Add meta
+        self.objects[0].meta_info = {"has_events": True, "kind": V1RunKind.JOB}
+        self.objects[0].save()
+        self.objects[1].meta_info = {
+            "has_tensorboard": True,
+            "kind": V1RunKind.SERVICE.value,
+        }
+        self.objects[1].save()
+
+        resp = self.client.get(self.url + "?mode=graph&query=meta_flags.has_events:1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=meta_flags.has_tensorboard:1"
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url + "?mode=graph&query=meta_info.kind:{}".format(V1RunKind.JOB.value)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=meta_info.kind:~{}".format(V1RunKind.SERVICE.value)
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Add artifacts
+        obj = ArtifactFactory(name="m1", state=self.project.uuid)
+        ArtifactLineage.objects.create(run=self.objects[0], artifact=obj, is_input=True)
+        obj = ArtifactFactory(
+            name="in1",
+            state=self.project.uuid,
+            kind=V1ArtifactKind.DOCKERFILE,
+        )
+        ArtifactLineage.objects.create(
+            run=self.objects[0], artifact=obj, is_input=False
+        )
+        obj = ArtifactFactory(name="m2", state=self.project.uuid)
+        ArtifactLineage.objects.create(run=self.objects[1], artifact=obj)
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=in_artifact_kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=in_artifact_kind:~{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=out_artifact_kind:{}".format(
+                V1ArtifactKind.METRIC.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=in_artifact_kind:{}".format(
+                V1ArtifactKind.DOCKERFILE.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(
+            self.url
+            + "?mode=graph&query=out_artifact_kind:{}".format(
+                V1ArtifactKind.DOCKERFILE.value
+            )
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        # Add commit
+        resp = self.client.get(self.url + "?mode=graph&query=commit:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?mode=graph&query=commit:~commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        obj = ArtifactFactory(
+            name="commit1",
+            state=self.project.uuid,
+            kind=V1ArtifactKind.CODEREF,
+        )
+        ArtifactLineage.objects.create(
+            run=self.objects[0], artifact=obj, is_input=False
+        )
+
+        resp = self.client.get(self.url + "?mode=graph&query=commit:commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?mode=graph&query=commit:~commit1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
 
 
 @pytest.mark.projects_resources_mark

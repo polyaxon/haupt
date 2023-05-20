@@ -28,3 +28,12 @@ EVENT_KIND_PATTERN = r"(?P<event_kind>[-\w]{1,20})"
 EVENT_NAME_PATTERN = r"(?P<event_name>[-\w]{1,128})"
 
 ANY_CONSUMER_PATTERN = r"?(?P<path>.*)/?"
+
+VERSION_NAME_KEY = "version_name"
+VERSION_NAME_PATTERN = r"(?P<version_name>[-.\w]{1,128})"
+TEAM_NAME_KEY = "team_name"
+TEAM_NAME_PATTERN = r"(?P<team_name>[-\w]{1,256})"
+INTEGRATION_UUID_KEY = "integration_uuid"
+INTEGRATION_UUID_PATTERN = r"(?P<integration_uuid>\w{1,36})"
+PROVIDER_KEY = "provider"
+PROVIDER_PATTERN = r"(?P<provider>\w{0,50})"

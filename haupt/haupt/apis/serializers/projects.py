@@ -3,6 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from django.db import IntegrityError
 
+from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedSerializerMixin
 from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.db.defs import Models
 
@@ -28,11 +29,19 @@ class ProjectSerializer(TagsMixin, serializers.ModelSerializer):
         )
 
 
-class ProjectDetailSerializer(ProjectSerializer):
+class BookmarkedProjectSerializer(ProjectSerializer, BookmarkedSerializerMixin):
+    bookmarked_model = "project"
+
     class Meta(ProjectSerializer.Meta):
-        fields = ProjectSerializer.Meta.fields + (
+        fields = ProjectSerializer.Meta.fields + ("bookmarked",)
+
+
+class ProjectDetailSerializer(BookmarkedProjectSerializer):
+    class Meta(BookmarkedProjectSerializer.Meta):
+        fields = BookmarkedProjectSerializer.Meta.fields + (
             "readme",
             "live_state",
+            "bookmarked",
         )
 
     def update(self, instance, validated_data):

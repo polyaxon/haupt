@@ -1,9 +1,8 @@
-import tempfile
-
-from django.conf import settings
+from rest_framework import status
 
 from haupt.common.test_cases.base import PolyaxonBaseTest, PolyaxonBaseTestSerializer
 from haupt.common.test_clients.base import BaseClient
+from haupt.db.defs import Models
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
@@ -27,8 +26,6 @@ class BaseTest(PolyaxonBaseTest):
             set_agent=self.SET_AGENT_SETTINGS,
         )
 
-        settings.ARTIFACTS_ROOT = tempfile.mkdtemp()
-        settings.ARCHIVES_ROOT = tempfile.mkdtemp()
         self.client = BaseClient()
         self.user = UserFactory()
 
@@ -51,3 +48,53 @@ class BaseTestRunSerializer(PolyaxonBaseTestSerializer):
         super().setUp()
         self.user = UserFactory()
         self.project = ProjectFactory()
+
+
+class BaseTestBookmarkCreateView(BaseTest):
+    model_class = None
+    factory_class = None
+
+    def get_url(self):
+        raise NotImplementedError
+
+    def create_object(self):
+        raise NotImplementedError
+
+    def setUp(self):
+        super().setUp()
+        self.object = self.create_object()
+        self.url = self.get_url()
+
+    def test_create(self):
+        resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert Models.Bookmark.objects.count() == 1
+        bookmark = Models.Bookmark.objects.first()
+        assert bookmark.content_object == self.object
+
+
+class BaseTestBookmarkDeleteView(BaseTest):
+    model_class = None
+    factory_class = None
+
+    def get_url(self):
+        raise NotImplementedError
+
+    def create_object(self):
+        raise NotImplementedError
+
+    def setUp(self):
+        super().setUp()
+        self.object = self.create_object()
+        self.url = self.get_url()
+
+    def test_delete(self):
+        resp = self.client.delete(self.url)
+        assert resp.status_code == status.HTTP_404_NOT_FOUND
+        Models.Bookmark.objects.create(content_object=self.object)
+        resp = self.client.delete(self.url)
+        assert resp.status_code == status.HTTP_204_NO_CONTENT
+        assert Models.Bookmark.objects.count() == 1
+        bookmark = Models.Bookmark.objects.first()
+        assert bookmark.content_object == self.object
+        assert bookmark.enabled is False

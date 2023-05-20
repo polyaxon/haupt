@@ -14,6 +14,8 @@ from polyaxon.cli.session import get_compatibility
 
 
 class VersionsInstalledView(BaseEndpoint, RetrieveEndpoint):
+    ALLOWED_METHODS = ["GET"]
+
     def retrieve(self, request, *args, **kwargs):
         data = {
             "key": conf.get(ORGANIZATION_KEY) or get_dummy_key(),

@@ -1,20 +1,30 @@
 import pytest
 
 from flaky import flaky
+from mock.mock import patch
 
 from rest_framework import status
 
 from haupt.apis.serializers.projects import (
+    BookmarkedProjectSerializer,
     ProjectDetailSerializer,
     ProjectNameSerializer,
     ProjectSerializer,
 )
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
+from haupt.db.managers.live_state import archive_project, restore_project
+from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
+from polyaxon import live_state
 from polyaxon.api import API_V1
-from tests.base.case import BaseTest
+from polyaxon.lifecycle import LifeCycle, V1Statuses
+from tests.base.case import (
+    BaseTest,
+    BaseTestBookmarkCreateView,
+    BaseTestBookmarkDeleteView,
+)
 from tests.test_apis.test_projects.base import BaseTestProjectApi
 
 
@@ -47,7 +57,7 @@ class TestProjectCreateViewV1(BaseTest):
 
 @pytest.mark.projects_mark
 class TestProjectListViewV1(BaseTest):
-    serializer_class = ProjectSerializer
+    serializer_class = BookmarkedProjectSerializer
     model_class = Project
     factory_class = ProjectFactory
     num_objects = 3
@@ -68,6 +78,22 @@ class TestProjectListViewV1(BaseTest):
         data = resp.data["results"]
         assert len(data) == self.queryset.count()
         assert data == self.serializer_class(self.queryset, many=True).data
+
+    def test_get_with_bookmarked_objects(self):
+        resp = self.client.get(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        self.assertEqual(
+            len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]), 0
+        )
+
+        # Authenticated user bookmark
+        Bookmark.objects.create(content_object=self.objects[0])
+
+        resp = self.client.get(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert (
+            len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]) == 1
+        )
 
     @flaky(max_runs=3)
     def test_pagination(self):
@@ -180,6 +206,99 @@ class TestProjectListViewV1(BaseTest):
         assert resp.data["next"] is None
         assert resp.data["count"] == 1
 
+        # Bookmarks
+        resp = self.client.get(self.url + "?bookmarks=1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?bookmarks=0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 3
+
+        # Adding bookmarks
+        Bookmark.objects.create(content_object=self.objects[0])
+        Bookmark.objects.create(content_object=self.objects[1])
+
+        # Bookmarks
+        resp = self.client.get(self.url + "?bookmarks=1")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 2
+
+        resp = self.client.get(self.url + "?bookmarks=0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        # Bookmarks with filters
+        resp = self.client.get(self.url + "?bookmarks=1&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?bookmarks=0&query=name:exp_foo")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        # Archived
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        archive_project(self.objects[0])
+
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        restore_project(self.objects[0])
+
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
+        # Schedule immediate deletion
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        archive_project(self.objects[0])
+
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 1
+
+        resp = self.client.get(self.url + "?query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects) - 1
+
+        restore_project(self.objects[0])
+
+        resp = self.client.get(self.url + "?query=live_state:0")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["next"] is None
+        assert resp.data["count"] == 0
+
+        resp = self.client.get(self.url + "?query=live_state:1")
+        assert resp.data["next"] is None
+        assert resp.data["count"] == len(self.objects)
+
 
 @pytest.mark.projects_mark
 class TestProjectNameListViewV1(BaseTest):
@@ -269,13 +388,99 @@ class TestProjectDetailViewV1(BaseTestProjectApi):
 
     def test_delete(self):
         for _ in range(2):
-            RunFactory(project=self.project, user=self.user)
+            run = RunFactory(project=self.project, user=self.user)
+            run.status = V1Statuses.RUNNING
+            run.save()
 
         assert self.queryset.count() == 1
         assert Run.objects.count() == 4
 
         resp = self.client.delete(self.url)
+
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         assert self.queryset.count() == 0
-        assert Project.all.filter().count() == 0
-        assert Run.all.count() == 0
+        assert Project.all.count() == 1  # Async
+        assert Project.all.last().live_state == live_state.STATE_DELETION_PROGRESSING
+        assert Run.objects.count() == 0
+        assert Run.all.count() == 4
+        assert set(Run.all.values_list("live_state", flat=True)) == {
+            live_state.STATE_DELETION_PROGRESSING
+        }
+
+
+@pytest.mark.projects_mark
+class TestProjectArchiveRestoreViewV1(BaseTestProjectApi):
+    def test_archive_schedules_run_archive(self):
+        for _ in range(2):
+            RunFactory(project=self.project, user=self.user)
+
+        assert (
+            Run.all.exclude(status__in=LifeCycle.DONE_OR_IN_PROGRESS_VALUES).count()
+            == 4
+        )
+        assert self.queryset.count() == 1
+        assert Run.objects.count() == 4
+
+        resp = self.client.post(self.url + "archive/")
+
+        assert resp.status_code == status.HTTP_200_OK
+        assert self.queryset.count() == 0
+        assert Run.objects.count() == 0
+        assert Run.all.count() == 4  # Async
+        assert (
+            Run.all.exclude(status__in=LifeCycle.DONE_OR_IN_PROGRESS_VALUES).count()
+            == 0
+        )
+        assert set(Run.all.values_list("live_state", flat=True)) == {
+            live_state.STATE_ARCHIVED
+        }
+
+    def test_restore_schedules_deletion(self):
+        for _ in range(2):
+            RunFactory(project=self.project, user=self.user)
+
+        archive_project(self.project)
+
+        assert self.queryset.count() == 0
+        assert Project.all.count() == 1
+        assert Run.objects.count() == 0
+        assert Run.all.count() == 4
+
+        resp = self.client.post(self.url + "restore/")
+
+        assert resp.status_code == status.HTTP_200_OK
+        assert self.queryset.count() == 1
+        assert Project.all.count() == 1
+        assert Run.objects.count() == 4
+
+
+@pytest.mark.projects_mark
+class TestProjectBookmarkCreateView(BaseTestBookmarkCreateView):
+    model_class = Project
+    factory_class = ProjectFactory
+
+    def get_url(self):
+        return "/{}/{}/{}/bookmark/".format(
+            API_V1, self.user.username, self.object.name
+        )
+
+    def create_object(self):
+        return self.factory_class()
+
+
+@pytest.mark.projects_mark
+class TestProjectBookmarkDeleteView(BaseTestBookmarkDeleteView):
+    model_class = Project
+    factory_class = ProjectFactory
+
+    def get_url(self):
+        return "/{}/{}/{}/unbookmark/".format(
+            API_V1, self.user.username, self.object.name
+        )
+
+    def create_object(self):
+        return self.factory_class()
+
+
+del BaseTestBookmarkCreateView
+del BaseTestBookmarkDeleteView

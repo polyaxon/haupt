@@ -4,6 +4,9 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from django.conf import settings
+
+from haupt.db.defs import Models
 from haupt.db.managers.runs import base_approve_run
 from haupt.db.managers.statuses import new_run_status, new_run_stopping_status
 from polyaxon.exceptions import PolyaxonException
@@ -63,4 +66,26 @@ def approve_run(view, request, *args, **kwargs):
     if pending:
         base_approve_run(view.run)
         view.audit(request, *args, **kwargs)
+    return Response(status=status.HTTP_200_OK, data={})
+
+
+def transfer_run(view, request, *args, **kwargs):
+    project_name = request.data.get("project")
+    if project_name == view.project_name:
+        return Response(status=status.HTTP_200_OK, data={})
+    if not project_name:
+        raise ValidationError("The destination project was not provided.")
+    try:
+        filters = {"name": project_name}
+        if settings.HAS_ORG_MANAGEMENT:
+            filters["owner__name"] = view.owner_name
+        dest_project = Models.Project.objects.only("id").get(**filters)
+    except Models.Project.DoesNotExist:
+        raise ValidationError(
+            "The destination project `{}` does not exist.".format(project_name)
+        )
+
+    view.run.project_id = dest_project.id
+    view.run.save(update_fields=["project_id"])
+    view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})

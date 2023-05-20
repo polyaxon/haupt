@@ -291,4 +291,36 @@ class Migration(migrations.Migration):
                 to="db.run",
             ),
         ),
+        migrations.CreateModel(
+            name="Bookmark",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("enabled", models.BooleanField(default=True)),
+                ("object_id", models.PositiveIntegerField()),
+                (
+                    "content_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="contenttypes.contenttype",
+                    ),
+                ),
+            ],
+            options={
+                "verbose_name": "bookmark",
+                "verbose_name_plural": "bookmarks",
+                "db_table": "db_bookmark",
+                "abstract": False,
+            },
+        ),
     ]

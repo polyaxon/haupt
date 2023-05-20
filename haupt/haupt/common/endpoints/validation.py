@@ -4,7 +4,7 @@ from django.core.exceptions import BadRequest
 from django.http import HttpRequest
 
 from haupt.common import conf
-from haupt.common.internal_auth import get_internal_auth
+from haupt.common.authentication.internal import get_internal_auth
 from haupt.common.options.registry import core
 
 

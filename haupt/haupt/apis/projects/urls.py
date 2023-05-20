@@ -10,6 +10,13 @@ projects_urlpatterns = [
     re_path(projects.URLS_PROJECTS_LIST, views.ProjectListView.as_view()),
     re_path(projects.URLS_PROJECTS_NAMES, views.ProjectNameListView.as_view()),
     re_path(projects.URLS_PROJECTS_DETAILS, views.ProjectDetailView.as_view()),
+    re_path(projects.URLS_PROJECTS_ARCHIVE, views.ProjectArchiveView.as_view()),
+    re_path(projects.URLS_PROJECTS_RESTORE, views.ProjectRestoreView.as_view()),
+    re_path(projects.URLS_PROJECTS_BOOKMARK, views.ProjectBookmarkCreateView.as_view()),
+    re_path(
+        projects.URLS_PROJECTS_UNBOOKMARK, views.ProjectBookmarkDeleteView.as_view()
+    ),
+    re_path(projects.URLS_PROJECTS_STATS, views.ProjectStatsView.as_view()),
 ]
 
 # Order is important, because the patterns could swallow other urls

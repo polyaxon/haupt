@@ -1,8 +1,10 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
+
+from django.db.models import Count, Q
 
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1CompiledOperation, V1RunKind
 from polyaxon.schemas import V1RunPending
 
@@ -55,3 +57,136 @@ def base_approve_run(run: BaseRun):
                 new_pending = V1RunPending.APPROVAL
         run.pending = new_pending
         run.save(update_fields=["pending", "updated_at"])
+
+
+def get_runs_for(
+    run_id: int,
+    status: Optional[str],
+    statuses: Optional[Set[str]],
+    controller: bool = False,
+    distinct: bool = True,
+):
+    filters = {}
+    if controller:
+        filters["controller_id"] = run_id
+    else:
+        filters["pipeline_id"] = run_id
+    if status:
+        filters["status"] = status
+    if statuses:
+        filters["status__in"] = statuses
+    query = Models.Run.objects.filter(**filters)
+    if distinct:
+        query = query.distinct()
+
+    return query
+
+
+def is_pipeline_done(run: BaseRun) -> bool:
+    return not run.pipeline_runs.exclude(status__in=LifeCycle.DONE_VALUES).exists()
+
+
+def get_scheduled_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id, status=V1Statuses.SCHEDULED, statuses=None, controller=controller
+    )
+
+
+def get_succeeded_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id, status=V1Statuses.SUCCEEDED, statuses=None, controller=controller
+    )
+
+
+def get_failed_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id, status=V1Statuses.FAILED, statuses=None, controller=controller
+    )
+
+
+def get_stopped_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id, status=V1Statuses.STOPPED, statuses=None, controller=controller
+    )
+
+
+def get_done_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id,
+        status=None,
+        statuses=LifeCycle.DONE_VALUES,
+        controller=controller,
+    )
+
+
+def get_pending_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id,
+        status=None,
+        statuses=LifeCycle.PENDING_VALUES,
+        controller=controller,
+    )
+
+
+def get_running_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id,
+        status=None,
+        statuses=LifeCycle.RUNNING_VALUES,
+        controller=controller,
+    )
+
+
+def get_on_k8s_runs(run_id: int, controller: bool = False):
+    return get_runs_for(
+        run_id=run_id,
+        status=None,
+        statuses=LifeCycle.ON_K8S_VALUES,
+        controller=controller,
+    )
+
+
+def get_failed_stopped_and_all_runs(run_id: int, controller: bool = False):
+    query = get_runs_for(
+        run_id=run_id,
+        status=None,
+        statuses=None,
+        controller=controller,
+        distinct=False,
+    )
+    return query.aggregate(
+        all=Count(
+            "id",
+            distinct=True,
+        ),
+        failed=Count(
+            "id",
+            filter=Q(status=V1Statuses.FAILED),
+            distinct=True,
+        ),
+        stopped=Count(
+            "id",
+            filter=Q(status=V1Statuses.STOPPED),
+            distinct=True,
+        ),
+    )
+
+
+def get_stopping_pipelines_with_no_runs(queryset):
+    return (
+        queryset.filter(
+            kind__in=[V1RunKind.DAG, V1RunKind.MATRIX, V1RunKind.SCHEDULE],
+            status=V1Statuses.STOPPING,
+        )
+        .annotate(
+            unfinished=Count(
+                "pipeline_runs",
+                filter=~Q(
+                    pipeline_runs__status__in=LifeCycle.DONE_VALUES
+                    | LifeCycle.PENDING_VALUES
+                ),
+                distinct=True,
+            )
+        )
+        .filter(unfinished=0)
+    )

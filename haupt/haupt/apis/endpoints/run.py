@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 
@@ -10,18 +11,28 @@ from haupt.common.apis.regex import (
     RUN_UUID_KEY,
     UUID_KEY,
 )
+from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
 
 
 class RunEndpoint(ProjectResourceEndpoint):
-    queryset = Models.Run.all.select_related("project")
+    queryset = (
+        Models.Run.all.select_related("project", "project__owner")
+        if settings.HAS_ORG_MANAGEMENT
+        else Models.Run.all.select_related("project")
+    )
     lookup_field = UUID_KEY
     lookup_url_kwarg = RUN_UUID_KEY
+    permission_classes = PERMISSIONS_MAPPING.get(["RUN_PERMISSION"])
+    throttle_scope = "run"
     CONTEXT_KEYS = (OWNER_NAME_KEY, PROJECT_NAME_KEY, RUN_UUID_KEY)
     CONTEXT_OBJECTS = ("run",)
 
     def enrich_queryset(self, queryset):
-        return queryset.filter(project__name=self.project_name)
+        filters = {"project__name": self.project_name}
+        if settings.HAS_ORG_MANAGEMENT:
+            filters["project__owner__name"] = self.owner_name
+        return queryset.filter(**filters)
 
     def set_owner(self):
         self.project = self.run.project
@@ -33,16 +44,19 @@ class RunEndpoint(ProjectResourceEndpoint):
 
 
 class RunResourceListEndpoint(RunEndpoint):
+    permission_classes = PERMISSIONS_MAPPING.get(["RUN_PERMISSION"])
     AUDITOR_EVENT_TYPES = None
 
     def get_object(self):
         if self._object:
             return self._object
 
+        filters = {"uuid": self.run_uuid, "project__name": self.project_name}
+        if settings.HAS_ORG_MANAGEMENT:
+            filters["project__owner__name"] = self.owner_name
         self._object = get_object_or_404(
-            Models.Run.all.select_related("project"),
-            uuid=self.run_uuid,
-            project__name=self.project_name,
+            Models.Run.restorable.select_related("project"),
+            **filters,
         )
 
         # May raise a permission denied
@@ -55,17 +69,18 @@ class RunResourceListEndpoint(RunEndpoint):
 
 
 class RunArtifactEndpoint(RunEndpoint):
-    AUDITOR_EVENT_TYPES = None
     lookup_field = NAME_KEY
     lookup_url_kwarg = ARTIFACT_NAME_KEY
-    CONTEXT_KEYS = (PROJECT_NAME_KEY, RUN_UUID_KEY, ARTIFACT_NAME_KEY)
+    permission_classes = PERMISSIONS_MAPPING.get(["RUN_RESOURCE_PERMISSION"])
+    AUDITOR_EVENT_TYPES = None
+    CONTEXT_KEYS = (OWNER_NAME_KEY, PROJECT_NAME_KEY, RUN_UUID_KEY, ARTIFACT_NAME_KEY)
     CONTEXT_OBJECTS = ("run_artifact",)
 
     def enrich_queryset(self, queryset):
-        return queryset.filter(
-            run__uuid=self.run_uuid,
-            run__project__name=self.project_name,
-        )
+        filters = {"run__uuid": self.run_uuid, "run__project__name": self.project_name}
+        if settings.HAS_ORG_MANAGEMENT:
+            filters["run__project__owner__name"] = self.owner_name
+        return queryset.filter(**filters)
 
     def set_owner(self):
         self.project = self.run_artifact.run.project

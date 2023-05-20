@@ -6,19 +6,19 @@ from haupt.orchestration.executor.service import ExecutorService
 
 
 def get_executor_backend_path():
-    return (
-        settings.EXECUTOR_BACKEND
-        or "haupt.orchestration.executor.service.ExecutorService"
-    )
+    return settings.EXECUTOR_BACKEND
 
 
 def get_executor_options():
-    return {"workers_service": settings.WORKERS_SERVICE}
+    return {
+        "workers_service": settings.WORKERS_SERVICE,
+        "handlers_service": settings.HANDLERS_SERVICE,
+    }
 
 
 backend = LazyServiceWrapper(
     backend_base=ExecutorService,
-    backend_path=get_executor_backend_path(),
+    backend_path=settings.EXECUTOR_BACKEND,
     options=get_executor_options(),
 )
 backend.expose(locals())

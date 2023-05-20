@@ -60,5 +60,9 @@ class _Models:
     def ProjectVersion(self) -> Type[models.Model]:
         return self.get_db_model("ProjectVersion")
 
+    @cached_property
+    def Bookmark(self) -> Type[models.Model]:
+        return self.get_db_model("Bookmark")
+
 
 Models = _Models()
