@@ -9,4 +9,4 @@
 
 # Haupt
 
-Central API, streams, local debugger, lineage & metadata viewer.
+Lineage metadata API, artifacts streams, sandbox, API, and spaces for Polyaxon
