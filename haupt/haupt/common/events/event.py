@@ -115,15 +115,15 @@ class Event:
                     )
                 data[attr.name] = attr.extract(item_value)
 
-            if not settings.HAS_ORG_MANAGEMENT:
+            if self.actor and not settings.HAS_ORG_MANAGEMENT:
                 data[self.actor_id] = (
                     data.get(self.actor_id) or user_system.USER_SYSTEM_ID
                 )
                 data[self.actor_name] = (
                     data.get(self.actor_name) or user_system.USER_SYSTEM_NAME
                 )
-            actor_id = data[self.actor_id]
-            actor_name = data[self.actor_name]
+            actor_id = data.get(self.actor_id)
+            actor_name = data.get(self.actor_name)
             if self.actor and actor_id is None:
                 raise ValueError(
                     "Event {} requires an attribute specifying the actor_id".format(
