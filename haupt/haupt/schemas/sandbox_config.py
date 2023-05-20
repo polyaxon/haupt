@@ -3,6 +3,7 @@ from typing import Optional
 from clipped.utils.http import clean_host
 from pydantic import Field, StrictInt, StrictStr
 
+from polyaxon.connections import V1Connection, V1ConnectionKind, V1HostPathConnection
 from polyaxon.env_vars.keys import (
     EV_KEYS_K8S_NAMESPACE,
     EV_KEYS_SANDBOX_DEBUG,
@@ -13,10 +14,10 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_SANDBOX_SSL_ENABLED,
     EV_KEYS_SANDBOX_WORKERS,
 )
-from polyaxon.schemas.cli.agent_config import BaseAgentConfig
+from polyaxon.schemas.cli.agent_config import AgentConfig
 
 
-class SandboxConfig(BaseAgentConfig):
+class SandboxConfig(AgentConfig):
     _IDENTIFIER = "sandbox"
 
     namespace: Optional[StrictStr] = Field(
@@ -39,3 +40,13 @@ class SandboxConfig(BaseAgentConfig):
             host=clean_host(host) if host else host,
             **data,
         )
+
+    def set_default_artifacts_store(self):
+        if not self.artifacts_store:
+            self.artifacts_store = V1Connection(
+                name="local",
+                kind=V1ConnectionKind.HOST_PATH,
+                schema_=V1HostPathConnection(
+                    host_path=self.store_root, mount_path=self.store_root
+                ),
+            )

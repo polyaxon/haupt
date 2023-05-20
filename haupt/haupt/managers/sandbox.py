@@ -16,7 +16,9 @@ class SandboxConfigManager(ConfigManager):
         config_paths = [os.environ, {"dummy": "dummy"}]
 
         config = cls._CONFIG_READER.read_configs(config_paths)
-        return cls.CONFIG.from_dict(config.data)
+        config = cls.CONFIG.from_dict(config.data)
+        config.set_default_artifacts_store()
+        return config
 
     @classmethod
     def get_config_or_default(cls) -> SandboxConfig:

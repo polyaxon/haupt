@@ -331,6 +331,8 @@ class TestRawBulkUpdater(TestCase):
         assert Run.objects.filter(tags__contains=["tag2"]).count() == 1
 
 
-if settings.DB_ENGINE_NAME == "sqlite" and compare_versions(sqlite3.sqlite_version, "3.30.0", "<"):
+if settings.DB_ENGINE_NAME == "sqlite" and compare_versions(
+    sqlite3.sqlite_version, "3.30.0", "<"
+):
     del TestRawBulkInserter
     del TestRawBulkUpdater
