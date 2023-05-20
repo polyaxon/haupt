@@ -162,7 +162,7 @@ class RunsManager:
 
     @staticmethod
     def _capture_exception(e: Exception):
-        return
+        _logger.exception(e)
 
     @staticmethod
     def _capture_message(message: str):
