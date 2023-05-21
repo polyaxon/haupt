@@ -13,7 +13,7 @@ from haupt.apis.serializers.base.owner_mixin import ProjectOwnerMixin
 from haupt.apis.serializers.base.pipeline import PipelineMixin
 from haupt.apis.serializers.base.project import ProjectMixin
 from haupt.apis.serializers.base.resources_mixin import ResourcesMixin
-from haupt.apis.serializers.base.settings import SettingsMixin
+from haupt.apis.serializers.base.settings import FullSettingsMixin, SettingsMixin
 from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.apis.serializers.base.user_mixin import UserMixin
 from haupt.db.defs import Models
@@ -243,7 +243,11 @@ class GraphRunSerializer(RunSerializer, UserMixin):
 
 
 class RunDetailSerializer(
-    RunSerializer, IsManagedMixin, ResourcesMixin, BookmarkedSerializerMixin
+    RunSerializer,
+    FullSettingsMixin,
+    IsManagedMixin,
+    ResourcesMixin,
+    BookmarkedSerializerMixin,
 ):
     bookmarked_model = "run"
     merge = fields.BooleanField(write_only=True, required=False)

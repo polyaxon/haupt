@@ -249,6 +249,13 @@ class TestRunDetailSerializer(BaseTestRunSerializer):
         assert data.pop("settings") == {
             "component": None,
             "namespace": conf.get(K8S_NAMESPACE),
+            "artifacts_store": None,
+            "agent": None,
+            "queue": None,
+            "tensorboard": None,
+            "build": None,
+            "models": [],
+            "artifacts": [],
         }
         assert data.pop("bookmarked") is False
         assert data.pop("resources") == {
