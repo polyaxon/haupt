@@ -17,6 +17,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="run",
+            name="component_state",
+            field=models.UUIDField(blank=True, db_index=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="run",
             name="checked_at",
             field=models.DateTimeField(
                 blank=True, db_index=True, default=django.utils.timezone.now, null=True

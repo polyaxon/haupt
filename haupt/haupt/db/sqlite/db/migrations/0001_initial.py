@@ -488,6 +488,10 @@ class Migration(migrations.Migration):
                 ("inputs", models.JSONField(blank=True, null=True)),
                 ("outputs", models.JSONField(blank=True, null=True)),
                 (
+                    "component_state",
+                    models.UUIDField(blank=True, db_index=True, null=True),
+                ),
+                (
                     "cloning_kind",
                     models.CharField(
                         blank=True,

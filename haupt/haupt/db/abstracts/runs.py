@@ -76,6 +76,7 @@ class BaseRun(
     params = models.JSONField(null=True, blank=True)
     inputs = models.JSONField(null=True, blank=True)
     outputs = models.JSONField(null=True, blank=True)
+    component_state = models.UUIDField(null=True, blank=True, db_index=True)
     original = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,

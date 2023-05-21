@@ -696,9 +696,7 @@ class RunsResolver(resolver.BaseResolver):
             connections=self.compiled_operation.run.get_all_connections(),
             containers=self.compiled_operation.run.get_all_containers(),
             namespace=self.project.uuid,
-            component_state=self.run.component_state
-            if hasattr(self.run, "component_state")
-            else None,
+            component_state=self.run.component_state,
         )
 
     def persist_state(self):
