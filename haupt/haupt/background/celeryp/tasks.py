@@ -22,3 +22,5 @@ class SchedulerCeleryTasks:
     RUNS_WAKEUP_SCHEDULE = "runs_wakeup_schedule"
     RUNS_ITERATE = "runs_iterate"
     RUNS_TUNE = "runs_tune"
+    DELETE_ARCHIVED_PROJECT = "delete_archived_project"
+    DELETE_ARCHIVED_RUN = "delete_archived_run"

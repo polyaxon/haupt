@@ -35,4 +35,6 @@ class TasksExecutions:
             SchedulerCeleryTasks.RUNS_WAKEUP_SCHEDULE: RunsManager.runs_wakeup_schedule,
             SchedulerCeleryTasks.RUNS_ITERATE: RunsManager.runs_iterate,
             SchedulerCeleryTasks.RUNS_TUNE: RunsManager.runs_tune,
+            SchedulerCeleryTasks.DELETE_ARCHIVED_PROJECT: RunsManager.delete_archived_project,
+            SchedulerCeleryTasks.DELETE_ARCHIVED_RUN: RunsManager.delete_archived_run,
         }
