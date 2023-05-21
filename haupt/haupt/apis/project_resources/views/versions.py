@@ -165,6 +165,23 @@ class ProjectArtifactVersionNameListView(ProjectVersionNameListView):
     )
 
 
+ADDITIONAL_SELECT_RELATED_DETAILS = ADDITIONAL_SELECT_RELATED + (
+    [
+        "connection",
+        "connection__agent",
+    ]
+    if settings.HAS_ORG_MANAGEMENT
+    else []
+)
+ADDITIONAL_PREFETCH_RELATED_DETAILS = (
+    [
+        "lineage__connection",
+    ]
+    if settings.HAS_ORG_MANAGEMENT
+    else []
+)
+
+
 class ProjectVersionDetailView(
     VersionEndpoint, RetrieveEndpoint, UpdateEndpoint, DestroyEndpoint
 ):
@@ -178,16 +195,14 @@ class ProjectVersionDetailView(
     """
 
     queryset = Models.ProjectVersion.objects.select_related(
-        *ADDITIONAL_SELECT_RELATED,
+        *ADDITIONAL_SELECT_RELATED_DETAILS,
         "project",
-        "connection",
-        "connection__agent",
         "run",
         "run__project",
     ).prefetch_related(
+        *ADDITIONAL_PREFETCH_RELATED_DETAILS,
         "lineage",
         "lineage__artifact",
-        "lineage__connection",
     )
     ALLOWED_METHODS = ["GET", "PUT", "PATCH", "DELETE"]
     AUDIT_OWNER = True
