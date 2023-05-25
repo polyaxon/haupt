@@ -15,6 +15,7 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_K8S_NAMESPACE,
     EV_KEYS_LOG_LEVEL,
     EV_KEYS_LOGS_ROOT,
+    EV_KEYS_MAX_CONCURRENCY,
     EV_KEYS_PLATFORM_HOST,
     EV_KEYS_SECRET_KEY,
     EV_KEYS_SERVICE,
@@ -73,6 +74,7 @@ class PlatformConfig(BaseSchemaModel):
     static_url: Optional[str] = Field(alias=EV_KEYS_STATIC_URL)
     artifacts_root: Optional[str] = Field(alias=EV_KEYS_ARTIFACTS_ROOT)
     archives_root: Optional[str] = Field(alias=EV_KEYS_ARCHIVES_ROOT)
+    max_concurrency: Optional[int] = Field(alias=EV_KEYS_MAX_CONCURRENCY, default=1)
     broker_backend: Optional[Literal["redis", "rabbitmq"]] = Field(
         alias="POLYAXON_BROKER_BACKEND"
     )
