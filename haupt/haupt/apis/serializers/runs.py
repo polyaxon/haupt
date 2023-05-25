@@ -378,6 +378,7 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
         model = Models.Run
         fields = (
             "uuid",
+            "kind",
             "name",
             "description",
             "content",
@@ -390,6 +391,7 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
         )
         extra_kwargs = {
             "is_approved": {"write_only": True},
+            "kind": {"read_only": True},
         }
 
     def get_settings(self, obj):

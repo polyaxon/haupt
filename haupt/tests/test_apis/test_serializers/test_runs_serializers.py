@@ -104,6 +104,7 @@ class TestOperationCreateSerializer(BaseTestRunSerializer):
     expected_keys = {
         "uuid",
         "name",
+        "kind",
         "description",
         "content",
         "is_managed",
