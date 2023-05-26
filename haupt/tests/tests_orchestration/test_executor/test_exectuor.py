@@ -7,7 +7,7 @@ from haupt.common import auditor
 from haupt.common.events.registry import run as run_events
 from haupt.orchestration import executor
 from haupt.orchestration.executor.handlers import APIHandler
-from polyaxon.constants.metadata import META_EAGER_MODE
+from polyaxon.constants.metadata import META_LOCAL_MODE
 from polyaxon.schemas import V1RunPending
 
 
@@ -119,7 +119,7 @@ class TestExecutorHandlers(TestCase):
         States.workers = None
         event = MagicMock(
             data=data,
-            instance=MagicMock(meta_info={META_EAGER_MODE: False}, pending=None),
+            instance=MagicMock(meta_info={META_LOCAL_MODE: False}, pending=None),
         )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE
@@ -127,7 +127,7 @@ class TestExecutorHandlers(TestCase):
         States.workers = None
         event = MagicMock(
             data=data,
-            instance=MagicMock(meta_info={META_EAGER_MODE: True}, pending=None),
+            instance=MagicMock(meta_info={META_LOCAL_MODE: True}, pending=None),
         )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE

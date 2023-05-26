@@ -101,7 +101,6 @@ class RunsResolver(resolver.BaseResolver):
         cloning_kind: V1CloningKind = None,
         original_uuid: Optional[str] = None,
         is_independent: bool = True,
-        eager: bool = False,
     ):
         super().__init__(
             run=run,
@@ -118,7 +117,6 @@ class RunsResolver(resolver.BaseResolver):
             cloning_kind=cloning_kind,
             original_uuid=original_uuid,
             is_independent=is_independent,
-            eager=eager,
         )
         self.project = self.run.project
         self.schedule_at = self.run.schedule_at
@@ -1315,7 +1313,7 @@ class RunsResolver(resolver.BaseResolver):
             return False
 
     def _apply_pipeline_contexts(self):
-        if not self.run.is_managed or self.eager:
+        if not self.run.is_managed:
             return self.compiled_operation
 
         if self.compiled_operation.schedule:

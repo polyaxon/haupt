@@ -84,7 +84,6 @@ class RunsManager:
         cls,
         run: BaseRun,
         compiled_at: Optional[datetime] = None,
-        eager: bool = False,
     ):
         try:
             compiled_operation = V1CompiledOperation.read(
@@ -107,7 +106,6 @@ class RunsManager:
                 cloning_kind=run.cloning_kind,
                 original_uuid=run.original.uuid.hex if run.original_id else None,
                 is_independent=bool(run.pipeline_id),
-                eager=eager,
             )
         except (
             AccessNotAuthorized,
@@ -788,7 +786,6 @@ class RunsManager:
         run_id: int,
         run: Optional[BaseRun],
         start: bool = False,
-        eager: bool = False,
         extra_message: Optional[str] = None,
     ):
         run = cls.get_run(run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH)
@@ -806,9 +803,7 @@ class RunsManager:
 
         try:
             compiled_at = now()
-            _, compiled_operation = cls._resolve(
-                run=run, compiled_at=compiled_at, eager=eager
-            )
+            _, compiled_operation = cls._resolve(run=run, compiled_at=compiled_at)
         except PolyaxonCompilerError as e:
             condition = V1StatusCondition.get_condition(
                 type=V1Statuses.FAILED,

@@ -102,12 +102,10 @@ class OperationsService(Service):
             "your account has reached the allowed quota, "
             "or your plan does not support operations of kind: {}"
         )
-        if kind not in supported_kinds:
-            if is_managed or kind not in V1RunKind.eager_values():
-                raise ValueError(error_message.format(kind))
-        if runtime and runtime not in supported_kinds:
-            if is_managed or runtime not in V1MatrixKind.eager_values():
-                raise ValueError(error_message.format(runtime))
+        if kind not in supported_kinds and is_managed:
+            raise ValueError(error_message.format(kind))
+        if runtime and runtime not in supported_kinds and is_managed:
+            raise ValueError(error_message.format(runtime))
         return True
 
     @classmethod

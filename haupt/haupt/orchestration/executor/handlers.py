@@ -7,8 +7,8 @@ from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.orchestration.scheduler.manager import RunsManager
 from polyaxon.constants.metadata import (
-    META_EAGER_MODE,
     META_HAS_DOWNSTREAM_EVENTS_TRIGGER,
+    META_LOCAL_MODE,
 )
 from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
@@ -24,7 +24,7 @@ class APIHandler:
         if (
             event.instance
             and event.instance.status != V1Statuses.RESUMING
-            and (event.instance.meta_info or {}).get(META_EAGER_MODE)
+            and (event.instance.meta_info or {}).get(META_LOCAL_MODE)
         ):
             eager = True
         if not eager:
@@ -50,7 +50,7 @@ class APIHandler:
             SchedulerCeleryTasks.RUNS_PREPARE,
             delay=conf.get(SCHEDULER_ENABLED) and not eager,
             kwargs={"run_id": event.instance_id},
-            eager_kwargs={"run": event.instance, "eager": eager},
+            eager_kwargs={"run": event.instance},
         )
 
     @classmethod
