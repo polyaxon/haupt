@@ -2,6 +2,7 @@ import json
 
 from typing import List
 
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 from haupt.common.db.inserter import RawBulkInserter
@@ -23,10 +24,6 @@ _RUN_FIELDS = (
     "status_conditions",
     "state",
     "readme",
-    "agent_id",
-    "queue_id",
-    "namespace",
-    "artifacts_store_id",
     "component_state",
     "raw_content",
     "content",
@@ -47,6 +44,14 @@ _RUN_FIELDS = (
     "schedule_at",
     "user_id",
 )
+
+if settings.HAS_ORG_MANAGEMENT:
+    _RUN_FIELDS += (
+        "namespace",
+        "artifacts_store_id",
+        "agent_id",
+        "queue_id",
+    )
 
 
 def _process_field(run: BaseRun, field: str):
