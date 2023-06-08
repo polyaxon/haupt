@@ -17,9 +17,8 @@ from haupt.db.managers.live_state import archive_project, restore_project
 from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
-from polyaxon import live_state
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import LifeCycle, V1Statuses
+from polyaxon.lifecycle import LifeCycle, LiveState, V1Statuses
 from tests.base.case import (
     BaseTest,
     BaseTestBookmarkCreateView,
@@ -400,11 +399,11 @@ class TestProjectDetailViewV1(BaseTestProjectApi):
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         assert self.queryset.count() == 0
         assert Project.all.count() == 1  # Async
-        assert Project.all.last().live_state == live_state.STATE_DELETION_PROGRESSING
+        assert Project.all.last().live_state == LiveState.DELETION_PROGRESSING
         assert Run.objects.count() == 0
         assert Run.all.count() == 4
         assert set(Run.all.values_list("live_state", flat=True)) == {
-            live_state.STATE_DELETION_PROGRESSING
+            LiveState.DELETION_PROGRESSING
         }
 
 
@@ -431,9 +430,7 @@ class TestProjectArchiveRestoreViewV1(BaseTestProjectApi):
             Run.all.exclude(status__in=LifeCycle.DONE_OR_IN_PROGRESS_VALUES).count()
             == 0
         )
-        assert set(Run.all.values_list("live_state", flat=True)) == {
-            live_state.STATE_ARCHIVED
-        }
+        assert set(Run.all.values_list("live_state", flat=True)) == {LiveState.ARCHIVED}
 
     def test_restore_schedules_deletion(self):
         for _ in range(2):

@@ -1,23 +1,21 @@
 from django.db import models
 
-from polyaxon import live_state
+from polyaxon.lifecycle import LiveState
 
 
 class LiveManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(live_state=live_state.STATE_LIVE)
+        return qs.filter(live_state=LiveState.LIVE)
 
 
 class ArchivedManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(live_state=live_state.STATE_ARCHIVED)
+        return qs.filter(live_state=LiveState.ARCHIVED)
 
 
 class RestorableManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(
-            live_state__in={live_state.STATE_LIVE, live_state.STATE_ARCHIVED}
-        )
+        return qs.filter(live_state__in={LiveState.LIVE, LiveState.ARCHIVED})

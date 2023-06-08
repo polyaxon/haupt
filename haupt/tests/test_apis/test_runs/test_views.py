@@ -15,9 +15,8 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
-from polyaxon import live_state
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LiveState, V1StatusCondition, V1Statuses
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.polyflow import V1RunKind
 from polyaxon.schemas import V1RunPending
@@ -205,10 +204,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
         # Deleted
         assert self.model_class.objects.count() == 0
         assert self.model_class.all.count() == 1
-        assert (
-            self.model_class.all.last().live_state
-            == live_state.STATE_DELETION_PROGRESSING
-        )
+        assert self.model_class.all.last().live_state == LiveState.DELETION_PROGRESSING
 
 
 @pytest.mark.run_mark

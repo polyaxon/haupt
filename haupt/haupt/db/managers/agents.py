@@ -11,9 +11,9 @@ from haupt.db.defs import Models
 from haupt.db.managers.queues import get_num_to_start
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_ONLY
-from polyaxon import live_state, operations, settings
+from polyaxon import operations, settings
 from polyaxon.auxiliaries import V1DefaultScheduling
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LifeCycle, LiveState, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1RunKind
 from polyaxon.schemas.cli.agent_config import AgentConfig
 from polyaxon.utils.fqn_utils import get_run_instance
@@ -68,7 +68,7 @@ def get_stopping_runs(
     filters = Q(status=V1Statuses.STOPPING)
     if agent_version is None or agent_version == "1.1.9":
         filters = Q(status=V1Statuses.STOPPING) | Q(
-            live_state=live_state.STATE_DELETION_PROGRESSING
+            live_state=LiveState.DELETION_PROGRESSING
         )
     stopping_runs = (
         Models.Run.restorable.filter(
@@ -113,7 +113,7 @@ def get_deleting_runs(
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
-            live_state=live_state.STATE_DELETION_PROGRESSING,
+            live_state=LiveState.DELETION_PROGRESSING,
             status__in=LifeCycle.DONE_VALUES,
             pending__isnull=True,
             is_managed=True,
@@ -160,7 +160,7 @@ def get_deleting_runs(
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             },
-            live_state=live_state.STATE_DELETION_PROGRESSING,
+            live_state=LiveState.DELETION_PROGRESSING,
             pending__isnull=True,
             is_managed=True,
         )

@@ -29,9 +29,8 @@ from haupt.db.models.artifacts import Artifact, ArtifactLineage
 from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
-from polyaxon import live_state
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.lifecycle import LiveState, V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending
 from tests.base.case import BaseTest
@@ -307,14 +306,14 @@ class TestProjectRunsArchiveViewV1(BaseTest):
     def test_archive(self, _):
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
-            live_state.STATE_LIVE,
+            LiveState.LIVE,
         }
         with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
-            live_state.STATE_LIVE,
-            live_state.STATE_ARCHIVED,
+            LiveState.LIVE,
+            LiveState.ARCHIVED,
         }
         assert auditor_record.call_count == 2
 
@@ -331,7 +330,7 @@ class TestProjectRunsRestoreViewV1(BaseTest):
             self.factory_class(
                 project=self.project,
                 user=self.user,
-                live_state=live_state.STATE_ARCHIVED,
+                live_state=LiveState.ARCHIVED,
             )
             for _ in range(4)
         ]
@@ -343,14 +342,14 @@ class TestProjectRunsRestoreViewV1(BaseTest):
     def test_restore(self, _):
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
-            live_state.STATE_ARCHIVED,
+            LiveState.ARCHIVED,
         }
         with patch("haupt.common.auditor.record") as auditor_record:
             resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert set(Run.all.only("live_state").values_list("live_state", flat=True)) == {
-            live_state.STATE_LIVE,
-            live_state.STATE_ARCHIVED,
+            LiveState.LIVE,
+            LiveState.ARCHIVED,
         }
         assert auditor_record.call_count == 2
 

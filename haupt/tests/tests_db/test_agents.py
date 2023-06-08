@@ -16,9 +16,9 @@ from haupt.db.managers.agents import (
     get_runs_by_pipeline,
 )
 from haupt.db.models.runs import Run
-from polyaxon import live_state, operations, settings
+from polyaxon import operations, settings
 from polyaxon.connections import V1BucketConnection, V1Connection, V1ConnectionKind
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.lifecycle import LiveState, V1Statuses
 from polyaxon.polyflow import V1Environment, V1RunKind
 from polyaxon.schemas.cli.agent_config import AgentConfig
 from polyaxon.utils.fqn_utils import get_run_instance
@@ -275,17 +275,17 @@ class TestAgentState(TestCase):
         # Patch all runs to be managed
         Run.all.update(is_managed=True)
 
-        run1.live_state = live_state.STATE_DELETION_PROGRESSING
+        run1.live_state = LiveState.DELETION_PROGRESSING
         run1.status = V1Statuses.RUNNING
         run1.save()
-        run2.live_state = live_state.STATE_DELETION_PROGRESSING
+        run2.live_state = LiveState.DELETION_PROGRESSING
         run2.status = V1Statuses.COMPILED
         run2.save()
 
-        run5.live_state = live_state.STATE_DELETION_PROGRESSING
+        run5.live_state = LiveState.DELETION_PROGRESSING
         run5.status = V1Statuses.STOPPED
         run5.save()
-        run6.live_state = live_state.STATE_DELETION_PROGRESSING
+        run6.live_state = LiveState.DELETION_PROGRESSING
         run6.status = V1Statuses.FAILED
         run6.save()
 

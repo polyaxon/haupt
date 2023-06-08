@@ -17,8 +17,7 @@ from haupt.common.events.registry.run import (
 from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import bookmark_obj
 from haupt.db.managers.statuses import bulk_new_run_status
-from polyaxon import live_state
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LifeCycle, LiveState, V1StatusCondition, V1Statuses
 from polyaxon.schemas import V1RunPending
 
 
@@ -126,9 +125,7 @@ def delete_runs(view, request, actor, *args, **kwargs):
             project_name=view.project_name,
         )
     # Deletion in progress
-    runs.filter(is_managed=True).update(
-        live_state=live_state.STATE_DELETION_PROGRESSING
-    )
+    runs.filter(is_managed=True).update(live_state=LiveState.DELETION_PROGRESSING)
     return Response(status=status.HTTP_200_OK, data={})
 
 
@@ -149,10 +146,10 @@ def archive_runs(view, request, actor, *args, **kwargs):
     )
     # Pipeline runs
     Models.Run.objects.filter(pipeline__uuid__in=uuids).update(
-        live_state=live_state.STATE_ARCHIVED
+        live_state=LiveState.ARCHIVED
     )
     runs = [r for r in queryset]
-    queryset.update(live_state=live_state.STATE_ARCHIVED)
+    queryset.update(live_state=LiveState.ARCHIVED)
     # For Audit
     view.set_owner()
     for run in runs:
@@ -175,10 +172,10 @@ def restore_runs(view, request, actor, *args, **kwargs):
     queryset = queryset.filter(uuid__in=uuids)
     # Restore pipeline runs
     Models.Run.archived.filter(pipeline__uuid__in=uuids).update(
-        live_state=live_state.STATE_LIVE
+        live_state=LiveState.LIVE
     )
     runs = [r for r in queryset]
-    queryset.update(live_state=live_state.STATE_LIVE)
+    queryset.update(live_state=LiveState.LIVE)
     # For Audit
     view.set_owner()
     for run in runs:

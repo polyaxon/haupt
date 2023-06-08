@@ -14,7 +14,7 @@ from haupt.common.apis.regex import (
 from haupt.common.endpoints.base import BaseEndpoint
 from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
-from polyaxon import live_state
+from polyaxon.lifecycle import LiveState
 
 
 class ProjectEndpoint(BaseEndpoint):
@@ -53,7 +53,7 @@ class ProjectResourceListEndpoint(ProjectEndpoint):
         filters = {"name": self.project_name}
         if settings.HAS_ORG_MANAGEMENT:
             filters["owner__name"] = self.owner_name
-            filters["owner__live_state"] = live_state.STATE_LIVE
+            filters["owner__live_state"] = LiveState.LIVE
         return get_object_or_404(
             Models.Project,
             **filters,

@@ -3,7 +3,7 @@ from typing import Any, Iterable, Optional, Union
 from clipped.utils.bools import to_bool
 from clipped.utils.lists import to_list
 
-from polyaxon import live_state
+from polyaxon.lifecycle import LiveState
 from traceml.artifacts import V1ArtifactKind
 
 
@@ -21,11 +21,11 @@ def archived_condition(
     params = to_list(params)
     if len(params) == 1 and to_bool(params[0]) is True:
         return (
-            queryset.filter(live_state=live_state.STATE_ARCHIVED)
+            queryset.filter(live_state=LiveState.ARCHIVED)
             if queryset
-            else query_backend(live_state=live_state.STATE_ARCHIVED)
+            else query_backend(live_state=LiveState.ARCHIVED)
         )
-    return query_backend(live_state=live_state.STATE_LIVE)
+    return query_backend(live_state=LiveState.LIVE)
 
 
 def independent_condition(
