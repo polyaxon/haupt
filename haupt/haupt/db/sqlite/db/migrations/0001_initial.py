@@ -5,6 +5,7 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.core.serializers.json
 import django.core.validators
+import django.db.models.deletion
 import django.utils.timezone
 
 from django.conf import settings
@@ -249,7 +250,7 @@ class Migration(migrations.Migration):
                             (-1, "deletion_progressing"),
                         ],
                         db_index=True,
-                        default=1,
+                        default=polyaxon.lifecycle.LiveState["LIVE"],
                         null=True,
                     ),
                 ),
@@ -313,7 +314,7 @@ class Migration(migrations.Migration):
                             (-1, "deletion_progressing"),
                         ],
                         db_index=True,
-                        default=1,
+                        default=polyaxon.lifecycle.LiveState["LIVE"],
                         null=True,
                     ),
                 ),
@@ -464,7 +465,22 @@ class Migration(migrations.Migration):
                     "is_managed",
                     models.BooleanField(
                         default=True,
-                        help_text="If this entity is managed by the platform.",
+                        help_text="If this entity is managed by the platform (deprecated).",
+                    ),
+                ),
+                (
+                    "managed_by",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("user", "user"),
+                            ("cli", "cli"),
+                            ("agent", "agent"),
+                        ],
+                        db_index=True,
+                        max_length=5,
+                        default=polyaxon.lifecycle.ManagedBy["AGENT"],
+                        null=True,
                     ),
                 ),
                 (

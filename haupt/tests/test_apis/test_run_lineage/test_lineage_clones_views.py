@@ -7,7 +7,7 @@ from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.runs import Run
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from tests.base.case import BaseTest
 
@@ -26,7 +26,7 @@ class TestRunClonesListViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.runs = []
         obj = RunFactory(
@@ -65,7 +65,7 @@ class TestRunClonesListViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         RunFactory(
             user=self.user,

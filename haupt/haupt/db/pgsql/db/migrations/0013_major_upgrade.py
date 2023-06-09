@@ -9,12 +9,51 @@ from django.db import migrations, models
 import polyaxon.lifecycle
 
 
+def migrate_is_managed_by(apps, schema_editor):
+    Run = apps.get_model("db", "Run")
+
+    runs = []
+    for r in Run.objects.annotate(
+        calc_wait_time=models.F("started_at") - models.F("created_at")
+    ):
+        if r.calc_wait_time:
+            r.wait_time = r.calc_wait_time.seconds
+            runs.append(r)
+
+    Run.objects.filter(is_managed=True).update(
+        managed_by=polyaxon.lifecycle.ManagedBy.AGENT.value
+    )
+    Run.objects.filter(is_managed=False).update(
+        managed_by=polyaxon.lifecycle.ManagedBy.USER.value
+    )
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("db", "0012_alter_artifact_updated_at_and_more"),
     ]
 
     operations = [
+        migrations.AddField(
+            model_name="run",
+            name="managed_by",
+            field=models.CharField(
+                blank=True,
+                choices=[("user", "user"), ("cli", "cli"), ("agent", "agent")],
+                db_index=True,
+                max_length=5,
+                default=polyaxon.lifecycle.ManagedBy["AGENT"],
+                null=True,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="run",
+            name="is_managed",
+            field=models.BooleanField(
+                default=True,
+                help_text="If this entity is managed by the platform (deprecated).",
+            ),
+        ),
         migrations.AddField(
             model_name="run",
             name="component_state",
@@ -328,4 +367,5 @@ class Migration(migrations.Migration):
                 "abstract": False,
             },
         ),
+        migrations.RunPython(migrate_is_managed_by),
     ]

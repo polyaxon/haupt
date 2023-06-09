@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from haupt.common import auditor
 from haupt.common.events.registry.run import RUN_CREATED
 from haupt.db.defs import Models
+from polyaxon.lifecycle import ManagedBy
 
 
 @receiver(post_save, sender=Models.Run, dispatch_uid="run_created")
@@ -14,7 +15,7 @@ from haupt.db.defs import Models
 @ignore_raw
 def run_created(sender, **kwargs):
     instance = kwargs["instance"]
-    if instance.is_managed:
+    if ManagedBy.is_managed(instance.managed_by):
         if (instance.is_clone and instance.content is None) or (
             not instance.is_clone and instance.raw_content is None
         ):

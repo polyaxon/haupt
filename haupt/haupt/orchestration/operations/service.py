@@ -18,7 +18,7 @@ from polyaxon.constants.metadata import (
     META_ITERATION,
     META_UPLOAD_ARTIFACTS,
 )
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.polyflow import (
     V1CloningKind,
@@ -226,6 +226,7 @@ class OperationsService(Service):
         original_id: Optional[int] = None,
         cloning_kind: Optional[str] = None,
         is_managed: bool = True,
+        managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
         pending: Optional[str] = None,
         meta_info: Optional[Dict] = None,
         supported_kinds: Set[str] = None,
@@ -283,7 +284,9 @@ class OperationsService(Service):
             kind, runtime, meta_info = self.get_meta_info(
                 compiled_operation, kind, runtime, meta_info, **kwargs
             )
-            self.supports_kind(kind, runtime, supported_kinds, is_managed)
+            self.supports_kind(
+                kind, runtime, supported_kinds, ManagedBy.is_managed(managed_by)
+            )
             kwargs["content"] = compiled_operation.to_json()
         instance = Models.Run(
             project_id=project_id,
@@ -300,6 +303,7 @@ class OperationsService(Service):
             original_id=original_id,
             cloning_kind=cloning_kind,
             is_managed=is_managed,
+            managed_by=managed_by,
             pending=pending,
             status_conditions=[
                 V1StatusCondition.get_condition(
@@ -326,6 +330,7 @@ class OperationsService(Service):
         params: Optional[Dict] = None,
         readme: Optional[str] = None,
         is_managed: bool = True,
+        managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
         pending: Optional[str] = None,
         meta_info: Optional[Dict] = None,
         pipeline_id: Optional[int] = None,
@@ -347,6 +352,7 @@ class OperationsService(Service):
             controller_id=controller_id,
             tags=tags,
             is_managed=is_managed,
+            managed_by=managed_by,
             pending=pending,
             meta_info=meta_info,
             supported_kinds=supported_kinds,

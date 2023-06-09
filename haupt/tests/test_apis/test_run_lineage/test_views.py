@@ -18,6 +18,7 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.models.artifacts import Artifact, ArtifactLineage
 from haupt.db.queries import artifacts as artifacts_queries
 from polyaxon.api import API_V1
+from polyaxon.lifecycle import ManagedBy
 from tests.base.case import BaseTest
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 
@@ -38,7 +39,7 @@ class TestRunArtifactNameListViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.url = "/{}/{}/{}/runs/{}/artifacts_lineage/names/".format(
             API_V1, "polyaxon", self.project.name, self.run.uuid.hex
@@ -61,7 +62,7 @@ class TestRunArtifactNameListViewV1(BaseTest):
             project=other_project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         other_obj = self.factory_class(
             state=uuid.uuid4(),
@@ -105,7 +106,7 @@ class TestRunArtifactListViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.url = "/{}/{}/{}/runs/{}/artifacts_lineage/".format(
             API_V1, "polyaxon", self.project.name, self.run.uuid.hex
@@ -258,7 +259,7 @@ class TestRunArtifactDetailViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.artifact = self.factory_class(name="foo", state=self.project.owner.uuid)
         self.artifact_lineage = ArtifactLineage.objects.create(

@@ -3,6 +3,7 @@ import factory
 from haupt.db.defs import Models
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
+from polyaxon.lifecycle import ManagedBy
 
 
 class RunFactory(factory.django.DjangoModelFactory):
@@ -11,6 +12,7 @@ class RunFactory(factory.django.DjangoModelFactory):
     original = None
     pipeline = None
     is_managed = False
+    managed_by = ManagedBy.USER
 
     class Meta:
         model = Models.Run

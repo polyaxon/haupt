@@ -4,7 +4,7 @@ from django.db.models import Count, Q
 
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1CompiledOperation, V1RunKind
 from polyaxon.schemas import V1RunPending
 
@@ -18,6 +18,7 @@ def create_run(
     tags: List[int] = None,
     raw_content: Optional[str] = None,
     meta_info: Optional[Dict] = None,
+    managed_by: Optional[ManagedBy] = ManagedBy.USER,
 ) -> BaseRun:
     instance = Models.Run.objects.create(
         project_id=project_id,
@@ -28,6 +29,7 @@ def create_run(
         tags=tags,
         kind=V1RunKind.JOB,
         is_managed=False,
+        managed_by=managed_by,
         raw_content=raw_content,
         meta_info=meta_info,
         status_conditions=[

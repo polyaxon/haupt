@@ -13,7 +13,13 @@ from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_ONLY
 from polyaxon import operations, settings
 from polyaxon.auxiliaries import V1DefaultScheduling
-from polyaxon.lifecycle import LifeCycle, LiveState, V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import (
+    LifeCycle,
+    LiveState,
+    ManagedBy,
+    V1StatusCondition,
+    V1Statuses,
+)
 from polyaxon.polyflow import V1RunKind
 from polyaxon.schemas.cli.agent_config import AgentConfig
 from polyaxon.utils.fqn_utils import get_run_instance
@@ -21,7 +27,10 @@ from polyaxon.utils.fqn_utils import get_run_instance
 MAX_DELETE_ITEMS = 200
 
 
-def check_schedules(agent_filters: Optional[Dict] = None) -> bool:
+def check_schedules(
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
+    agent_filters: Optional[Dict] = None,
+) -> bool:
     agent_filters = agent_filters or {}
     end = now() + timedelta(seconds=3)
     schedule_runs = (
@@ -30,7 +39,7 @@ def check_schedules(agent_filters: Optional[Dict] = None) -> bool:
             status=V1Statuses.CREATED,
             schedule_at__lte=end,
             pending__isnull=True,
-            is_managed=True,
+            managed_by=managed_by,
         )
         .order_by("schedule_at")
         .only(*STATUS_UPDATE_COLUMNS_ONLY)
@@ -54,13 +63,14 @@ def check_schedules(agent_filters: Optional[Dict] = None) -> bool:
         status=V1Statuses.CREATED,
         schedule_at__range=(end, end + timedelta(seconds=8)),
         pending__isnull=True,
-        is_managed=True,
+        managed_by=managed_by,
     ).exists()
 
 
 def get_stopping_runs(
     owner_name: str,
     max_budget: int,
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
     agent_version: Optional[str] = None,
 ) -> Tuple[List[Tuple[str, str]], bool]:
@@ -80,7 +90,7 @@ def get_stopping_runs(
                 V1RunKind.NOTIFIER,
             ],
             pending__isnull=True,
-            is_managed=True,
+            managed_by=managed_by,
         )
         .filter(filters)
         .prefetch_related("project")
@@ -98,7 +108,8 @@ def get_deleting_runs(
     agent_id: str,
     agent_config: AgentConfig,
     max_budget: int,
-    agent_filters: Dict = None,
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
+    agent_filters: Optional[Dict] = None,
 ) -> Tuple[List[Tuple[str, str, str, str]], bool]:
     agent_filters = agent_filters or {}
     values = []
@@ -116,7 +127,7 @@ def get_deleting_runs(
             live_state=LiveState.DELETION_PROGRESSING,
             status__in=LifeCycle.DONE_VALUES,
             pending__isnull=True,
-            is_managed=True,
+            managed_by=managed_by,
             updated_at__lte=now().replace(second=0, microsecond=0)
             - timedelta(seconds=dj_settings.MIN_ARTIFACTS_DELETION_TIMEDELTA),
         )
@@ -162,7 +173,7 @@ def get_deleting_runs(
             },
             live_state=LiveState.DELETION_PROGRESSING,
             pending__isnull=True,
-            is_managed=True,
+            managed_by=managed_by,
         )
         .exclude(status__in=LifeCycle.DONE_VALUES)
         .prefetch_related("project")
@@ -187,7 +198,9 @@ def get_deleting_runs(
 
 
 def get_checks_runs(
-    owner_name: str, agent_filters: Optional[Dict] = None
+    owner_name: str,
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
+    agent_filters: Optional[Dict] = None,
 ) -> List[Tuple[str, str]]:
     agent_filters = agent_filters or {}
     start = now()
@@ -202,7 +215,7 @@ def get_checks_runs(
                 V1RunKind.NOTIFIER,
             ],
             checked_at__lte=end,
-            is_managed=True,
+            managed_by=managed_by,
             status__in=LifeCycle.ON_K8S_VALUES,
         )
         .prefetch_related("project")
@@ -225,6 +238,7 @@ def get_runs_by_pipeline(
     concurrency: int,
     consumed: int,
     max_budget: Optional[int],
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
 ) -> List[Models.Run]:
     num_to_run = get_num_to_start(
         concurrency=concurrency, consumed=consumed, max_budget=max_budget
@@ -237,7 +251,7 @@ def get_runs_by_pipeline(
         pipeline_id=pipeline_id,
         status=V1Statuses.COMPILED,
         pending__isnull=True,
-        is_managed=True,
+        managed_by=managed_by,
     )[:num_to_run]
 
 
@@ -265,7 +279,11 @@ def check_pipelines(
 
 
 def get_runs_by_controller(
-    controller_id: int, concurrency: int, consumed: int, max_budget: Optional[int]
+    controller_id: int,
+    concurrency: int,
+    consumed: int,
+    max_budget: Optional[int],
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
 ) -> List[Models.Run]:
     num_to_run = get_num_to_start(
         concurrency=concurrency, consumed=consumed, max_budget=max_budget
@@ -278,11 +296,13 @@ def get_runs_by_controller(
         pipeline_id=controller_id,
         status=V1Statuses.COMPILED,
         pending__isnull=True,
-        is_managed=True,
+        managed_by=managed_by,
     )[:num_to_run]
 
 
-def get_annotated_pipelines(controller_id: int) -> List[Tuple[int, int, int]]:
+def get_annotated_pipelines(
+    controller_id: int, managed_by: Optional[ManagedBy] = ManagedBy.AGENT
+) -> List[Tuple[int, int, int]]:
     pipelines = (
         Models.Run.objects.filter(
             kind__in=[V1RunKind.DAG, V1RunKind.MATRIX],
@@ -290,7 +310,7 @@ def get_annotated_pipelines(controller_id: int) -> List[Tuple[int, int, int]]:
             controller_id=controller_id,
             pipeline_runs__status=V1Statuses.COMPILED,
             pending__isnull=True,
-            is_managed=True,
+            managed_by=managed_by,
         )
         .distinct()
         .values_list("id", flat=True)
@@ -309,6 +329,7 @@ def get_annotated_pipelines(controller_id: int) -> List[Tuple[int, int, int]]:
 
 
 def get_annotated_controllers(
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
 ) -> List[Tuple[int, int, int]]:
     agent_filters = agent_filters or {}
@@ -318,7 +339,7 @@ def get_annotated_controllers(
             kind__in=[V1RunKind.DAG, V1RunKind.MATRIX],
             status=V1Statuses.RUNNING,
             pending__isnull=True,
-            is_managed=True,
+            managed_by=managed_by,
             controller_id__isnull=True,
             controller_runs__status=V1Statuses.COMPILED,
         )
@@ -394,11 +415,13 @@ def check_controllers(max_budget: int, agent_filters: Optional[Dict] = None) -> 
     return full
 
 
-def get_queued_runs() -> Tuple[List[Tuple[str, str, str, str]], bool]:
+def get_queued_runs(
+    managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
+) -> Tuple[List[Tuple[str, str, str, str]], bool]:
     consumed = Models.Run.objects.filter(
         status__in=LifeCycle.ON_K8S_VALUES,
         pending__isnull=True,
-        is_managed=True,
+        managed_by=managed_by,
     ).count()
 
     max_budget = dj_settings.MAX_CONCURRENCY - consumed
@@ -428,7 +451,7 @@ def get_queued_runs() -> Tuple[List[Tuple[str, str, str, str]], bool]:
         ],
         status=V1Statuses.QUEUED,
         pending__isnull=True,
-        is_managed=True,
+        managed_by=managed_by,
     ).prefetch_related("project")[:num_to_run]
 
     # Set scheduled

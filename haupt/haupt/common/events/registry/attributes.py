@@ -59,6 +59,7 @@ PROJECT_RUN_EXECUTOR_ATTRIBUTES = (
     Attribute("project.owner.name"),
     Attribute("name", is_required=False),
     Attribute("is_managed", attr_type=bool, is_required=False),
+    Attribute("managed_by", attr_type=str, is_required=False),
     Attribute("pipeline_id", attr_type=int, is_required=False),
 )
 
@@ -70,5 +71,6 @@ PROJECT_RUN_EXECUTOR_OWNER_ATTRIBUTES = (
     Attribute("project.owner.name"),
     Attribute("name", is_required=False),
     Attribute("is_managed", attr_type=bool, is_required=False),
+    Attribute("managed_by", attr_type=str, is_required=False),
     Attribute("pipeline_id", attr_type=int, is_required=False),
 )

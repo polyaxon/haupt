@@ -12,7 +12,7 @@ from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.run_edges import RunEdge
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1Statuses
 from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
 from tests.base.case import BaseTest
 
@@ -31,7 +31,7 @@ class BaseRunEdgeListViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.runs = []
         obj = RunFactory(
@@ -72,7 +72,7 @@ class BaseRunEdgeListViewV1(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         run_dep = RunFactory(
             user=self.user,

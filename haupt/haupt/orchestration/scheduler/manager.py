@@ -54,7 +54,7 @@ from polyaxon.exceptions import (
     PolyaxonException,
     PolyaxonSchemaError,
 )
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.operations import get_bo_tuner, get_hyperband_tuner, get_hyperopt_tuner
 from polyaxon.polyflow import (
     V1CloningKind,
@@ -860,7 +860,7 @@ class RunsManager:
         if not run:
             return
 
-        if not run.is_managed:
+        if run.managed_by != ManagedBy.AGENT:
             return
 
         if LifeCycle.is_done(run.status):
@@ -889,7 +889,7 @@ class RunsManager:
         if not run:
             return
 
-        if not run.is_managed:
+        if not ManagedBy.is_managed(run.managed_by):
             return
 
         if LifeCycle.is_done(run.status):
@@ -954,7 +954,7 @@ class RunsManager:
         if not run:
             return
 
-        if run.is_managed:
+        if ManagedBy.is_managed(run.managed_by):
             if run.is_matrix or run.is_dag or run.is_schedule:
                 dependent_runs = Models.Run.objects.filter(
                     Q(pipeline_id=run.id) | Q(controller_id=run.id)

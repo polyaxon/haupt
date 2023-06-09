@@ -3,6 +3,7 @@ from django.db.models import Q
 
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.runs import Run
+from polyaxon.lifecycle import ManagedBy
 from polyaxon.pql.builder import ComparisonCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
@@ -53,17 +54,25 @@ class TestComparisonCondition(BaseTestQuery):
         self.run.inputs = {"rate": 1, "loss": "foo"}
         self.run.save()
         RunFactory(
-            project=self.project, is_managed=False, outputs={"loss": 0.1, "step": 1}
+            project=self.project,
+            managed_by=ManagedBy.USER,
+            outputs={"loss": 0.1, "step": 1},
         )
         RunFactory(
-            project=self.project, is_managed=False, outputs={"loss": 0.3, "step": 10}
+            project=self.project,
+            managed_by=ManagedBy.USER,
+            outputs={"loss": 0.3, "step": 10},
         )
         RunFactory(
-            project=self.project, is_managed=False, inputs={"rate": -1, "loss": "bar"}
+            project=self.project,
+            managed_by=ManagedBy.USER,
+            inputs={"rate": -1, "loss": "bar"},
         )
 
         RunFactory(
-            project=self.project, is_managed=False, outputs={"loss": 0.9, "step": 100}
+            project=self.project,
+            managed_by=ManagedBy.USER,
+            outputs={"loss": 0.9, "step": 100},
         )
 
         eq_cond = ComparisonCondition(op="eq")

@@ -16,7 +16,7 @@ from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import LiveState, V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import LiveState, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.polyflow import V1RunKind
 from polyaxon.schemas import V1RunPending
@@ -39,6 +39,7 @@ class BaseTestRunApi(BaseTest):
             project=self.project,
             content="test",
             raw_content="test",
+            managed_by=ManagedBy.AGENT,
             is_managed=True,
         )
         self.url = "/{}/{}/{}/runs/{}/".format(
@@ -76,6 +77,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
         assert resp.status_code == status.HTTP_200_OK
         new_object = self.model_class.objects.get(id=self.object.id)
         assert new_object.is_managed is False
+        assert new_object.managed_by == ManagedBy.USER
 
         # is_managed
         data = {"is_managed": None}
@@ -85,6 +87,7 @@ class TestRunDetailViewV1(BaseTestRunApi):
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
         new_object = self.model_class.objects.get(id=self.object.id)
         assert new_object.is_managed is False
+        assert new_object.managed_by == ManagedBy.USER
 
         # path is_managed
         data = {"is_managed": False}
@@ -93,6 +96,35 @@ class TestRunDetailViewV1(BaseTestRunApi):
         assert resp.status_code == status.HTTP_200_OK
         new_object = self.model_class.objects.get(id=self.object.id)
         assert new_object.is_managed is False
+        assert new_object.managed_by == ManagedBy.USER
+
+        # managed_by
+        data = {"managed_by": ManagedBy.USER}
+        assert self.object.is_managed is True
+        resp = self.client.patch(self.url, data=data)
+        assert resp.status_code == status.HTTP_200_OK
+        new_object = self.model_class.objects.get(id=self.object.id)
+        assert new_object.is_managed is False
+        assert new_object.managed_by == ManagedBy.USER
+
+        # is_managed
+        data = {"managed_by": None}
+        assert new_object.is_managed is False
+        resp = self.client.patch(self.url, data=data)
+        # Should raise because the run has no content
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+        new_object = self.model_class.objects.get(id=self.object.id)
+        assert new_object.is_managed is False
+        assert new_object.managed_by == ManagedBy.USER
+
+        # path is_managed
+        data = {"managed_by": ManagedBy.USER}
+        assert new_object.is_managed is False
+        resp = self.client.patch(self.url, data=data)
+        assert resp.status_code == status.HTTP_200_OK
+        new_object = self.model_class.objects.get(id=self.object.id)
+        assert new_object.is_managed is False
+        assert new_object.managed_by == ManagedBy.USER
 
         # pending
         data = {"pending": V1RunPending.APPROVAL}

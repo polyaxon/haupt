@@ -10,6 +10,7 @@ from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.artifacts import Artifact, ArtifactLineage
+from polyaxon.lifecycle import ManagedBy
 
 
 @pytest.mark.serializers_mark
@@ -36,7 +37,7 @@ class TestArtifactSerializer(PolyaxonBaseTestSerializer):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.state = self.project.owner.uuid
 
@@ -79,7 +80,7 @@ class TestArtifactLightSerializer(PolyaxonBaseTestSerializer):
             project=self.project,
             content="test",
             raw_content="test",
-            is_managed=True,
+            managed_by=ManagedBy.AGENT,
         )
         self.state = self.project.owner.uuid
 

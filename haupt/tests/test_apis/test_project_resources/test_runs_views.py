@@ -30,7 +30,7 @@ from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import LiveState, V1Statuses
+from polyaxon.lifecycle import LiveState, ManagedBy, V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending
 from tests.base.case import BaseTest
@@ -450,11 +450,11 @@ class TestProjectRunsDeleteViewV1(BaseTest):
             resp = self.client.delete(self.url, data)
         assert resp.status_code == status.HTTP_200_OK
         assert Run.objects.count() == 1
-        assert Run.all.count() == 1
-        assert auditor_record.call_count == 0
+        assert Run.all.count() == 3
+        assert auditor_record.call_count == 2
 
     def test_delete_managed_auditor(self):
-        Run.objects.all().update(is_managed=True)
+        Run.objects.all().update(managed_by=ManagedBy.AGENT)
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert Run.objects.count() == 3
         with patch("haupt.common.auditor.record") as auditor_record:
@@ -465,7 +465,7 @@ class TestProjectRunsDeleteViewV1(BaseTest):
         assert auditor_record.call_count == 2
 
     def test_delete_worker_send(self):
-        Run.objects.all().update(is_managed=True)
+        Run.objects.all().update(managed_by=ManagedBy.AGENT)
         data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
         assert Run.objects.count() == 3
         with patch("haupt.common.workers.send") as workers_send:
@@ -2339,12 +2339,13 @@ class TestProjectRunsCreateViewV1(BaseTest):
 
         self.url = "/{}/polyaxon/{}/runs/".format(API_V1, self.project.name)
 
-    def test_create_is_managed_and_and_meta(self):
+    def test_create_is_managed_and_and_meta_backwards_compatibility(self):
         data = {"is_managed": False}
         resp = self.client.post(self.url, data)
         assert resp.status_code == status.HTTP_201_CREATED
         xp = Run.objects.last()
         assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
         assert xp.pending is None
 
         data = {"is_managed": False, "pending": V1RunPending.APPROVAL}
@@ -2352,6 +2353,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert resp.status_code == status.HTTP_201_CREATED
         xp = Run.objects.last()
         assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
         assert xp.pending is None  # Since it's not managed
 
         data = {"is_managed": False, "pending": None}
@@ -2359,6 +2361,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert resp.status_code == status.HTTP_201_CREATED
         xp = Run.objects.last()
         assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
         assert xp.pending is None
 
         data = {"is_managed": False, "meta_info": {"foo": "bar"}}
@@ -2366,6 +2369,41 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert resp.status_code == status.HTTP_201_CREATED
         xp = Run.objects.last()
         assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
+        assert xp.pending is None
+        assert xp.meta_info == {"foo": "bar"}
+
+    def test_create_is_managed_and_and_meta(self):
+        data = {"managed_by": ManagedBy.USER}
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        xp = Run.objects.last()
+        assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
+        assert xp.pending is None
+
+        data = {"managed_by": ManagedBy.USER, "pending": V1RunPending.APPROVAL}
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        xp = Run.objects.last()
+        assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
+        assert xp.pending is None  # Since it's not managed
+
+        data = {"managed_by": ManagedBy.USER, "pending": None}
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        xp = Run.objects.last()
+        assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
+        assert xp.pending is None
+
+        data = {"managed_by": ManagedBy.USER, "meta_info": {"foo": "bar"}}
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        xp = Run.objects.last()
+        assert xp.is_managed is False
+        assert xp.managed_by == ManagedBy.USER
         assert xp.pending is None
         assert xp.meta_info == {"foo": "bar"}
 
@@ -2447,6 +2485,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert Run.objects.count() == 1
         last_run = Run.objects.last()
         assert last_run.is_managed is True
+        assert last_run.managed_by == ManagedBy.AGENT
         assert last_run.pending is None
 
         # Meta and pending
@@ -2460,6 +2499,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert Run.objects.count() == 2
         last_run = Run.objects.last()
         assert last_run.is_managed is True
+        assert last_run.managed_by == ManagedBy.AGENT
         assert last_run.pending == V1RunPending.APPROVAL
         assert last_run.meta_info == {"test": "works"}
 
@@ -2476,6 +2516,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert Run.objects.count() == 3
         last_run = Run.objects.last()
         assert last_run.is_managed is True
+        assert last_run.managed_by == ManagedBy.AGENT
         assert last_run.pending == V1RunPending.UPLOAD
         assert last_run.meta_info == {"test": "works"}
 
@@ -2508,6 +2549,7 @@ class TestProjectRunsSyncViewV1(BaseTest):
             "kind": V1RunKind.JOB,
             "runtime": V1RunKind.JOB,
             "is_managed": False,
+            "managed_by": ManagedBy.USER,
             "meta_info": {
                 "has_metrics": True,
                 "has_events": True,

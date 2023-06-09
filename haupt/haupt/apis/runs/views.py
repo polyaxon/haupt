@@ -75,10 +75,7 @@ class RunDetailView(RunEndpoint, RetrieveEndpoint, DestroyEndpoint, UpdateEndpoi
         return super().get_queryset()
 
     def perform_destroy(self, instance):
-        if instance.is_managed:
-            delete_in_progress_run(instance)
-        else:
-            instance.delete()
+        delete_in_progress_run(instance)
 
 
 class RunCloneView(RunEndpoint, CreateEndpoint):

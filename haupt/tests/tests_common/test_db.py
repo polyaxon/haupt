@@ -14,6 +14,7 @@ from haupt.common.db import RawBulkInserter, RawBulkUpdater
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
+from polyaxon.lifecycle import ManagedBy
 from polyaxon.polyflow import V1RunKind
 
 _RUN_MODEL_FIELDS = (
@@ -24,6 +25,7 @@ _RUN_MODEL_FIELDS = (
     "description",
     "tags",
     "kind",
+    "managed_by",
     "is_managed",
     "pending",
     "live_state",
@@ -65,6 +67,7 @@ class TestRawBulkInserter(TestCase):
             "foo desc",
             _get_tags(["foo", "bar"]),
             V1RunKind.JOB,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -80,6 +83,7 @@ class TestRawBulkInserter(TestCase):
             "bar desc",
             _get_tags(["foo", "moo"]),
             V1RunKind.SERVICE,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -113,6 +117,7 @@ class TestRawBulkInserter(TestCase):
             "foo desc",
             _get_tags(["foo", "bar"]),
             V1RunKind.JOB,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -129,6 +134,7 @@ class TestRawBulkInserter(TestCase):
             "bar desc",
             _get_tags(["foo", "moo"]),
             V1RunKind.SERVICE,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -159,6 +165,7 @@ class TestRawBulkInserter(TestCase):
             "foo desc",
             _get_tags(["foo", "bar"]),
             V1RunKind.JOB,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -174,6 +181,7 @@ class TestRawBulkInserter(TestCase):
             "bar desc",
             _get_tags(["foo", "moo"]),
             V1RunKind.SERVICE,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -222,6 +230,7 @@ class TestRawBulkUpdater(TestCase):
             "foo desc",
             _get_tags(["foo", "bar"]),
             V1RunKind.JOB,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -237,6 +246,7 @@ class TestRawBulkUpdater(TestCase):
             "bar desc",
             _get_tags(["foo", "bar"]),
             V1RunKind.SERVICE,
+            ManagedBy.AGENT,
             True,
             True,
             1,
@@ -281,6 +291,7 @@ class TestRawBulkUpdater(TestCase):
         run1 = Run.objects.get(id=self.run1.id)
         assert run1.name == "FooBar"
         assert run1.kind == V1RunKind.JOB
+        assert run1.managed_by == ManagedBy.AGENT
         assert run1.description == "new desc"
         assert run1.tags == ["new", "tag1"]
         assert run1.created_at == self.date_value
@@ -288,6 +299,7 @@ class TestRawBulkUpdater(TestCase):
         run2 = Run.objects.get(id=self.run2.id)
         assert run2.name == "FooBar"
         assert run2.kind == V1RunKind.SERVICE
+        assert run2.managed_by == ManagedBy.AGENT
         assert run2.description == "new desc"
         assert run2.tags == ["new", "tag2"]
         assert run2.created_at == self.date_value
@@ -308,6 +320,7 @@ class TestRawBulkUpdater(TestCase):
         run1 = Run.objects.get(id=self.run1.id)
         assert run1.name == "FooBar"
         assert run1.kind == V1RunKind.JOB
+        assert run1.managed_by == ManagedBy.AGENT
         assert run1.description == "new desc"
         assert run1.tags == ["new", "tag1"]
         assert run1.created_at == self.date_value
@@ -322,7 +335,7 @@ class TestRawBulkUpdater(TestCase):
         run2 = Run.objects.get(id=self.run2.id)
         assert run2.name == "FooBar"
         assert run2.kind == V1RunKind.SERVICE
-        assert run2.description == "new desc"
+        assert run2.managed_by == ManagedBy.AGENT
         assert run2.tags == ["new", "tag2"]
         assert run2.created_at == self.date_value
         assert run2.updated_at == self.date_value2

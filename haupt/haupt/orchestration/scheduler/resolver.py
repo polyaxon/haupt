@@ -1313,9 +1313,6 @@ class RunsResolver(resolver.BaseResolver):
             return False
 
     def _apply_pipeline_contexts(self):
-        if not self.run.is_managed:
-            return self.compiled_operation
-
         if self.compiled_operation.schedule:
             self._create_operation_schedule(
                 run=self.run, compiled_operation=self.compiled_operation

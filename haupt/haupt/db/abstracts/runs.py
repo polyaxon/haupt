@@ -16,7 +16,7 @@ from haupt.db.abstracts.status import StatusModel
 from haupt.db.abstracts.tag import TagModel
 from haupt.db.abstracts.uid import UuidModel
 from haupt.db.defs import Models
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1Statuses
 from polyaxon.polyflow import V1CloningKind, V1RunKind
 from polyaxon.schemas import V1RunPending
 
@@ -62,7 +62,16 @@ class BaseRun(
         related_name="runs",
     )
     is_managed = models.BooleanField(
-        default=True, help_text="If this entity is managed by the platform."
+        default=True,
+        help_text="If this entity is managed by the platform (deprecated).",
+    )
+    managed_by = models.CharField(
+        max_length=5,
+        null=True,
+        blank=True,
+        default=ManagedBy.AGENT,
+        choices=ManagedBy.to_choices(),
+        db_index=True,
     )
     pending = models.CharField(
         max_length=8,

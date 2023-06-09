@@ -20,6 +20,7 @@ from haupt.db.defs import Models
 from haupt.db.managers.runs import create_run
 from haupt.orchestration import operations
 from polyaxon.exceptions import PolyaxonException
+from polyaxon.lifecycle import ManagedBy
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.polyflow import V1RunEdgeKind
 from polyaxon.schemas import V1RunPending
@@ -137,6 +138,7 @@ class BaseRunSerializer(
             "pipeline",
             "original",
             "is_managed",
+            "managed_by",
             "pending",
             "inputs",
             "outputs",
@@ -145,6 +147,7 @@ class BaseRunSerializer(
         )
         extra_kwargs = {
             "is_managed": {"read_only": True},
+            "managed_by": {"read_only": True},
         }
 
 
@@ -204,6 +207,7 @@ class BookmarkedTimelineRunSerializer(BookmarkedRunSerializer):
             "pipeline",
             "original",
             "is_managed",
+            "managed_by",
             "pending",
             "tags",
         )
@@ -271,7 +275,7 @@ class RunDetailSerializer(
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        self.check_if_entity_is_managed(attrs=attrs, entity_name="Run")
+        attrs = self.check_if_entity_is_managed(attrs=attrs, entity_name="Run")
         return attrs
 
     def validated_inputs(self, validated_data, inputs):
@@ -323,6 +327,7 @@ class RunDetailSerializer(
 
 class OfflineRunSerializer(
     serializers.ModelSerializer,
+    IsManagedMixin,
     TagsMixin,
 ):
     uuid = fields.UUIDField(format="hex")
@@ -347,11 +352,17 @@ class OfflineRunSerializer(
             "status",
             "status_conditions",
             "is_managed",
+            "managed_by",
             "inputs",
             "outputs",
             "content",
             "raw_content",
         )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        attrs = self.check_if_entity_is_managed(attrs=attrs, entity_name="Run")
+        return attrs
 
     def create(self, validated_data, commit: bool = True):
         try:
@@ -383,6 +394,7 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
             "description",
             "content",
             "is_managed",
+            "managed_by",
             "pending",
             "meta_info",
             "tags",
@@ -412,15 +424,20 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        self.check_if_entity_is_managed(attrs=attrs, entity_name="Run")
+        attrs = self.check_if_entity_is_managed(attrs=attrs, entity_name="Run")
         return attrs
 
     def create(self, validated_data):
-        is_managed = validated_data["is_managed"]
+        is_managed = validated_data.get("is_managed")
+        managed_by = validated_data.get("managed_by")
+        if managed_by is None:
+            managed_by = ManagedBy.AGENT
+            is_managed = True
         content = validated_data.get("content")
         meta_info = validated_data.get("meta_info") or {}
-        if content:
-            is_managed = True if is_managed is None else is_managed
+
+        if is_managed is None:
+            raise ValidationError("Run is not validated correctly")
 
         if is_managed and not content:
             raise ValidationError(
@@ -459,6 +476,7 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
                     tags=tags,
                     meta_info=meta_info,
                     is_managed=is_managed,
+                    managed_by=managed_by,
                     pending=pending,
                     supported_kinds=validated_data.get("supported_kinds"),
                     supported_owners=validated_data.get("supported_owners"),
@@ -473,4 +491,5 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
                 description=description,
                 tags=tags,
                 meta_info=meta_info,
+                managed_by=managed_by,
             )

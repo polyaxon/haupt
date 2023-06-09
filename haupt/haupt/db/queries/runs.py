@@ -21,6 +21,7 @@ STATUS_UPDATE_COLUMNS_DEFER = [
     "readme",
     "content",
     "is_managed",
+    "managed_by",
     "pending",
     "controller",
     "pipeline",

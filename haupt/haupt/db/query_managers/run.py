@@ -177,6 +177,7 @@ class RunQueryManager(BaseQueryManager):
         "component_state": parse_value_operation,
         # Flags
         "is_managed": parse_value_operation,
+        "managed_by": parse_value_operation,
         "pending": parse_value_operation,
         # Resources
         "cost": parse_scalar_operation,
@@ -274,6 +275,7 @@ class RunQueryManager(BaseQueryManager):
         "component_state": ValueCondition,
         # Flags
         "is_managed": BoolCondition,
+        "managed_by": ValueCondition,
         "pending": ValueCondition,
         # Resources
         "cost": ComparisonCondition,

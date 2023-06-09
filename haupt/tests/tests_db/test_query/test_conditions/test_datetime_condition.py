@@ -9,6 +9,7 @@ from django.db.models import Q
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.runs import Run
 from polyaxon.exceptions import PQLException
+from polyaxon.lifecycle import ManagedBy
 from polyaxon.pql.builder import DateTimeCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
@@ -84,14 +85,14 @@ class TestDateTimeCondition(BaseTestQuery):
 
         run = RunFactory(
             project=self.project,
-            is_managed=False,
+            managed_by=ManagedBy.USER,
             outputs={"accuracy": 0.9, "precision": 0.9},
         )
         run.created_at = datetime.datetime(2018, 1, 1)
         run.save()
         run = RunFactory(
             project=self.project,
-            is_managed=False,
+            managed_by=ManagedBy.USER,
             outputs={"accuracy": 0.9, "precision": 0.9},
         )
         run.created_at = datetime.datetime(2010, 1, 1)

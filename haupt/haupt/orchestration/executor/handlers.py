@@ -6,11 +6,8 @@ from haupt.db.managers.cache import get_cache_clones
 from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.orchestration.scheduler.manager import RunsManager
-from polyaxon.constants.metadata import (
-    META_HAS_DOWNSTREAM_EVENTS_TRIGGER,
-    META_LOCAL_MODE,
-)
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.constants.metadata import META_HAS_DOWNSTREAM_EVENTS_TRIGGER
+from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
 
 
@@ -20,22 +17,17 @@ class APIHandler:
     @classmethod
     def handle_run_created(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         """Handles creation, resume, and restart"""
-        eager = False
+        # Run is not managed by Polyaxon
         if (
-            event.instance
-            and event.instance.status != V1Statuses.RESUMING
-            and (event.instance.meta_info or {}).get(META_LOCAL_MODE)
+            event.instance and event.instance.managed_by == ManagedBy.USER
+        ) or event.data["managed_by"] == ManagedBy.USER:
+            return
+        eager = False
+        if event.instance and (
+            event.instance.managed_by == ManagedBy.CLI
+            or event.data["managed_by"] == ManagedBy.CLI
         ):
             eager = True
-        if not eager:
-            eager = (
-                not event.data["is_managed"]
-                and event.instance
-                and event.instance.content
-            )
-        # Run is not managed by Polyaxon
-        if not event.data["is_managed"] and not eager:
-            return
         # Run is managed by a pipeline
         if (
             event.data.get("pipeline_id") is not None

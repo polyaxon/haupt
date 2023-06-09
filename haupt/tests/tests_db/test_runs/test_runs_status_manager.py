@@ -8,7 +8,7 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.managers.statuses import bulk_new_run_status, new_run_status
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1RunKind
 
 
@@ -115,7 +115,7 @@ class TestRunStatusManager(TestCase):
         run2 = RunFactory(project=self.project, kind=V1RunKind.JOB)
         run3 = RunFactory(project=self.project, kind=V1RunKind.SERVICE)
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
         assert run1.status != V1Statuses.QUEUED
         assert run2.status != V1Statuses.QUEUED
         assert run3.status != V1Statuses.QUEUED

@@ -110,8 +110,6 @@ def delete_runs(view, request, actor, *args, **kwargs):
     uuids = request.data.get("uuids", [])
     queryset = view.enrich_queryset(Models.Run.restorable)
     runs = queryset.filter(uuid__in=uuids)
-    # Delete non managed immediately
-    runs.filter(is_managed=False).delete()
     # For Audit
     view.set_owner()
     for run in runs:
@@ -125,7 +123,7 @@ def delete_runs(view, request, actor, *args, **kwargs):
             project_name=view.project_name,
         )
     # Deletion in progress
-    runs.filter(is_managed=True).update(live_state=LiveState.DELETION_PROGRESSING)
+    runs.update(live_state=LiveState.DELETION_PROGRESSING)
     return Response(status=status.HTTP_200_OK, data={})
 
 

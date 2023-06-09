@@ -18,7 +18,7 @@ from haupt.db.managers.agents import (
 from haupt.db.models.runs import Run
 from polyaxon import operations, settings
 from polyaxon.connections import V1BucketConnection, V1Connection, V1ConnectionKind
-from polyaxon.lifecycle import LiveState, V1Statuses
+from polyaxon.lifecycle import LiveState, ManagedBy, V1Statuses
 from polyaxon.polyflow import V1Environment, V1RunKind
 from polyaxon.schemas.cli.agent_config import AgentConfig
 from polyaxon.utils.fqn_utils import get_run_instance
@@ -53,24 +53,24 @@ class TestAgentState(TestCase):
             project=project,
             kind=V1RunKind.JOB,
         )
-        run1.is_managed = True
+        run1.managed_by = ManagedBy.AGENT
         run2 = RunFactory(
             project=project,
             kind=V1RunKind.JOB,
         )
-        run2.is_managed = True
+        run2.managed_by = ManagedBy.AGENT
         run3 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
         )
-        run3.is_managed = True
+        run3.managed_by = ManagedBy.AGENT
         run4 = RunFactory(
             project=project,
             kind=V1RunKind.TUNER,
         )
-        run4.is_managed = True
+        run4.managed_by = ManagedBy.AGENT
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         with patch("haupt.common.workers.send") as workers_send:
             state = get_agent_state()
@@ -266,14 +266,14 @@ class TestAgentState(TestCase):
             project=project,
             kind=V1RunKind.SERVICE,
         )
-        run5.is_managed = True
+        run5.managed_by = ManagedBy.AGENT
         run6 = RunFactory(
             project=project,
             kind=V1RunKind.JOB,
         )
-        run6.is_managed = True
+        run6.managed_by = ManagedBy.AGENT
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         run1.live_state = LiveState.DELETION_PROGRESSING
         run1.status = V1Statuses.RUNNING
@@ -336,21 +336,21 @@ class TestAgentState(TestCase):
             project=project,
             kind=V1RunKind.DAG,
         )
-        pipeline1.is_managed = True
+        pipeline1.managed_by = ManagedBy.AGENT
         pipeline1.pending = None
         pipeline2 = RunFactory(
             project=project,
             kind=V1RunKind.MATRIX,
             meta_info={"concurrency": 19},
         )
-        pipeline2.is_managed = True
+        pipeline2.managed_by = ManagedBy.AGENT
         pipeline2.pending = None
         pipeline3 = RunFactory(
             project=project,
             kind=V1RunKind.DAG,
             meta_info={"concurrency": 2},
         )
-        pipeline3.is_managed = True
+        pipeline3.managed_by = ManagedBy.AGENT
         pipeline3.pending = None
         run1 = RunFactory(
             project=project,
@@ -358,37 +358,37 @@ class TestAgentState(TestCase):
             pipeline=pipeline1,
             controller=pipeline1,
         )
-        run1.is_managed = True
+        run1.managed_by = ManagedBy.AGENT
         run2 = RunFactory(
             project=project,
             kind=V1RunKind.JOB,
             pipeline=pipeline1,
             controller=pipeline1,
         )
-        run2.is_managed = True
+        run2.managed_by = ManagedBy.AGENT
         run3 = RunFactory(
             project=project,
             kind=V1RunKind.TUNER,
             pipeline=pipeline2,
             controller=pipeline2,
         )
-        run3.is_managed = True
+        run3.managed_by = ManagedBy.AGENT
         run4 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
             pipeline=pipeline2,
             controller=pipeline2,
         )
-        run4.is_managed = True
+        run4.managed_by = ManagedBy.AGENT
         run5 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
             pipeline=pipeline3,
             controller=pipeline3,
         )
-        run5.is_managed = True
+        run5.managed_by = ManagedBy.AGENT
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         # No queue with queued runs
         queues = get_annotated_controllers()
@@ -466,7 +466,7 @@ class TestAgentState(TestCase):
             controller=controller,
             pipeline=controller,
         )
-        pipeline1.is_managed = True
+        pipeline1.managed_by = ManagedBy.AGENT
         pipeline1.pending = None
         pipeline2 = RunFactory(
             project=project,
@@ -475,7 +475,7 @@ class TestAgentState(TestCase):
             pipeline=controller,
             meta_info={"concurrency": 19},
         )
-        pipeline2.is_managed = True
+        pipeline2.managed_by = ManagedBy.AGENT
         pipeline2.pending = None
         pipeline3 = RunFactory(
             project=project,
@@ -484,7 +484,7 @@ class TestAgentState(TestCase):
             pipeline=controller,
             meta_info={"concurrency": 2},
         )
-        pipeline3.is_managed = True
+        pipeline3.managed_by = ManagedBy.AGENT
         pipeline3.pending = None
 
         run1 = RunFactory(
@@ -493,37 +493,37 @@ class TestAgentState(TestCase):
             pipeline=pipeline1,
             controller=pipeline1,
         )
-        run1.is_managed = True
+        run1.managed_by = ManagedBy.AGENT
         run2 = RunFactory(
             project=project,
             kind=V1RunKind.JOB,
             pipeline=pipeline1,
             controller=pipeline1,
         )
-        run2.is_managed = True
+        run2.managed_by = ManagedBy.AGENT
         run3 = RunFactory(
             project=project,
             kind=V1RunKind.TUNER,
             pipeline=pipeline2,
             controller=pipeline2,
         )
-        run3.is_managed = True
+        run3.managed_by = ManagedBy.AGENT
         run4 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
             pipeline=pipeline2,
             controller=pipeline2,
         )
-        run4.is_managed = True
+        run4.managed_by = ManagedBy.AGENT
         run5 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
             pipeline=pipeline3,
             controller=pipeline3,
         )
-        run5.is_managed = True
+        run5.managed_by = ManagedBy.AGENT
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         # No queue with queued runs
         queues = get_annotated_pipelines(controller.id)
@@ -594,7 +594,7 @@ class TestAgentState(TestCase):
         project = ProjectFactory()
         controller = RunFactory(project=project, kind=V1RunKind.DAG)
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         assert get_runs_by_controller(controller.id, None, 0, None) == []
         assert list(get_runs_by_controller(controller.id, 10, 0, None)) == []
@@ -605,9 +605,9 @@ class TestAgentState(TestCase):
             controller=controller,
             pipeline=controller,
         )
-        run1.is_managed = True
+        run1.managed_by = ManagedBy.AGENT
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
         assert get_runs_by_controller(controller.id, None, 0, None) == []
         assert list(get_runs_by_controller(controller.id, 10, 0, None)) == []
 
@@ -640,7 +640,7 @@ class TestAgentState(TestCase):
             meta_info={"concurrency": 2},
         )
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         assert get_runs_by_pipeline(controller.id, pipeline1.id, None, 0, None) == []
         assert (
@@ -663,37 +663,37 @@ class TestAgentState(TestCase):
             pipeline=pipeline1,
             controller=controller,
         )
-        run1.is_managed = True
+        run1.managed_by = ManagedBy.AGENT
         run2 = RunFactory(
             project=project,
             kind=V1RunKind.JOB,
             pipeline=pipeline1,
             controller=controller,
         )
-        run2.is_managed = True
+        run2.managed_by = ManagedBy.AGENT
         run3 = RunFactory(
             project=project,
             kind=V1RunKind.TUNER,
             pipeline=pipeline2,
             controller=controller,
         )
-        run3.is_managed = True
+        run3.managed_by = ManagedBy.AGENT
         run4 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
             pipeline=pipeline2,
             controller=controller,
         )
-        run4.is_managed = True
+        run4.managed_by = ManagedBy.AGENT
         run5 = RunFactory(
             project=project,
             kind=V1RunKind.SERVICE,
             pipeline=pipeline3,
             controller=controller,
         )
-        run5.is_managed = True
+        run5.managed_by = ManagedBy.AGENT
         # Patch all runs to be managed
-        Run.all.update(is_managed=True)
+        Run.all.update(managed_by=ManagedBy.AGENT)
 
         assert get_runs_by_pipeline(controller.id, pipeline1.id, None, 0, None) == []
         assert (

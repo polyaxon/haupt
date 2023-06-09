@@ -32,6 +32,7 @@ _RUN_FIELDS = (
     "runtime",
     "project_id",
     "is_managed",
+    "managed_by",
     "pending",
     "meta_info",
     "params",

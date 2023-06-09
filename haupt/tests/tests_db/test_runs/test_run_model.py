@@ -8,7 +8,7 @@ from haupt.db.factories.users import UserFactory
 from haupt.db.managers.deleted import ArchivedManager, LiveManager
 from haupt.db.managers.statuses import new_run_status
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
 
 
 class TestRunModel(TestCase):
@@ -35,19 +35,26 @@ class TestRunModel(TestCase):
         run = RunFactory(project=self.project)
         assert run.content is None
         assert run.is_managed is False
+        assert run.managed_by == ManagedBy.USER
 
     def test_create_run_without_content_and_managed_raises(self):
         with self.assertRaises(ValidationError):
-            RunFactory(project=self.project, is_managed=True)
+            RunFactory(project=self.project, managed_by=ManagedBy.AGENT)
 
     def test_create_run_with_content_and_is_managed(self):
         with self.assertRaises(ValidationError):
-            RunFactory(project=self.project, is_managed=True, content="foo")
+            RunFactory(project=self.project, managed_by=ManagedBy.AGENT, content="foo")
 
-        RunFactory(project=self.project, is_managed=True, raw_content="foo")
+        RunFactory(project=self.project, managed_by=ManagedBy.AGENT, raw_content="foo")
 
     def test_creation_with_bad_config(self):
-        run = RunFactory(project=self.project, content="foo")
+        run = RunFactory(
+            project=self.project,
+            raw_content="foo",
+            content="foo",
+            managed_by=ManagedBy.CLI,
+            is_managed=True,
+        )
         assert run.status == V1Statuses.FAILED
         assert run.content == "foo"
 

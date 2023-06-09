@@ -5,7 +5,7 @@ from mock import MagicMock, mock, patch
 from haupt.background.scheduler.tasks.runs import runs_prepare
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1Cache
 from tests.test_background.case import BaseTest
 
@@ -130,7 +130,7 @@ class TestRunsPrepare(BaseTest):
                 project=self.project,
                 user=self.user,
                 raw_content="test",
-                is_managed=True,
+                managed_by=ManagedBy.AGENT,
             )
             # We are patching the automatic call and executing prepare manually
             runs_prepare(run_id=experiment.id)
