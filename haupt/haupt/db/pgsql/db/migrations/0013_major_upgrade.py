@@ -11,15 +11,6 @@ import polyaxon.lifecycle
 
 def migrate_is_managed_by(apps, schema_editor):
     Run = apps.get_model("db", "Run")
-
-    runs = []
-    for r in Run.objects.annotate(
-        calc_wait_time=models.F("started_at") - models.F("created_at")
-    ):
-        if r.calc_wait_time:
-            r.wait_time = r.calc_wait_time.seconds
-            runs.append(r)
-
     Run.objects.filter(is_managed=True).update(
         managed_by=polyaxon.lifecycle.ManagedBy.AGENT.value
     )
