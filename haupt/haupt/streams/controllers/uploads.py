@@ -1,11 +1,6 @@
 import os
 
-from clipped.utils.json import orjson_loads
 from clipped.utils.paths import check_or_create_path, delete_path, untar_file
-from rest_framework import status
-
-from django.core.handlers.asgi import ASGIRequest
-from django.http import HttpResponse
 
 from asgiref.sync import sync_to_async
 from polyaxon import settings
@@ -73,39 +68,3 @@ async def handle_posted_data(
         else:
             await upload_dir(fs=fs, subpath=root_path)
     return root_path
-
-
-async def handle_upload(
-    fs: FSSystem, request: ASGIRequest, run_uuid: str, is_file: bool
-) -> HttpResponse:
-    content_file = request.FILES["upload_file"]
-    content_json = request.POST.get("json")
-    content_json = orjson_loads(content_json) if content_json else {}
-    overwrite = content_json.get("overwrite", True)
-    untar = content_json.get("untar", True)
-    path = content_json.get("path", "")
-    try:
-        archived_path = await handle_posted_data(
-            fs=fs,
-            content_file=content_file,
-            root_path=run_uuid,
-            path=path,
-            upload=True,
-            is_file=is_file,
-            overwrite=overwrite,
-            untar=untar,
-        )
-    except Exception as e:
-        return HttpResponse(
-            content="Run's artifacts upload was unsuccessful, "
-            "an error was raised while uploading the data %s." % e,
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not archived_path:
-        return HttpResponse(
-            content="Artifact not found and not uploaded: filepath={}".format(
-                archived_path
-            ),
-            status=status.HTTP_404_NOT_FOUND,
-        )
-    return HttpResponse(status=status.HTTP_200_OK)

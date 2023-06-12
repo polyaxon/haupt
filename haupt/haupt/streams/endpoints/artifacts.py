@@ -1,6 +1,7 @@
 from typing import Dict, Optional, Union
 
 from clipped.utils.bools import to_bool
+from clipped.utils.json import orjson_loads
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -12,7 +13,7 @@ from haupt.common.endpoints.files import FilePathResponse
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.notebooks import render_notebook
-from haupt.streams.controllers.uploads import handle_upload
+from haupt.streams.controllers.uploads import handle_posted_data
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.endpoints.utils import redirect_file
 from polyaxon.fs.async_manager import (
@@ -22,6 +23,44 @@ from polyaxon.fs.async_manager import (
     download_file,
     list_files,
 )
+
+
+async def handle_upload(
+    request: ASGIRequest, run_uuid: str, is_file: bool
+) -> HttpResponse:
+    content_file = request.FILES["upload_file"]
+    content_json = request.POST.get("json")
+    content_json = orjson_loads(content_json) if content_json else {}
+    overwrite = content_json.get("overwrite", True)
+    untar = content_json.get("untar", True)
+    path = content_json.get("path", "")
+    connection = content_json.get("connection")
+    fs = await AppFS.get_fs(connection=connection)
+    try:
+        archived_path = await handle_posted_data(
+            fs=fs,
+            content_file=content_file,
+            root_path=run_uuid,
+            path=path,
+            upload=True,
+            is_file=is_file,
+            overwrite=overwrite,
+            untar=untar,
+        )
+    except Exception as e:
+        return HttpResponse(
+            content="Run's artifacts upload was unsuccessful, "
+            "an error was raised while uploading the data %s." % e,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not archived_path:
+        return HttpResponse(
+            content="Artifact not found and not uploaded: filepath={}".format(
+                archived_path
+            ),
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    return HttpResponse(status=status.HTTP_200_OK)
 
 
 def clean_path(filepath: str):
@@ -70,6 +109,7 @@ async def download_artifact(
     stream = to_bool(request.GET.get("stream", stream), handle_none=True)
     force = to_bool(request.GET.get("force"), handle_none=True)
     render = to_bool(request.GET.get("render"), handle_none=True)
+    connection = request.GET.get("connection")
     if not filepath:
         return HttpResponse(
             content="A `path` query param is required to stream a file content",
@@ -84,7 +124,9 @@ async def download_artifact(
         )
     subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
     archived_path = await download_file(
-        fs=await AppFS.get_fs(), subpath=subpath, check_cache=not force
+        fs=await AppFS.get_fs(connection=connection),
+        subpath=subpath,
+        check_cache=not force,
     )
     if not archived_path:
         return HttpResponse(
@@ -101,9 +143,7 @@ async def download_artifact(
 
 
 async def upload_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
-    return await handle_upload(
-        fs=await AppFS.get_fs(), request=request, run_uuid=run_uuid, is_file=True
-    )
+    return await handle_upload(request=request, run_uuid=run_uuid, is_file=True)
 
 
 async def delete_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
@@ -114,8 +154,9 @@ async def delete_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
             status=status.HTTP_400_BAD_REQUEST,
         )
     subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
+    connection = request.GET.get("connection")
     is_deleted = await delete_file_or_dir(
-        fs=await AppFS.get_fs(), subpath=subpath, is_file=True
+        fs=await AppFS.get_fs(connection=connection), subpath=subpath, is_file=True
     )
     if not is_deleted:
         return HttpResponse(
@@ -151,8 +192,9 @@ async def download_artifacts(request: ASGIRequest, run_uuid: str) -> HttpRespons
         # Backwards compatibility
         check_path = to_bool(request.GET.get("check_file"), handle_none=True)
     path = request.GET.get("path", "")
+    connection = request.GET.get("connection")
     subpath = "{}/{}".format(run_uuid, clean_path(path)).rstrip("/")
-    fs = await AppFS.get_fs()
+    fs = await AppFS.get_fs(connection=connection)
     if check_path:
         is_file = await check_is_file(fs=fs, subpath=subpath)
         if is_file:
@@ -167,16 +209,15 @@ async def download_artifacts(request: ASGIRequest, run_uuid: str) -> HttpRespons
 
 
 async def upload_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
-    return await handle_upload(
-        fs=await AppFS.get_fs(), request=request, run_uuid=run_uuid, is_file=False
-    )
+    return await handle_upload(request=request, run_uuid=run_uuid, is_file=False)
 
 
 async def delete_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
     path = request.GET.get("path", "")
+    connection = request.GET.get("connection")
     subpath = "{}/{}".format(run_uuid, clean_path(path)).rstrip("/")
     is_deleted = await delete_file_or_dir(
-        fs=await AppFS.get_fs(), subpath=subpath, is_file=False
+        fs=await AppFS.get_fs(connection=connection), subpath=subpath, is_file=False
     )
     if not is_deleted:
         return HttpResponse(
@@ -199,8 +240,9 @@ async def tree_artifacts(
 ) -> UJSONResponse:
     validate_methods(request, methods)
     filepath = request.GET.get("path", "")
+    connection = request.GET.get("connection")
     ls = await list_files(
-        fs=await AppFS.get_fs(),
+        fs=await AppFS.get_fs(connection=connection),
         subpath=run_uuid,
         filepath=clean_path(filepath),
         force=True,

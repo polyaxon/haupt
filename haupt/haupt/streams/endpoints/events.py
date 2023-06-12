@@ -43,11 +43,12 @@ async def get_multi_run_events(
     event_names = request.GET["names"]
     orient = request.GET.get("orient")
     sample = request.GET.get("sample")
+    connection = request.GET.get("connection")
     orient = orient or V1Events.ORIENT_DICT
     event_names = {e for e in event_names.split(",") if e} if event_names else set([])
     run_uuids = {e for e in run_uuids.split(",") if e} if run_uuids else set([])
     events = await get_archived_operations_events(
-        fs=await AppFS.get_fs(),
+        fs=await AppFS.get_fs(connection=connection),
         run_uuids=run_uuids,
         event_kind=event_kind,
         event_names=event_names,
@@ -59,10 +60,10 @@ async def get_multi_run_events(
 
 
 async def get_package_event_assets(
-    run_uuid: str, event_kind: str, event_names: Set[str], force: bool
+    run_uuid: str, event_kind: str, event_names: Set[str], force: bool, connection: str
 ) -> HttpResponse:
     archived_path = await get_archived_operation_events_and_assets(
-        fs=await AppFS.get_fs(),
+        fs=await AppFS.get_fs(connection=connection),
         run_uuid=run_uuid,
         event_kind=event_kind,
         event_names=event_names,
@@ -97,6 +98,7 @@ async def get_run_events(
     event_names = request.GET["names"]
     orient = request.GET.get("orient")
     sample = request.GET.get("sample")
+    connection = request.GET.get("connection")
     orient = orient or V1Events.ORIENT_DICT
     event_names = {e for e in event_names.split(",") if e} if event_names else set([])
     if pkg_assets:
@@ -105,9 +107,10 @@ async def get_run_events(
             event_kind=event_kind,
             event_names=event_names,
             force=force,
+            connection=connection,
         )
     events = await get_archived_operation_events(
-        fs=await AppFS.get_fs(),
+        fs=await AppFS.get_fs(connection=connection),
         run_uuid=run_uuid,
         event_kind=event_kind,
         event_names=event_names,
@@ -132,10 +135,11 @@ async def get_run_resources(
     orient = request.GET.get("orient")
     force = to_bool(request.GET.get("force"), handle_none=True)
     sample = request.GET.get("sample")
+    connection = request.GET.get("connection")
     orient = orient or V1Events.ORIENT_DICT
     event_names = {e for e in event_names.split(",") if e} if event_names else set([])
     events = await get_archived_operation_resources(
-        fs=await AppFS.get_fs(),
+        fs=await AppFS.get_fs(connection=connection),
         run_uuid=run_uuid,
         event_kind=V1ArtifactKind.METRIC,
         event_names=event_names,

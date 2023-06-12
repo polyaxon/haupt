@@ -41,6 +41,7 @@ async def get_logs(
 ) -> UJSONResponse:
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
+    connection = request.GET.get("connection")
     last_time = request.GET.get("last_time")
     if last_time:
         last_time = parse_datetime(last_time).astimezone()
@@ -67,14 +68,16 @@ async def get_logs(
             )
         else:
             operation_logs, last_time = await get_tmp_operation_logs(
-                fs=await AppFS.get_fs(), run_uuid=run_uuid, last_time=last_time
+                fs=await AppFS.get_fs(connection=connection),
+                run_uuid=run_uuid,
+                last_time=last_time,
             )
         if k8s_manager:
             await k8s_manager.close()
 
     else:
         operation_logs, last_file, files = await get_archived_operation_logs(
-            fs=await AppFS.get_fs(),
+            fs=await AppFS.get_fs(connection=connection),
             run_uuid=run_uuid,
             last_file=last_file,
             check_cache=not force,
