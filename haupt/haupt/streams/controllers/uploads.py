@@ -6,11 +6,13 @@ from asgiref.sync import sync_to_async
 from polyaxon import settings
 from polyaxon.fs.async_manager import upload_dir, upload_file
 from polyaxon.fs.types import FSSystem
+from polyaxon.fs.utils import get_store_path
 from polyaxon.lifecycle import V1ProjectFeature
 
 
 async def handle_posted_data(
     fs: FSSystem,
+    store_path: str,
     content_file: any,
     root_path: str,
     path: str,
@@ -39,8 +41,8 @@ async def handle_posted_data(
     full_filepath = settings.AGENT_CONFIG.get_local_path(
         subpath=root_path, entity=V1ProjectFeature.RUNTIME
     )
-    store_path = settings.AGENT_CONFIG.get_store_path(
-        subpath=root_path, entity=V1ProjectFeature.RUNTIME
+    store_path = get_store_path(
+        store_path=store_path, subpath=root_path, entity=V1ProjectFeature.RUNTIME
     )
 
     if overwrite and os.path.exists(full_filepath):
@@ -64,7 +66,7 @@ async def handle_posted_data(
         )
     if upload and store_path != full_filepath:
         if is_file:
-            await upload_file(fs=fs, subpath=root_path)
+            await upload_file(fs=fs, store_path=store_path, subpath=root_path)
         else:
-            await upload_dir(fs=fs, subpath=root_path)
+            await upload_dir(fs=fs, store_path=store_path, subpath=root_path)
     return root_path

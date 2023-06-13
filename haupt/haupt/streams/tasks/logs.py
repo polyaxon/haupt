@@ -4,8 +4,6 @@ from typing import List
 from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_path
 
-from django.core.exceptions import BadRequest
-
 from asgiref.sync import sync_to_async
 from polyaxon import settings
 from polyaxon.fs.async_manager import (
@@ -18,29 +16,30 @@ from polyaxon.fs.types import FSSystem
 from traceml.logging import V1Log, V1Logs
 
 
-async def clean_tmp_logs(fs: FSSystem, run_uuid: str):
-    if not settings.AGENT_CONFIG.artifacts_store:
-        raise BadRequest("Run's logs was not collected, resource was not found.")
+async def clean_tmp_logs(fs: FSSystem, store_path: str, run_uuid: str):
     subpath = "{}/.tmpplxlogs".format(run_uuid)
     delete_path(subpath)
-    await delete_file_or_dir(fs=fs, subpath=subpath, is_file=False)
+    await delete_file_or_dir(
+        fs=fs, store_path=store_path, subpath=subpath, is_file=False
+    )
 
 
-async def upload_logs(fs: FSSystem, run_uuid: str, logs: List[V1Log]):
-    if not settings.AGENT_CONFIG.artifacts_store:
-        raise BadRequest("Run's logs was not collected, resource was not found.")
+async def upload_logs(fs: FSSystem, store_path: str, run_uuid: str, logs: List[V1Log]):
     for c_logs in V1Logs.chunk_logs(logs):
         last_file = datetime.timestamp(c_logs.logs[-1].timestamp)
         if settings.AGENT_CONFIG.compressed_logs:
             subpath = "{}/plxlogs/{}.plx".format(run_uuid, last_file)
             await upload_data(
                 fs=fs,
+                store_path=store_path,
                 subpath=subpath,
                 data="{}\n{}".format(c_logs.get_csv_header(), c_logs.to_csv()),
             )
         else:
             subpath = "{}/plxlogs/{}".format(run_uuid, last_file)
-            await upload_data(fs=fs, subpath=subpath, data=c_logs.to_json())
+            await upload_data(
+                fs=fs, store_path=store_path, subpath=subpath, data=c_logs.to_json()
+            )
 
 
 async def content_to_logs(content, logs_path):
@@ -59,15 +58,21 @@ async def content_to_logs(content, logs_path):
 
 
 async def download_logs_file(
-    fs: FSSystem, run_uuid: str, last_file: str, check_cache: bool = True
+    fs: FSSystem,
+    store_path: str,
+    run_uuid: str,
+    last_file: str,
+    check_cache: bool = True,
 ) -> (str, str):
     subpath = "{}/plxlogs/{}".format(run_uuid, last_file)
-    content = await open_file(fs=fs, subpath=subpath, check_cache=check_cache)
+    content = await open_file(
+        fs=fs, store_path=store_path, subpath=subpath, check_cache=check_cache
+    )
 
     return await content_to_logs(content, subpath)
 
 
-async def download_tmp_logs(fs: FSSystem, run_uuid: str) -> str:
+async def download_tmp_logs(fs: FSSystem, store_path: str, run_uuid: str) -> str:
     subpath = "{}/.tmpplxlogs".format(run_uuid)
     delete_path(subpath)
-    return await download_dir(fs=fs, subpath=subpath)
+    return await download_dir(fs=fs, store_path=store_path, subpath=subpath)

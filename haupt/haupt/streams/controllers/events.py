@@ -21,17 +21,21 @@ from traceml.events import V1Events, get_event_path, get_resource_path
 logger = logging.getLogger("haupt.streams.events")
 
 
-async def get_events_files(fs: FSSystem, run_uuid: str, event_kind: str) -> List[str]:
+async def get_events_files(
+    fs: FSSystem, store_path: str, run_uuid: str, event_kind: str
+) -> List[str]:
     subpath = get_event_path(run_path=run_uuid, kind=event_kind)
-    files = await list_files(fs=fs, subpath=subpath)
+    files = await list_files(fs=fs, store_path=store_path, subpath=subpath)
     if not files["files"]:
         return []
     return sorted([f for f in files["files"].keys()])
 
 
-async def get_resources_files(fs: FSSystem, run_uuid: str) -> List[str]:
+async def get_resources_files(
+    fs: FSSystem, store_path: str, run_uuid: str
+) -> List[str]:
     subpath = get_resource_path(run_path=run_uuid, kind=V1ArtifactKind.METRIC)
-    files = await list_files(fs=fs, subpath=subpath)
+    files = await list_files(fs=fs, store_path=store_path, subpath=subpath)
     if not files["files"]:
         return []
     return sorted([f for f in files["files"].keys()])
@@ -83,6 +87,7 @@ async def process_operation_event(
 
 async def get_archived_operation_resource(
     fs: FSSystem,
+    store_path: str,
     run_uuid: str,
     event_kind: str,
     event_name: str,
@@ -91,7 +96,9 @@ async def get_archived_operation_resource(
     sample: Optional[int] = None,
 ) -> Optional[Dict]:
     subpath = get_resource_path(run_path=run_uuid, kind=event_kind, name=event_name)
-    event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
+    event_path = await download_file(
+        fs=fs, store_path=store_path, subpath=subpath, check_cache=check_cache
+    )
 
     return await process_operation_event(
         event_path=event_path,
@@ -104,6 +111,7 @@ async def get_archived_operation_resource(
 
 async def get_archived_operation_event(
     fs: FSSystem,
+    store_path: str,
     run_uuid: str,
     event_kind: str,
     event_name: str,
@@ -112,7 +120,9 @@ async def get_archived_operation_event(
     sample: Optional[int] = None,
 ) -> Optional[Dict]:
     subpath = get_event_path(run_path=run_uuid, kind=event_kind, name=event_name)
-    event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
+    event_path = await download_file(
+        fs=fs, store_path=store_path, subpath=subpath, check_cache=check_cache
+    )
 
     return await process_operation_event(
         event_path=event_path,
@@ -125,6 +135,7 @@ async def get_archived_operation_event(
 
 async def get_archived_operation_event_and_assets(
     fs: FSSystem,
+    store_path: str,
     run_uuid: str,
     event_kind: str,
     event_name: str,
@@ -132,7 +143,9 @@ async def get_archived_operation_event_and_assets(
 ) -> List[str]:
     pkg_files = []
     subpath = get_event_path(run_path=run_uuid, kind=event_kind, name=event_name)
-    event_path = await download_file(fs=fs, subpath=subpath, check_cache=check_cache)
+    event_path = await download_file(
+        fs=fs, store_path=store_path, subpath=subpath, check_cache=check_cache
+    )
     pkg_files.append(event_path)
 
     event = await process_operation_event(
@@ -166,6 +179,7 @@ async def get_archived_operation_event_and_assets(
 
 async def get_archived_operation_events_and_assets(
     fs: FSSystem,
+    store_path: str,
     run_uuid: str,
     event_kind: str,
     event_names: Set[str],
@@ -175,6 +189,7 @@ async def get_archived_operation_events_and_assets(
     for event_name in event_names:
         event_pkg_files = await get_archived_operation_event_and_assets(
             fs=fs,
+            store_path=store_path,
             run_uuid=run_uuid,
             event_kind=event_kind,
             event_name=event_name,
@@ -190,6 +205,7 @@ async def get_archived_operation_events_and_assets(
 
 async def get_archived_operation_resources(
     fs: FSSystem,
+    store_path: str,
     run_uuid: str,
     event_kind: str,
     event_names: Set[str],
@@ -199,11 +215,14 @@ async def get_archived_operation_resources(
 ) -> List[Dict]:
     events = []
     if not event_names:
-        files = await get_resources_files(fs=fs, run_uuid=run_uuid)
+        files = await get_resources_files(
+            fs=fs, store_path=store_path, run_uuid=run_uuid
+        )
         event_names = [f.split(".plx")[0] for f in files]
     for event_name in event_names:
         event = await get_archived_operation_resource(
             fs=fs,
+            store_path=store_path,
             run_uuid=run_uuid,
             event_kind=event_kind,
             event_name=event_name,
@@ -218,6 +237,7 @@ async def get_archived_operation_resources(
 
 async def get_archived_operation_events(
     fs: FSSystem,
+    store_path: str,
     run_uuid: str,
     event_kind: str,
     event_names: Set[str],
@@ -229,6 +249,7 @@ async def get_archived_operation_events(
     for event_name in event_names:
         event = await get_archived_operation_event(
             fs=fs,
+            store_path=store_path,
             run_uuid=run_uuid,
             event_kind=event_kind,
             event_name=event_name,
@@ -243,6 +264,7 @@ async def get_archived_operation_events(
 
 async def get_archived_operations_events(
     fs: FSSystem,
+    store_path: str,
     event_kind: str,
     run_uuids: Set[str],
     event_names: Set[str],
@@ -254,6 +276,7 @@ async def get_archived_operations_events(
     for run_uuid in run_uuids:
         run_events = await get_archived_operation_events(
             fs=fs,
+            store_path=store_path,
             run_uuid=run_uuid,
             event_kind=event_kind,
             event_names=event_names,

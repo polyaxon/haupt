@@ -35,10 +35,10 @@ async def handle_upload(
     untar = content_json.get("untar", True)
     path = content_json.get("path", "")
     connection = content_json.get("connection")
-    fs = await AppFS.get_fs(connection=connection)
     try:
         archived_path = await handle_posted_data(
-            fs=fs,
+            fs=await AppFS.get_fs(connection=connection),
+            store_path=AppFS.get_fs_root_path(connection=connection),
             content_file=content_file,
             root_path=run_uuid,
             path=path,
@@ -125,6 +125,7 @@ async def download_artifact(
     subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
     archived_path = await download_file(
         fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
         subpath=subpath,
         check_cache=not force,
     )
@@ -156,7 +157,10 @@ async def delete_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
     subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
     connection = request.GET.get("connection")
     is_deleted = await delete_file_or_dir(
-        fs=await AppFS.get_fs(connection=connection), subpath=subpath, is_file=True
+        fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
+        subpath=subpath,
+        is_file=True,
     )
     if not is_deleted:
         return HttpResponse(
@@ -195,11 +199,14 @@ async def download_artifacts(request: ASGIRequest, run_uuid: str) -> HttpRespons
     connection = request.GET.get("connection")
     subpath = "{}/{}".format(run_uuid, clean_path(path)).rstrip("/")
     fs = await AppFS.get_fs(connection=connection)
+    store_path = AppFS.get_fs_root_path(connection=connection)
     if check_path:
-        is_file = await check_is_file(fs=fs, subpath=subpath)
+        is_file = await check_is_file(fs=fs, store_path=store_path, subpath=subpath)
         if is_file:
             return await download_artifact(request, run_uuid=run_uuid)
-    archived_path = await download_dir(fs=fs, subpath=subpath, to_tar=True)
+    archived_path = await download_dir(
+        fs=fs, store_path=store_path, subpath=subpath, to_tar=True
+    )
     if not archived_path:
         return HttpResponse(
             content="Artifact not found: filepath={}".format(archived_path),
@@ -217,7 +224,10 @@ async def delete_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
     connection = request.GET.get("connection")
     subpath = "{}/{}".format(run_uuid, clean_path(path)).rstrip("/")
     is_deleted = await delete_file_or_dir(
-        fs=await AppFS.get_fs(connection=connection), subpath=subpath, is_file=False
+        fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
+        subpath=subpath,
+        is_file=False,
     )
     if not is_deleted:
         return HttpResponse(
@@ -243,6 +253,7 @@ async def tree_artifacts(
     connection = request.GET.get("connection")
     ls = await list_files(
         fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
         subpath=run_uuid,
         filepath=clean_path(filepath),
         force=True,

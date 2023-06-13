@@ -49,6 +49,7 @@ async def get_multi_run_events(
     run_uuids = {e for e in run_uuids.split(",") if e} if run_uuids else set([])
     events = await get_archived_operations_events(
         fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
         run_uuids=run_uuids,
         event_kind=event_kind,
         event_names=event_names,
@@ -64,6 +65,7 @@ async def get_package_event_assets(
 ) -> HttpResponse:
     archived_path = await get_archived_operation_events_and_assets(
         fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
         run_uuid=run_uuid,
         event_kind=event_kind,
         event_names=event_names,
@@ -111,6 +113,7 @@ async def get_run_events(
         )
     events = await get_archived_operation_events(
         fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
         run_uuid=run_uuid,
         event_kind=event_kind,
         event_names=event_names,
@@ -140,6 +143,7 @@ async def get_run_resources(
     event_names = {e for e in event_names.split(",") if e} if event_names else set([])
     events = await get_archived_operation_resources(
         fs=await AppFS.get_fs(connection=connection),
+        store_path=AppFS.get_fs_root_path(connection=connection),
         run_uuid=run_uuid,
         event_kind=V1ArtifactKind.METRIC,
         event_names=event_names,

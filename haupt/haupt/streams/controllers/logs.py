@@ -17,8 +17,10 @@ from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 from traceml.logging import V1Log
 
 
-async def get_logs_files(fs: FSSystem, run_uuid: str) -> List[str]:
-    files = await list_files(fs=fs, subpath="{}/plxlogs".format(run_uuid))
+async def get_logs_files(fs: FSSystem, store_path: str, run_uuid: str) -> List[str]:
+    files = await list_files(
+        fs=fs, store_path=store_path, subpath="{}/plxlogs".format(run_uuid)
+    )
     if not files["files"]:
         return []
     return sorted([f for f in files["files"].keys()])
@@ -54,27 +56,35 @@ async def read_logs_file(logs_path) -> List[V1Log]:
 
 
 async def get_archived_operation_logs(
-    fs: FSSystem, run_uuid: str, last_file: Optional[str], check_cache: bool = True
+    fs: FSSystem,
+    store_path: str,
+    run_uuid: str,
+    last_file: Optional[str],
+    check_cache: bool = True,
 ) -> Tuple[List[V1Log], Optional[str], List[str]]:
-    files = await get_logs_files(fs=fs, run_uuid=run_uuid)
+    files = await get_logs_files(fs=fs, store_path=store_path, run_uuid=run_uuid)
     logs = []
     last_file = await get_next_file(files=files, last_file=last_file)
     if not last_file:
         return logs, last_file, files
 
     logs = await download_logs_file(
-        fs=fs, run_uuid=run_uuid, last_file=last_file, check_cache=check_cache
+        fs=fs,
+        store_path=store_path,
+        run_uuid=run_uuid,
+        last_file=last_file,
+        check_cache=check_cache,
     )
 
     return logs, last_file, files
 
 
 async def get_tmp_operation_logs(
-    fs: FSSystem, run_uuid: str, last_time: Optional[datetime.datetime]
+    fs: FSSystem, store_path: str, run_uuid: str, last_time: Optional[datetime.datetime]
 ) -> Tuple[List[V1Log], Optional[datetime.datetime]]:
     logs = []
 
-    tmp_logs = await download_tmp_logs(fs=fs, run_uuid=run_uuid)
+    tmp_logs = await download_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
 
     if not tmp_logs or not os.path.exists(tmp_logs):
         return logs, None

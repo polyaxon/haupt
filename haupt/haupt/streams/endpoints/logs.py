@@ -27,7 +27,7 @@ from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
 from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 from polyaxon.utils.fqn_utils import get_resource_name, get_resource_name_for_kind
 
-logger = logging.getLogger("polyaxon.streams.logs")
+logger = logging.getLogger("haupt.streams.logs")
 
 
 @transaction.non_atomic_requests
@@ -69,6 +69,7 @@ async def get_logs(
         else:
             operation_logs, last_time = await get_tmp_operation_logs(
                 fs=await AppFS.get_fs(connection=connection),
+                store_path=AppFS.get_fs_root_path(connection=connection),
                 run_uuid=run_uuid,
                 last_time=last_time,
             )
@@ -78,6 +79,7 @@ async def get_logs(
     else:
         operation_logs, last_file, files = await get_archived_operation_logs(
             fs=await AppFS.get_fs(connection=connection),
+            store_path=AppFS.get_fs_root_path(connection=connection),
             run_uuid=run_uuid,
             last_file=last_file,
             check_cache=not force,
@@ -139,8 +141,11 @@ async def collect_logs(
         )
 
     fs = await AppFS.get_fs()
+    store_path = AppFS.get_fs_root_path()
     try:
-        await upload_logs(fs=fs, run_uuid=run_uuid, logs=operation_logs)
+        await upload_logs(
+            fs=fs, store_path=store_path, run_uuid=run_uuid, logs=operation_logs
+        )
     except Exception as e:
         errors = (
             "Run's logs was not collected, an error was raised while uploading the data. "
@@ -153,7 +158,7 @@ async def collect_logs(
         )
     if settings.AGENT_CONFIG.is_replica:
         try:
-            await clean_tmp_logs(fs=fs, run_uuid=run_uuid)
+            await clean_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
         except Exception as e:
             return HttpResponse(
                 content="Logs collection failed. Error: %s" % e,

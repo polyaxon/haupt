@@ -1,6 +1,7 @@
 from typing import Optional
 
 from polyaxon.connections import CONNECTION_CONFIG
+from polyaxon.contexts import paths as ctx_paths
 from polyaxon.env_vars.getters import get_artifacts_store_name
 from polyaxon.fs.fs import get_async_fs_from_connection, get_default_fs
 from polyaxon.fs.types import FSSystem
@@ -38,3 +39,11 @@ class AppFS:
         if not fs:
             return await cls.set_fs(connection=connection)
         return fs
+
+    @staticmethod
+    def get_fs_root_path(connection: Optional[str] = None) -> str:
+        connection = connection or get_artifacts_store_name()
+        connection = CONNECTION_CONFIG.get_connection_for(connection)
+        if not connection:
+            return ctx_paths.CONTEXT_ARTIFACTS_ROOT
+        return connection.store_path
