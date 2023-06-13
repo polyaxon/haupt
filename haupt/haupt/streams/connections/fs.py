@@ -27,14 +27,14 @@ class AppFS:
     @classmethod
     async def close_fs(cls, connection: Optional[str] = None):
         connection = connection or get_artifacts_store_name()
-        connection = cls._connections.get(connection)
-        if connection and hasattr(connection, "close_session"):
-            connection.close_session(connection.loop, connection.session)
+        fs = cls._connections.get(connection)
+        if fs and hasattr(fs, "close_session"):
+            fs.close_session(fs.loop, fs.session)
 
     @classmethod
     async def get_fs(cls, connection: Optional[str] = None) -> FSSystem:
         connection = connection or get_artifacts_store_name()
-        connection = cls._connections.get(connection)
-        if not connection:
-            return await cls.set_fs()
-        return connection
+        fs = cls._connections.get(connection)
+        if not fs:
+            return await cls.set_fs(connection=connection)
+        return fs
