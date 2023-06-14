@@ -26,7 +26,7 @@ async def k8s_inspect(
     validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)
     k8s_manager = AsyncK8sManager(
-        namespace=settings.CLIENT_CONFIG.namespace,
+        namespace=namespace,
         in_cluster=settings.CLIENT_CONFIG.in_cluster,
     )
     await k8s_manager.setup()
