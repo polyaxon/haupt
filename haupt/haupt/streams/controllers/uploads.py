@@ -41,7 +41,7 @@ async def handle_posted_data(
     full_filepath = settings.AGENT_CONFIG.get_local_path(
         subpath=root_path, entity=V1ProjectFeature.RUNTIME
     )
-    store_path = get_store_path(
+    store_full_path = get_store_path(
         store_path=store_path, subpath=root_path, entity=V1ProjectFeature.RUNTIME
     )
 
@@ -64,7 +64,7 @@ async def handle_posted_data(
         await sync_to_async(untar_file)(
             full_tmppath, extract_path=full_filepath, use_filepath=False
         )
-    if upload and store_path != full_filepath:
+    if upload and store_full_path != full_filepath:
         if is_file:
             await upload_file(fs=fs, store_path=store_path, subpath=root_path)
         else:
