@@ -6,9 +6,13 @@ from haupt.db.managers.cache import get_cache_clones
 from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.orchestration.scheduler.manager import RunsManager
-from polyaxon.constants.metadata import META_HAS_DOWNSTREAM_EVENTS_TRIGGER
+from polyaxon.constants.metadata import (
+    META_HAS_DOWNSTREAM_EVENTS_TRIGGER,
+    META_UPLOAD_ARTIFACTS,
+)
 from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
+from polyaxon.schemas import V1RunPending
 
 
 class APIHandler:
@@ -22,21 +26,41 @@ class APIHandler:
             event.instance and event.instance.managed_by == ManagedBy.USER
         ) or event.data["managed_by"] == ManagedBy.USER:
             return
-        eager = False
-        if event.instance and (
-            event.instance.managed_by == ManagedBy.CLI
-            or event.data["managed_by"] == ManagedBy.CLI
-        ):
-            eager = True
+
         # Run is managed by a pipeline
         if (
-            event.data.get("pipeline_id") is not None
+            event.instance
+            and (
+                event.instance.pipeline_id is not None
+                or event.data.get("pipeline_id") is not None
+            )
             and event.instance.status != V1Statuses.RESUMING
         ):
             return
+
         # Run is pending
-        if event.instance.pending is not None:
+        if (
+            event.instance
+            and event.instance.pending is not None
+            and event.instance.pending != V1RunPending.UPLOAD
+        ):
             return
+
+        # Eager logic
+        eager = False
+        if event.instance:
+            if (
+                event.instance.managed_by == ManagedBy.CLI
+                or event.data["managed_by"] == ManagedBy.CLI
+            ):
+                eager = True
+            if (
+                not eager
+                and event.instance.meta_info is not None
+                and META_UPLOAD_ARTIFACTS in event.instance.meta_info
+            ):
+                # Since we are uploading a run, we should automatically resolve the agent if provided
+                eager = True
 
         workers_backend.send(
             SchedulerCeleryTasks.RUNS_PREPARE,

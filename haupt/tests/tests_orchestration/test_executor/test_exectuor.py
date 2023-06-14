@@ -70,12 +70,17 @@ class TestExecutorHandlers(TestCase):
     def test_create_run_handler(self):
         States.workers = None
         data = {"id": 1, "managed_by": ManagedBy.AGENT, "pipeline_id": None}
-        event = MagicMock(data=data, instance=MagicMock(meta_info=None, pending=None))
+        event = MagicMock(
+            data=data,
+            instance=MagicMock(meta_info=None, pending=None, pipeline_id=None),
+        )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE
 
         States.workers = None
-        event = MagicMock(data=data, instance=MagicMock(meta_info={}, pending=None))
+        event = MagicMock(
+            data=data, instance=MagicMock(meta_info={}, pending=None, pipeline_id=None)
+        )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE
 
@@ -111,7 +116,10 @@ class TestExecutorHandlers(TestCase):
 
         States.workers = None
         event = MagicMock(
-            data=data, instance=MagicMock(meta_info={"is_approved": True}, pending=None)
+            data=data,
+            instance=MagicMock(
+                meta_info={"is_approved": True}, pending=None, pipeline_id=None
+            ),
         )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE
@@ -119,7 +127,9 @@ class TestExecutorHandlers(TestCase):
         States.workers = None
         event = MagicMock(
             data=data,
-            instance=MagicMock(managed_by=ManagedBy.AGENT, pending=None),
+            instance=MagicMock(
+                managed_by=ManagedBy.AGENT, pending=None, pipeline_id=None
+            ),
         )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE
@@ -127,7 +137,9 @@ class TestExecutorHandlers(TestCase):
         States.workers = None
         event = MagicMock(
             data=data,
-            instance=MagicMock(managed_by=ManagedBy.CLI, pending=None),
+            instance=MagicMock(
+                managed_by=ManagedBy.CLI, pending=None, pipeline_id=None
+            ),
         )
         APIHandler.handle_run_created(DummyWorkers, event=event)
         assert States.workers["task"] == SchedulerCeleryTasks.RUNS_PREPARE
