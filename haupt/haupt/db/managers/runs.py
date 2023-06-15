@@ -28,7 +28,6 @@ def create_run(
         readme=readme,
         tags=tags,
         kind=V1RunKind.JOB,
-        is_managed=False,
         managed_by=managed_by,
         raw_content=raw_content,
         meta_info=meta_info,

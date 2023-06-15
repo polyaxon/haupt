@@ -1,7 +1,6 @@
 from typing import Type
 
 from clipped.decorators.cached_property import cached_property
-from clipped.decorators.memoization import memoize
 
 from django.apps import apps as django_apps
 from django.conf import settings

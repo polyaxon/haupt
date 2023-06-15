@@ -428,17 +428,16 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
         return attrs
 
     def create(self, validated_data):
-        is_managed = validated_data.get("is_managed")
         managed_by = validated_data.get("managed_by")
         if managed_by is None:
             managed_by = ManagedBy.AGENT
-            is_managed = True
         content = validated_data.get("content")
         meta_info = validated_data.get("meta_info") or {}
 
-        if is_managed is None:
+        if managed_by is None:
             raise ValidationError("Run is not validated correctly")
 
+        is_managed = ManagedBy.is_managed(managed_by)
         if is_managed and not content:
             raise ValidationError(
                 "Managed runs require a content with valid specification"
@@ -475,7 +474,6 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
                     description=description,
                     tags=tags,
                     meta_info=meta_info,
-                    is_managed=is_managed,
                     managed_by=managed_by,
                     pending=pending,
                     supported_kinds=validated_data.get("supported_kinds"),

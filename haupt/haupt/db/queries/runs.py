@@ -20,7 +20,6 @@ STATUS_UPDATE_COLUMNS_DEFER = [
     "live_state",
     "readme",
     "content",
-    "is_managed",
     "managed_by",
     "pending",
     "controller",

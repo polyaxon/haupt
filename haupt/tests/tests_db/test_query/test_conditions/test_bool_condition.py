@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.db.models import Q
 
-from haupt.db.models.runs import Run
+from haupt.db.factories.artifacts import ArtifactFactory
+from haupt.db.models.artifacts import ArtifactLineage
 from polyaxon.pql.builder import BoolCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
@@ -9,6 +10,14 @@ from tests.tests_db.test_query.base import BaseTestQuery
 
 
 class TestBoolCondition(BaseTestQuery):
+    def setUp(self):
+        super().setUp()
+        self.artifact = ArtifactLineage.objects.create(
+            run=self.run,
+            artifact=ArtifactFactory(name="art1", state=self.project.uuid),
+            is_input=False,
+        )
+
     def test_bool_operators(self):
         op = BoolCondition._eq_operator(
             "field", "false", query_backend=Q, timezone=settings.TIME_ZONE
@@ -47,24 +56,24 @@ class TestBoolCondition(BaseTestQuery):
 
         # eq
         queryset = eq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=0,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 1
         queryset = eq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params="false",
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 1
         queryset = eq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=False,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
@@ -72,24 +81,24 @@ class TestBoolCondition(BaseTestQuery):
         assert queryset.count() == 1
 
         queryset = eq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=1,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 0
         queryset = eq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params="true",
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 0
         queryset = eq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=True,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
@@ -98,24 +107,24 @@ class TestBoolCondition(BaseTestQuery):
 
         # neq
         queryset = neq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=0,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 0
         queryset = neq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params="false",
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 0
         queryset = neq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=False,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
@@ -123,24 +132,24 @@ class TestBoolCondition(BaseTestQuery):
         assert queryset.count() == 0
 
         queryset = neq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=1,
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 1
         queryset = neq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params="true",
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
         assert queryset.count() == 1
         queryset = neq_cond.apply(
-            queryset=Run.objects,
-            name="is_managed",
+            queryset=ArtifactLineage.objects,
+            name="is_input",
             params=True,
             query_backend=Q,
             timezone=settings.TIME_ZONE,

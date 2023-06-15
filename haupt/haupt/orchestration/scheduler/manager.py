@@ -889,7 +889,7 @@ class RunsManager:
         if not run:
             return
 
-        if not ManagedBy.is_managed(run.managed_by):
+        if not run.is_managed:
             return
 
         if LifeCycle.is_done(run.status):
@@ -954,7 +954,7 @@ class RunsManager:
         if not run:
             return
 
-        if ManagedBy.is_managed(run.managed_by):
+        if run.is_managed:
             if run.is_matrix or run.is_dag or run.is_schedule:
                 dependent_runs = Models.Run.objects.filter(
                     Q(pipeline_id=run.id) | Q(controller_id=run.id)

@@ -53,7 +53,6 @@ class TestRunModel(TestCase):
             raw_content="foo",
             content="foo",
             managed_by=ManagedBy.CLI,
-            is_managed=True,
         )
         assert run.status == V1Statuses.FAILED
         assert run.content == "foo"

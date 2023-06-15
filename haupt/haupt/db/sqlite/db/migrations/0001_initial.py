@@ -462,13 +462,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "is_managed",
-                    models.BooleanField(
-                        default=True,
-                        help_text="If this entity is managed by the platform (deprecated).",
-                    ),
-                ),
-                (
                     "managed_by",
                     models.CharField(
                         blank=True,

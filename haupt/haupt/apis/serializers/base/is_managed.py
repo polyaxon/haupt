@@ -34,8 +34,8 @@ class IsManagedMixin(serializers.Serializer):
             raise ValidationError(
                 "{} expects a `{}`.".format(entity_name, config_field)
             )
-        attrs["is_managed"] = is_managed
         attrs["managed_by"] = managed_by
+        attrs.pop("is_managed", None)
         return attrs
 
     def validate_is_managed(self, value):

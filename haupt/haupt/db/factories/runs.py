@@ -11,7 +11,6 @@ class RunFactory(factory.django.DjangoModelFactory):
     project = factory.SubFactory(ProjectFactory)
     original = None
     pipeline = None
-    is_managed = False
     managed_by = ManagedBy.USER
 
     class Meta:

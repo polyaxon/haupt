@@ -61,10 +61,6 @@ class BaseRun(
         on_delete=models.CASCADE,
         related_name="runs",
     )
-    is_managed = models.BooleanField(
-        default=True,
-        help_text="If this entity is managed by the platform (deprecated).",
-    )
     managed_by = models.CharField(
         max_length=5,
         null=True,
@@ -113,6 +109,10 @@ class BaseRun(
     @property
     def subpath(self):
         return self.uuid.hex
+
+    @property
+    def is_managed(self) -> bool:
+        return ManagedBy.is_managed(self.managed_by)
 
     @property
     def is_clone(self) -> bool:

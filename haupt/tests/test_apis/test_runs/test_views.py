@@ -40,7 +40,6 @@ class BaseTestRunApi(BaseTest):
             content="test",
             raw_content="test",
             managed_by=ManagedBy.AGENT,
-            is_managed=True,
         )
         self.url = "/{}/{}/{}/runs/{}/".format(
             API_V1, self.user.username, self.project.name, self.object.uuid.hex
@@ -678,7 +677,7 @@ class TestStopRunViewV1(BaseTestRunApi):
     def test_stop_safe_stop(self):
         assert self.queryset.count() == 1
         last_run = self.queryset.last()
-        last_run.is_managed = True
+        last_run.managed_by = ManagedBy.AGENT
         last_run.save()
         assert self.queryset.last().status == V1Statuses.CREATED
         with patch("haupt.common.workers.send") as workers_send:
@@ -691,7 +690,7 @@ class TestStopRunViewV1(BaseTestRunApi):
     def test_stop(self):
         assert self.queryset.count() == 1
         last_run = self.queryset.last()
-        last_run.is_managed = True
+        last_run.managed_by = ManagedBy.AGENT
         last_run.status = V1Statuses.QUEUED
         last_run.save()
         with patch("haupt.common.workers.send") as workers_send:
@@ -704,7 +703,7 @@ class TestStopRunViewV1(BaseTestRunApi):
     def test_stop_non_managed(self):
         assert self.queryset.count() == 1
         last_run = self.queryset.last()
-        last_run.is_managed = False
+        last_run.managed_by = ManagedBy.USER
         last_run.save()
         assert self.queryset.last().status == V1Statuses.CREATED
         with patch("haupt.common.workers.send") as workers_send:
