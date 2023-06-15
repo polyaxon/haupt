@@ -3,7 +3,7 @@ from typing import Any, Iterable, Optional, Union
 from clipped.utils.bools import to_bool
 from clipped.utils.lists import to_list
 
-from polyaxon.lifecycle import LiveState
+from polyaxon.lifecycle import LiveState, ManagedBy
 from traceml.artifacts import V1ArtifactKind
 
 
@@ -113,3 +113,21 @@ def out_artifact_kind_condition(
     timezone: Optional[str] = None,
 ) -> Any:
     return _artifact_kind_condition(False, queryset, params, negation)
+
+
+def is_managed_condition(
+    queryset: Any,
+    params: Union[str, Iterable],
+    negation: bool,
+    query_backend: Any,
+    timezone: Optional[str] = None,
+) -> Any:
+    params = to_list(params)
+    if len(params) == 1:
+        if (to_bool(params[0]) is True and not negation) or (
+            to_bool(params[0]) is False and negation
+        ):
+            return ~query_backend(managed_by=ManagedBy.USER)
+        else:
+            return query_backend(managed_by=ManagedBy.USER)
+    return queryset

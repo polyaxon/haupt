@@ -274,7 +274,7 @@ class RunQueryManager(BaseQueryManager):
         "state": ValueCondition,
         "component_state": ValueCondition,
         # Flags
-        "is_managed": BoolCondition,
+        "is_managed": CallbackCondition(callback_conditions.is_managed_condition),
         "managed_by": ValueCondition,
         "pending": ValueCondition,
         # Resources
