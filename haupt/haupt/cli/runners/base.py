@@ -12,24 +12,32 @@ from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
 _logger = logging.getLogger("haupt.cli")
 
 
-def migrate(
-    migrate_tables: bool = False,
-    migrate_db: bool = False,
-):
+def manage(command: str):
     from django.core.management import execute_from_command_line
 
     # Required env var to trigger a management command
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
 
+    argv = ["manage.py"]
+    if command:
+        argv.append(command)
+    execute_from_command_line(argv)
+
+
+def migrate(
+    migrate_tables: bool = False,
+    migrate_db: bool = False,
+):
+    # Required env var to trigger a management command
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
+
     if migrate_tables:
-        argv = ["manage.py", "tables"]
         _logger.info("Starting tables migration ...")
-        execute_from_command_line(argv)
+        manage("table")
         _logger.info("Tables were migrated correctly!")
 
     if migrate_db:
-        argv = ["manage.py", "migrate"]
-        execute_from_command_line(argv)
+        manage("migrate")
         _logger.info("DB Migration finished!")
 
 

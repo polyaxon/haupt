@@ -1,5 +1,6 @@
 import click
 
+from haupt.cli.manage import manage
 from haupt.cli.proxies import proxy
 from haupt.cli.sandbox import sandbox
 from haupt.cli.server import server
@@ -22,6 +23,7 @@ def cli(verbose):
 
 
 cli.add_command(proxy)
+cli.add_command(manage)
 cli.add_command(sandbox)
 cli.add_command(server)
 cli.add_command(streams)
