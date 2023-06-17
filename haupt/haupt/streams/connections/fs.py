@@ -3,7 +3,7 @@ from typing import Optional
 from polyaxon.connections import CONNECTION_CONFIG
 from polyaxon.contexts import paths as ctx_paths
 from polyaxon.env_vars.getters import get_artifacts_store_name
-from polyaxon.fs.fs import get_async_fs_from_connection, get_default_fs
+from polyaxon.fs.fs import close_fs, get_async_fs_from_connection, get_default_fs
 from polyaxon.fs.types import FSSystem
 
 
@@ -29,8 +29,7 @@ class AppFS:
     async def close_fs(cls, connection: Optional[str] = None):
         connection = connection or get_artifacts_store_name()
         fs = cls._connections.get(connection)
-        if fs and hasattr(fs, "close_session"):
-            fs.close_session(fs.loop, fs.session)
+        await close_fs(fs)
 
     @classmethod
     async def get_fs(cls, connection: Optional[str] = None) -> FSSystem:

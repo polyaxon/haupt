@@ -6,7 +6,7 @@ from haupt.schemas.platform_config import PlatformConfig
 
 
 def set_ui(context, config: PlatformConfig, processors: Optional[List[str]] = None):
-    logging.warning(config.config_module)
+    logging.debug(config.config_module)
     context["ROOT_URLCONF"] = "{}.urls".format(config.config_module)
     platform_host = config.platform_host
     context["PLATFORM_HOST"] = platform_host
