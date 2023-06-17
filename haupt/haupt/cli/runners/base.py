@@ -1,8 +1,9 @@
 import logging
 import os
 
-from typing import Optional
+from typing import List, Optional
 
+from clipped.utils.lists import to_list
 from clipped.utils.workers import get_core_workers
 
 import uvicorn
@@ -12,7 +13,7 @@ from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
 _logger = logging.getLogger("haupt.cli")
 
 
-def manage(command: str):
+def manage(command: str, args: Optional[List[str]] = None):
     from django.core.management import execute_from_command_line
 
     # Required env var to trigger a management command
@@ -21,6 +22,7 @@ def manage(command: str):
     argv = ["manage.py"]
     if command:
         argv.append(command)
+    argv += to_list(args, check_none=True)
     execute_from_command_line(argv)
 
 

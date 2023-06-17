@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 import click
 
 
@@ -7,8 +9,9 @@ import click
     "--command",
     help="The command to execute.",
 )
-def manage(command: str):
+@click.argument("args", nargs=-1)
+def manage(command: str, args: Optional[List[str]]):
     """Start a new sever session."""
     from haupt.cli.runners.manage import run_manage
 
-    return run_manage(command)
+    return run_manage(command, args)
