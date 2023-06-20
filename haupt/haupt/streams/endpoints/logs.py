@@ -15,6 +15,7 @@ from django.urls import path
 from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
+from haupt.streams.controllers.k8s_pods import get_pods
 from haupt.streams.controllers.logs import (
     get_archived_operation_logs,
     get_operation_logs,
@@ -22,6 +23,7 @@ from haupt.streams.controllers.logs import (
 )
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
+from haupt.streams.tasks.op_spec import upload_op_spec
 from polyaxon import settings
 from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
 from polyaxon.k8s.manager.async_manager import AsyncK8sManager
@@ -132,6 +134,7 @@ async def collect_logs(
     operation_logs, _ = await query_k8s_operation_logs(
         instance=run_uuid, k8s_manager=k8s_manager, last_time=None
     )
+    op_spec = await get_pods(k8s_manager=k8s_manager, run_uuid=run_uuid)
     if k8s_manager:
         await k8s_manager.close()
     if not operation_logs:
@@ -160,11 +163,24 @@ async def collect_logs(
         try:
             await clean_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
         except Exception as e:
-            return HttpResponse(
-                content="Logs collection failed. Error: %s" % e,
-                status=status.HTTP_400_BAD_REQUEST,
+            errors = "Failed removing temp logs, an error was raised. " "Error %s." % e
+            logger.warning(errors)
+
+    if op_spec:
+        try:
+            await upload_op_spec(
+                fs=fs,
+                store_path=store_path,
+                run_uuid=run_uuid,
+                op_spec=op_spec,
             )
-        return HttpResponse(status=status.HTTP_200_OK)
+        except Exception as e:
+            errors = (
+                "Operation spec was not collected, an error was raised while uploading the data. "
+                "Error %s." % e
+            )
+            logger.warning(errors)
+
     return HttpResponse(status=status.HTTP_200_OK)
 
 
