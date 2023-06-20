@@ -56,6 +56,7 @@ class APIHandler:
                 eager = True
             if (
                 not eager
+                and event.instance.cloning_kind is None
                 and event.instance.meta_info is not None
                 and META_UPLOAD_ARTIFACTS in event.instance.meta_info
             ):
