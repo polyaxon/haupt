@@ -35,7 +35,7 @@ def migrate(
 
     if migrate_tables:
         _logger.info("Starting tables migration ...")
-        manage("table")
+        manage("tables")
         _logger.info("Tables were migrated correctly!")
 
     if migrate_db:
