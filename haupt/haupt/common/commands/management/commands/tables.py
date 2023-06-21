@@ -10,19 +10,24 @@ class Command(BaseCommand):
         )
 
     @staticmethod
-    def update_migrations(cursor, app):
-        query = "UPDATE django_migrations SET app = 'db' where app='{}'".format(app)
-        cursor.execute(query)
-
-    @staticmethod
-    def update_table(cursor):
+    def _check_table(cursor, table_name):
         check_query = (
             "select * from information_schema.tables where table_name='{}'".format(
-                "auth_user"
+                table_name
             )
         )
         cursor.execute(check_query)
-        if bool(cursor.fetchall()):
+        return bool(cursor.fetchall())
+
+    @classmethod
+    def update_migrations(cls, cursor, app):
+        if cls._check_table(cursor, "django_migrations"):
+            query = "UPDATE django_migrations SET app = 'db' where app='{}'".format(app)
+            cursor.execute(query)
+
+    @classmethod
+    def update_table(cls, cursor):
+        if cls._check_table(cursor, "auth_user"):
             alter_query = "ALTER TABLE auth_user RENAME TO db_user"
             cursor.execute(alter_query)
 
