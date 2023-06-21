@@ -27,12 +27,12 @@ class HealthView(APIView):
         CliConfig.init_file(self.HEALTH_FILE)
         config = self.get_config()
         if config and config.should_check():
-            config.version = pkg.VERSION
+            config.current_version = pkg.VERSION
             key = conf.get(ORGANIZATION_KEY) or get_dummy_key()
             compatibility = get_compatibility(
                 key=key,
                 service=PolyaxonServices.PLATFORM,
-                version=config.version,
+                version=config.current_version,
                 is_cli=False,
             )
             config.compatibility = compatibility.to_dict() if compatibility else None
