@@ -1,7 +1,7 @@
 from haupt.schemas.platform_config import PlatformConfig
 
 
-def set_middlewares(context, config: PlatformConfig):
+def set_middlewares(context, config: PlatformConfig, enable_crsf: bool = False):
     context["MIDDLEWARE"] = (
         "django.middleware.security.SecurityMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
@@ -9,7 +9,7 @@ def set_middlewares(context, config: PlatformConfig):
         "django.middleware.common.CommonMiddleware",
     )
 
-    if not context["UI_IN_SANDBOX"]:
+    if enable_crsf:
         context["MIDDLEWARE"] += ("django.middleware.csrf.CsrfViewMiddleware",)
 
     context["MIDDLEWARE"] += (

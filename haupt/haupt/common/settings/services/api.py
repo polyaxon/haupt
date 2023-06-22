@@ -17,6 +17,7 @@ def set_api_service(
     routes: Dict,
     db_app: Optional[str] = None,
     processors: Optional[List[str]] = None,
+    enable_crsf: bool = False,
 ):
     project_apps = (
         "haupt.common.apis.apps.CommonApisConfig",
@@ -35,7 +36,7 @@ def set_api_service(
     set_core(context=context, config=config, use_db=True)
     set_cors(context=context, config=config)
     set_ui(context=context, config=config, processors=processors)
-    set_middlewares(context=context, config=config)
+    set_middlewares(context=context, config=config, enable_crsf=enable_crsf)
     set_assets(context=context, config=config)
     if config.scheduler_enabled:
         set_celery(context=context, config=config, routes=routes)
