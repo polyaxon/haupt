@@ -152,7 +152,7 @@ class PlatformConfig(BaseSchemaModel):
     db_password: Optional[str] = Field(alias="POLYAXON_DB_PASSWORD")  # secret
     db_host: Optional[str] = Field(alias="POLYAXON_DB_HOST")
     db_port: Optional[str] = Field(alias="POLYAXON_DB_PORT")
-    db_conn_max_age: Optional[int] = Field(alias="POLYAXON_DB_CONN_MAX_AGE", default=60)
+    db_conn_max_age: Optional[int] = Field(alias="POLYAXON_DB_CONN_MAX_AGE", default=0)
     db_options: Optional[Dict] = Field(alias="POLYAXON_DB_OPTIONS")
     cors_allowed_origins: Optional[List[str]] = Field(
         alias="POLYAXON_CORS_ALLOWED_ORIGINS", default=[]
