@@ -66,11 +66,11 @@ def start_app(
     else:
         workers = workers or get_core_workers(per_core=2, max_workers=max_workers)
 
-        _logger.info(
-            "{app_name} is running on http://{host}:{port} in process {pid}".format(
-                app_name=app_name, host=host, port=port, pid=os.getpid()
-            )
+    _logger.info(
+        "{app_name} is running on http://{host}:{port} in process {pid} with {workers} workers".format(
+            app_name=app_name, host=host, port=port, pid=os.getpid(), workers=workers
         )
+    )
     uvicorn.run(
         app,
         host=host,
