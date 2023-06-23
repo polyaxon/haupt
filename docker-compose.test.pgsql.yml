@@ -23,7 +23,6 @@ services:
       - postgres
     volumes:
       - ./haupt:/haupt/haupt
-      - ./public:/haupt/public
       - ./pydist:/haupt/pydist
     ports:
       - "8000:8000"
