@@ -1,3 +1,5 @@
+from typing import Optional
+
 from clipped.formatting import Printer
 from pydantic import ValidationError
 
@@ -17,13 +19,13 @@ def set_proxies_config():
     PROXIES_CONFIG = ProxiesManager.get_config_from_env()
 
 
-def set_sandbox_config():
+def set_sandbox_config(path: Optional[str] = None):
     from haupt.managers.sandbox import SandboxConfigManager
     from polyaxon.contexts.paths import mount_sandbox
     from polyaxon.settings import HOME_CONFIG, set_agent_config
 
     SandboxConfigManager.set_config_path(HOME_CONFIG.path)
-    mount_sandbox()
+    mount_sandbox(path=path)
     PolyaxonServices.set_service_name(PolyaxonServices.SANDBOX)
 
     global SANDBOX_CONFIG
