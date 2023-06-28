@@ -1,3 +1,5 @@
+import os
+
 from haupt.schemas.platform_config import PlatformConfig
 from polyaxon.api import STATIC_V1
 
@@ -10,7 +12,9 @@ def set_assets(context, config: PlatformConfig):
     context["STATIC_URL"] = config.static_url or "/static/"
 
     # Additional locations of static files
-    context["STATICFILES_DIRS"] = (str(config.root_dir / "public"),)
+    public_dir = str(config.root_dir / "public")
+    if os.path.exists(public_dir):
+        context["STATICFILES_DIRS"] = (public_dir,)
 
     context["STATICFILES_FINDERS"] = (
         "django.contrib.staticfiles.finders.FileSystemFinder",
