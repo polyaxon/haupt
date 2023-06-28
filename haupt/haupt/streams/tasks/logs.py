@@ -27,19 +27,10 @@ async def clean_tmp_logs(fs: FSSystem, store_path: str, run_uuid: str):
 async def upload_logs(fs: FSSystem, store_path: str, run_uuid: str, logs: List[V1Log]):
     for c_logs in V1Logs.chunk_logs(logs):
         last_file = datetime.timestamp(c_logs.logs[-1].timestamp)
-        if settings.AGENT_CONFIG.compressed_logs:
-            subpath = "{}/plxlogs/{}.plx".format(run_uuid, last_file)
-            await upload_data(
-                fs=fs,
-                store_path=store_path,
-                subpath=subpath,
-                data="{}\n{}".format(c_logs.get_csv_header(), c_logs.to_csv()),
-            )
-        else:
-            subpath = "{}/plxlogs/{}".format(run_uuid, last_file)
-            await upload_data(
-                fs=fs, store_path=store_path, subpath=subpath, data=c_logs.to_json()
-            )
+        subpath = "{}/plxlogs/{}".format(run_uuid, last_file)
+        await upload_data(
+            fs=fs, store_path=store_path, subpath=subpath, data=c_logs.to_json()
+        )
 
 
 async def content_to_logs(content, logs_path):
