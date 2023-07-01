@@ -63,6 +63,7 @@ async def process_operation_event(
                     name=event_name,
                     data=contents,
                     parse_dates=False,
+                    engine="pyarrow",
                 )
                 if sample:
                     try:
