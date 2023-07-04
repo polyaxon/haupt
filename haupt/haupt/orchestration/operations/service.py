@@ -402,6 +402,7 @@ class OperationsService(Service):
         run.content = instance.content
         run.raw_content = instance.raw_content
         run.tags = instance.tags
+        run.params = instance.params
         run.save()
         new_run_status(
             run,
