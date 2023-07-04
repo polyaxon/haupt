@@ -16,6 +16,7 @@ from polyaxon.constants.metadata import (
     META_HAS_MATRICES,
     META_HAS_SERVICES,
     META_ITERATION,
+    META_RECOMPILE,
     META_UPLOAD_ARTIFACTS,
 )
 from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
@@ -372,7 +373,13 @@ class OperationsService(Service):
         message=None,
         **kwargs,
     ):
-        op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
+        meta_info = kwargs.pop("meta_info", {}) or {}
+        recompile = meta_info.pop(META_RECOMPILE, False)
+        if recompile:
+            op_spec = V1Operation.read(content)
+            content = None
+        else:
+            op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
         instance = self.init_run(
             project_id=run.project_id,
             user_id=user_id or run.user_id,
@@ -422,8 +429,13 @@ class OperationsService(Service):
         supported_owners: Set[str] = None,
         **kwargs,
     ) -> BaseRun:
-        op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
         meta_info = kwargs.pop("meta_info", {}) or {}
+        recompile = meta_info.pop(META_RECOMPILE, False)
+        if recompile:
+            op_spec = V1Operation.read(content)
+            content = None
+        else:
+            op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
         original_meta_info = run.meta_info or {}
         original_uuid = run.uuid.hex
         upload_artifacts = original_meta_info.get(META_UPLOAD_ARTIFACTS)

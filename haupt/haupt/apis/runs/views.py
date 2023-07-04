@@ -114,6 +114,7 @@ class RunRestartView(RunCloneView):
             name=kwargs.get("name"),
             description=kwargs.get("description"),
             tags=kwargs.get("tags"),
+            meta_info=kwargs.get("meta_info"),
             **self._get_Additional_fields(obj)
         )
 
@@ -129,6 +130,10 @@ class RunResumeView(RunCloneView):
             run=obj,
             user_id=self.request.user.id,
             content=content,
+            name=kwargs.get("name"),
+            description=kwargs.get("description"),
+            tags=kwargs.get("tags"),
+            meta_info=kwargs.get("meta_info"),
             message="Run was resumed by user.",
             **self._get_additional_fields(obj)
         )

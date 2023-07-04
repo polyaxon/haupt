@@ -16,6 +16,7 @@ from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from polyaxon.api import API_V1
+from polyaxon.constants.metadata import META_RECOMPILE
 from polyaxon.lifecycle import LiveState, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyaxonfile import OperationSpecification
 from polyaxon.polyflow import V1RunKind
@@ -348,6 +349,33 @@ class TestRestartRunViewV1(BaseRerunRunApi):
         assert workers_send.call_count == 0
         assert self.queryset.count() == 1
 
+    def test_restart_recompile_override_config_raises(self):
+        data = {
+            "content": '{"trigger": "all_succeeded"}',
+            "meta_info": {META_RECOMPILE: True},
+        }
+        with patch("haupt.common.workers.send"):
+            resp = self.client.post(self.url + "restart/", data)
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_restart_recompile_config(self):
+        data = {"content": self.object.raw_content, "meta_info": {META_RECOMPILE: True}}
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url + "restart/", data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert self.queryset.count() == 2
+        assert len(workers_send.call_args_list) == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_PREPARE,
+        }
+
+        last_experiment = self.queryset.last()
+        assert last_experiment.is_clone is True
+        assert last_experiment.is_restart is True
+        assert last_experiment.is_copy is False
+        assert last_experiment.is_resume is False
+        assert last_experiment.original == self.object
+
 
 @pytest.mark.run_mark
 class TestResumeRunViewV1(BaseRerunRunApi):
@@ -408,6 +436,35 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
         assert workers_send.call_count == 0
         assert self.queryset.count() == 1
+
+    def test_resume_recompile_override_config_raises(self):
+        data = {
+            "content": '{"trigger": "all_succeeded"}',
+            "meta_info": {META_RECOMPILE: True},
+        }
+        with patch("haupt.common.workers.send"):
+            resp = self.client.post(self.url + "resume/", data)
+
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_resume_recompile_config(self):
+        data = {"content": self.object.raw_content, "meta_info": {META_RECOMPILE: True}}
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url + "resume/", data)
+
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert self.queryset.count() == 1
+        assert len(workers_send.call_args_list) == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_PREPARE,
+        }
+
+        last_experiment = self.queryset.last()
+        assert last_experiment.is_clone is False
+        assert last_experiment.is_restart is False
+        assert last_experiment.is_copy is False
+        assert last_experiment.is_resume is True
+        assert last_experiment.original is None
 
     def test_resume_undone_run(self):
         new_run_status(
