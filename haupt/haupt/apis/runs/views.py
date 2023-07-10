@@ -178,7 +178,7 @@ class RunStatusListView(RunEndpoint, RetrieveEndpoint, CreateEndpoint):
     def perform_create(self, serializer):
         try:
             methods.create_status(view=self, serializer=serializer)
-        except Models.Run.DoesNotExit:
+        except Models.Run.DoesNotExist:
             raise Http404
 
 

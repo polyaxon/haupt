@@ -366,7 +366,7 @@ class ProjectVersionStageListView(VersionEndpoint, RetrieveEndpoint, CreateEndpo
                 serializer=serializer,
                 event_type=self.get_event_type(self.request),
             )
-        except Models.ProjectVersion.DoesNotExit:
+        except Models.ProjectVersion.DoesNotExist:
             raise Http404
 
 
