@@ -112,9 +112,7 @@ async def collect_logs(
         errors = "Request requires an authenticated internal service %s" % e
         logger.warning(errors)
         return UJSONResponse(
-            data={
-                "errors": errors
-            },
+            data={"errors": errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid, run_kind=run_kind)
@@ -127,7 +125,9 @@ async def collect_logs(
         k8s_manager=k8s_manager, resource_name=resource_name
     )
     if not k8s_operation:
-        errors = "Run's logs was not collected, resource was not found for run %s" % run_uuid
+        errors = (
+            "Run's logs was not collected, resource was not found for run %s" % run_uuid
+        )
         logger.warning(errors)
         return UJSONResponse(
             data={"errors": errors},

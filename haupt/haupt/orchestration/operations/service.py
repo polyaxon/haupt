@@ -84,8 +84,6 @@ class OperationsService(Service):
             return V1RunKind.JOB, V1RunKind.RAYJOB
         elif compiled_operation.is_dask_job_run:
             return V1RunKind.JOB, V1RunKind.DASKJOB
-        elif compiled_operation.is_spark_job_run:
-            return V1RunKind.JOB, V1RunKind.SPARKJOB
         elif compiled_operation.is_tuner_run:
             return V1RunKind.JOB, V1RunKind.TUNER
         elif compiled_operation.is_notifier_run:

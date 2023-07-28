@@ -372,7 +372,6 @@ class Migration(migrations.Migration):
                             ("job", "job"),
                             ("service", "service"),
                             ("dag", "dag"),
-                            ("sparkjob", "sparkjob"),
                             ("daskjob", "daskjob"),
                             ("rayjob", "rayjob"),
                             ("mpijob", "mpijob"),
