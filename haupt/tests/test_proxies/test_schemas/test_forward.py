@@ -1,6 +1,6 @@
 import pytest
 
-from pydantic import ValidationError
+from clipped.compact.pydantic import ValidationError
 
 from haupt import settings
 from haupt.proxies.schemas.forward import get_forward_cmd

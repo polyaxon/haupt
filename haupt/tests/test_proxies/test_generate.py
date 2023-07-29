@@ -2,7 +2,7 @@ import os
 import pytest
 import tempfile
 
-from pydantic import ValidationError
+from clipped.compact.pydantic import ValidationError
 
 from haupt import settings
 from haupt.proxies.generators import (

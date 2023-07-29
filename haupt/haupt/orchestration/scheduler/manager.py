@@ -5,8 +5,8 @@ from functools import reduce
 from operator import __or__ as OR
 from typing import Dict, List, Optional
 
+from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from clipped.utils.lists import to_list
-from pydantic import ValidationError as PydanticValidationError
 from rest_framework.exceptions import ValidationError
 
 from django.db.models import Q, QuerySet

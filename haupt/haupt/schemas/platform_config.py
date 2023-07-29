@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional
 from typing_extensions import Literal
 
+from clipped.compact.pydantic import Extra, Field, validator
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
-from pydantic import Extra, Field, validator
 
 from haupt import pkg
 from polyaxon.config.parser import ConfigParser
@@ -34,7 +34,7 @@ from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
 from polyaxon.schemas.base import BaseSchemaModel
 
 if TYPE_CHECKING:
-    from pydantic.fields import ModelField
+    from clipped.compact.pydantic import ModelField
 
 
 class PlatformConfig(BaseSchemaModel):

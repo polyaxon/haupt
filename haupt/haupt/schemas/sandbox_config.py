@@ -1,7 +1,7 @@
 from typing import Optional
 
+from clipped.compact.pydantic import Field, StrictInt, StrictStr, root_validator
 from clipped.utils.http import clean_host
-from pydantic import Field, StrictInt, StrictStr, root_validator
 
 from polyaxon.env_vars.keys import (
     EV_KEYS_K8S_NAMESPACE,

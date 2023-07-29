@@ -1,7 +1,7 @@
 from typing import Optional
 
+from clipped.compact.pydantic import ValidationError
 from clipped.formatting import Printer
-from pydantic import ValidationError
 
 from polyaxon.services.values import PolyaxonServices
 

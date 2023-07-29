@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from pydantic import ValidationError as PydanticValidationError
+from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from rest_framework import fields, serializers
 from rest_framework.exceptions import ValidationError
 

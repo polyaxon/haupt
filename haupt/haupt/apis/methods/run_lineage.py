@@ -1,5 +1,5 @@
+from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from clipped.utils.lists import to_list
-from pydantic import ValidationError as PydanticValidationError
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response

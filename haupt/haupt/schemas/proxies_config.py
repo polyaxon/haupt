@@ -1,8 +1,8 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
+from clipped.compact.pydantic import Extra, Field, validator
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
-from pydantic import Extra, Field, validator
 
 from polyaxon.api import STATIC_V1
 from polyaxon.contexts import paths as ctx_paths

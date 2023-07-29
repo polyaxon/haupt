@@ -1,7 +1,7 @@
 import pytest
 
+from clipped.compact.pydantic import ValidationError
 from clipped.utils.json import orjson_dumps
-from pydantic import ValidationError
 
 from haupt.schemas.sandbox_config import SandboxConfig
 from polyaxon.connections import (
