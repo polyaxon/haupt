@@ -23,6 +23,7 @@ INDEX_PATTERN = r"(?P<index>\d+)"
 RUN_ID_PATTERN = r"(?P<run_id>\d+)"
 RUN_UUID_KEY = "run_uuid"
 RUN_UUID_PATTERN = r"(?P<run_uuid>\w{1,36})"
+RUN_PORT_PATTERN = r"(?P<artifact_name>[-\w]{1,128})"
 
 EVENT_KIND_PATTERN = r"(?P<event_kind>[-\w]{1,20})"
 EVENT_NAME_PATTERN = r"(?P<event_name>[-\w]{1,128})"

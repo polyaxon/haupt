@@ -44,6 +44,7 @@ from polyaxon.constants.metadata import (
     META_HAS_SCHEDULES,
     META_HAS_SERVICES,
     META_IS_EXTERNAL,
+    META_PORTS,
     META_REWRITE_PATH,
     META_UPLOAD_ARTIFACTS,
 )
@@ -640,7 +641,6 @@ class RunsResolver(resolver.BaseResolver):
             self.run.meta_info[META_HAS_EARLY_STOPPING] = True
         elif self.run.is_dag and self.compiled_operation.run.early_stopping:
             self.run.meta_info[META_HAS_EARLY_STOPPING] = True
-
         # handle services path
         if (
             self.compiled_operation.is_service_run
@@ -653,6 +653,9 @@ class RunsResolver(resolver.BaseResolver):
             and self.compiled_operation.run.is_external
         ):
             self.run.meta_info[META_IS_EXTERNAL] = True
+        # handle services ports
+        if self.compiled_operation.is_service_run and self.compiled_operation.run.ports:
+            self.run.meta_info[META_PORTS] = self.compiled_operation.run.ports
 
     def _persist_resources(self):
         if self.compiled_operation.has_pipeline:

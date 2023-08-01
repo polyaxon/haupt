@@ -71,36 +71,35 @@ class FullSettingsMixin:
             elif k == V1ProjectVersionKind.COMPONENT:
                 components.append(v)
 
-        return {
-            "namespace": obj.namespace
-            if hasattr(obj, "namespace")
-            else conf.get(K8S_NAMESPACE),
-            "agent": {"name": obj.agent.name}
-            if hasattr(obj, "agent") and obj.agent and obj.agent.name
-            else None,
-            "queue": {"name": obj.queue.name}
-            if hasattr(obj, "queue") and obj.queue and obj.queue.name
-            else None,
-            "artifacts_store": {"name": obj.artifacts_store.name}
-            if hasattr(obj, "artifacts_store")
-            and obj.artifacts_store
-            and obj.artifacts_store.name
-            else None,
-            "tensorboard": {
+        namespace = (
+            obj.namespace if hasattr(obj, "namespace") else conf.get(K8S_NAMESPACE)
+        )
+        agent = None
+        if hasattr(obj, "agent") and obj.agent:
+            agent = {"name": obj.agent.name, "version": obj.agent.version}
+        queue = None
+        if hasattr(obj, "queue") and obj.queue:
+            queue = {"name": obj.queue.name}
+        artifacts_store = None
+        if hasattr(obj, "artifacts_store") and obj.artifacts_store:
+            artifacts_store = {"name": obj.artifacts_store.name}
+        tensorboard = None
+        if tensorboard:
+            tensorboard = {
                 "name": tensorboard.name,
                 "status": tensorboard.status,
                 "uuid": tensorboard.uuid.hex,
             }
-            if tensorboard
-            else None,
-            "build": {
+        build = None
+        if build:
+            build = {
                 "name": build.name,
                 "status": build.status,
                 "uuid": build.uuid.hex,
             }
-            if build
-            else None,
-            "component": {
+        component = None
+        if obj.component_state:
+            component = {
                 "state": obj.component_state.hex,
                 "versions": components,
                 "count": Models.Run.objects.filter(
@@ -108,8 +107,14 @@ class FullSettingsMixin:
                     component_state=obj.component_state,
                 ).count(),
             }
-            if obj.component_state
-            else None,
+        return {
+            "namespace": namespace,
+            "agent": agent,
+            "queue": queue,
+            "artifacts_store": artifacts_store,
+            "tensorboard": tensorboard,
+            "build": build,
+            "component": component,
             "models": models,
             "artifacts": artifacts,
         }
