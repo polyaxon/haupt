@@ -33,7 +33,6 @@ from polyaxon.env_vars.keys import (
     EV_KEYS_PROXY_GATEWAY_TARGET_PORT,
     EV_KEYS_PROXY_HAS_FORWARD_PROXY,
     EV_KEYS_PROXY_NAMESPACES,
-    EV_KEYS_PROXY_SERVICES_PORT,
     EV_KEYS_PROXY_SSL_ENABLED,
     EV_KEYS_PROXY_SSL_PATH,
     EV_KEYS_PROXY_STREAMS_HOST,
@@ -80,9 +79,6 @@ class ProxiesConfig(BaseSchemaModel):
     )
     api_use_resolver: Optional[bool] = Field(
         alias=EV_KEYS_PROXY_API_USE_RESOLVER, default=False
-    )
-    services_port: Optional[int] = Field(
-        alias=EV_KEYS_PROXY_SERVICES_PORT, default=_DEFAULT_PORT
     )
     auth_enabled: Optional[bool] = Field(
         alias=EV_KEYS_PROXY_AUTH_ENABLED, default=False

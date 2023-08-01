@@ -18,7 +18,6 @@ class TestSettings(BaseProxiesTestCase):
         assert settings.PROXIES_CONFIG.api_port == 80
         assert settings.PROXIES_CONFIG.streams_host == "polyaxon-polyaxon-streams"
         assert settings.PROXIES_CONFIG.api_host == "polyaxon-polyaxon-api"
-        assert settings.PROXIES_CONFIG.services_port == 80
         assert settings.PROXIES_CONFIG.dns_use_resolver is False
         assert settings.PROXIES_CONFIG.dns_custom_cluster == "cluster.local"
         assert settings.PROXIES_CONFIG.dns_backend == "kube-dns"

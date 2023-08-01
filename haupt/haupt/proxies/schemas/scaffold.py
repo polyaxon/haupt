@@ -13,7 +13,7 @@ from haupt.proxies.schemas.services import (
     get_auth_request_config,
     get_internal_location_config,
     get_k8s_location_config,
-    get_services_location_config,
+    get_services_definitions,
     get_streams_location_config,
 )
 from haupt.proxies.schemas.ssl import get_ssl_config
@@ -65,20 +65,9 @@ def get_scaffold_config(
             get_k8s_location_config(
                 resolver=resolver, auth=auth, is_local_service=is_local_streams_service
             ),
-            get_services_location_config(
-                resolver=resolver, auth=auth, rewrite=False, external=False
-            ),
-            get_services_location_config(
-                resolver=resolver, auth=auth, rewrite=True, external=False
-            ),
-            get_services_location_config(
-                resolver=resolver, auth=auth, rewrite=False, external=True
-            ),
-            get_services_location_config(
-                resolver=resolver, auth=auth, rewrite=True, external=True
-            ),
             # get_plugins_location_config(resolver=resolver, auth=auth)
         ]
+        config += get_services_definitions(resolver=resolver, auth=auth)
     if api_location_configs:
         config += api_location_configs
     return config

@@ -52,10 +52,10 @@ def get_plugins_location_config(resolver: str, auth: str, proxy_services=None):
 
 
 SERVICES_OPTIONS = r"""
-location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
     {auth}
     {resolver}
-    proxy_pass http://plx-operation-$4.$1.svc.{dns_cluster_with_port};
+    proxy_pass http://plx-operation-$4.$1.svc.{dns_custom_cluster}:$5;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -68,12 +68,12 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
 """  # noqa
 
 SERVICES_REWRITE_OPTIONS = r"""
-location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
     {auth}
     {resolver}
     rewrite_log on;
-    rewrite ^/rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) /$5 break;
-    proxy_pass http://plx-operation-$4.$1.svc.{dns_cluster_with_port};
+    rewrite ^/rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) /$6 break;
+    proxy_pass http://plx-operation-$4.$1.svc.{dns_custom_cluster}:$5;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -85,11 +85,10 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
 }}
 """  # noqa
 
-
 EXTERNAL_OPTIONS = r"""
-location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
     {resolver}
-    proxy_pass http://plx-operation-$4-ext.$1.svc.{dns_cluster_with_port};
+    proxy_pass http://plx-operation-$4-ext.$1.svc.{dns_custom_cluster}:$5;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -102,11 +101,11 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
 """  # noqa
 
 EXTERNAL_REWRITE_OPTIONS = r"""
-location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
     {resolver}
     rewrite_log on;
-    rewrite ^/rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) /$5 break;
-    proxy_pass http://plx-operation-$4-ext.$1.svc.{dns_cluster_with_port};
+    rewrite ^/rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) /$6 break;
+    proxy_pass http://plx-operation-$4-ext.$1.svc.{dns_custom_cluster}:$5;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -120,13 +119,11 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.*) {{
 
 
 def get_services_location_config(
-    resolver: str, auth: str, rewrite: bool = False, external: bool = False
+    resolver: str,
+    auth: str,
+    rewrite: bool = False,
+    external: bool = False,
 ):
-    dns_cluster_with_port = settings.PROXIES_CONFIG.dns_custom_cluster
-    if settings.PROXIES_CONFIG.services_port != 80:
-        dns_cluster_with_port = "{}:{}".format(
-            dns_cluster_with_port, settings.PROXIES_CONFIG.services_port
-        )
     if external:
         options = EXTERNAL_REWRITE_OPTIONS if rewrite else EXTERNAL_OPTIONS
         app = REWRITE_EXTERNAL_V1_LOCATION if rewrite else EXTERNAL_V1_LOCATION
@@ -138,8 +135,37 @@ def get_services_location_config(
         app=app,
         resolver=resolver,
         auth="" if external else auth,
-        dns_cluster_with_port=dns_cluster_with_port,
+        dns_custom_cluster=settings.PROXIES_CONFIG.dns_custom_cluster,
     )
+
+
+def get_services_definitions(resolver: str, auth: str):
+    return [
+        get_services_location_config(
+            resolver=resolver,
+            auth=auth,
+            rewrite=False,
+            external=False,
+        ),
+        get_services_location_config(
+            resolver=resolver,
+            auth=auth,
+            rewrite=True,
+            external=False,
+        ),
+        get_services_location_config(
+            resolver=resolver,
+            auth=auth,
+            rewrite=False,
+            external=True,
+        ),
+        get_services_location_config(
+            resolver=resolver,
+            auth=auth,
+            rewrite=True,
+            external=True,
+        ),
+    ]
 
 
 STREAMS_OPTIONS = r"""
