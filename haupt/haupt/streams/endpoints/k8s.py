@@ -6,11 +6,14 @@ from django.http import HttpResponse
 from django.urls import path
 
 from haupt.common.endpoints.validation import validate_methods
+from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
-from haupt.streams.controllers.k8s_pods import get_pods
+from haupt.streams.controllers.k8s_op_spec import get_op_spec
 from haupt.streams.endpoints.base import UJSONResponse
+from haupt.streams.tasks.op_spec import download_op_spec
 from polyaxon import settings
 from polyaxon.k8s.manager.async_manager import AsyncK8sManager
+from polyaxon.lifecycle import LifeCycle
 from polyaxon.utils.fqn_utils import get_resource_name_for_kind
 
 
@@ -25,19 +28,33 @@ async def k8s_inspect(
 ) -> HttpResponse:
     validate_methods(request, methods)
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)
-    k8s_manager = AsyncK8sManager(
-        namespace=namespace,
-        in_cluster=settings.CLIENT_CONFIG.in_cluster,
-    )
-    await k8s_manager.setup()
-    k8s_operation = await get_k8s_operation(
-        k8s_manager=k8s_manager, resource_name=resource_name
-    )
-    data = None
-    if k8s_operation:
-        data = await get_pods(k8s_manager=k8s_manager, run_uuid=run_uuid)
-    if k8s_manager:
-        await k8s_manager.close()
+    connection = request.GET.get("connection")
+    status = request.GET.get("status")
+    if LifeCycle.is_done(status):
+        data = await download_op_spec(
+            fs=await AppFS.get_fs(connection=connection),
+            store_path=AppFS.get_fs_root_path(connection=connection),
+            run_uuid=run_uuid,
+        )
+    else:
+        k8s_manager = AsyncK8sManager(
+            namespace=namespace,
+            in_cluster=settings.CLIENT_CONFIG.in_cluster,
+        )
+        await k8s_manager.setup()
+        k8s_operation = await get_k8s_operation(
+            k8s_manager=k8s_manager, resource_name=resource_name
+        )
+        data = None
+        if k8s_operation:
+            run_kind = k8s_operation["metadata"]["annotations"][
+                "operation.polyaxon.com/kind"
+            ]
+            data = await get_op_spec(
+                k8s_manager=k8s_manager, run_uuid=run_uuid, run_kind=run_kind
+            )
+        if k8s_manager:
+            await k8s_manager.close()
     return UJSONResponse(data or {})
 
 

@@ -15,7 +15,7 @@ from django.urls import path
 from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
-from haupt.streams.controllers.k8s_pods import get_pods
+from haupt.streams.controllers.k8s_op_spec import get_op_spec
 from haupt.streams.controllers.logs import (
     get_archived_operation_logs,
     get_operation_logs,
@@ -136,7 +136,9 @@ async def collect_logs(
     operation_logs, _ = await query_k8s_operation_logs(
         instance=run_uuid, k8s_manager=k8s_manager, last_time=None
     )
-    op_spec = await get_pods(k8s_manager=k8s_manager, run_uuid=run_uuid)
+    op_spec = await get_op_spec(
+        k8s_manager=k8s_manager, run_uuid=run_uuid, run_kind=run_kind
+    )
     if k8s_manager:
         await k8s_manager.close()
     if not operation_logs:
