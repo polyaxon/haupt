@@ -15,7 +15,7 @@ async def upload_op_spec(fs: FSSystem, store_path: str, run_uuid: str, op_spec: 
 
 async def download_op_spec(fs: FSSystem, store_path: str, run_uuid: str):
     subpath = "{}/outputs/spec.json".format(run_uuid)
-    await download_file(
+    return await download_file(
         fs=fs,
         store_path=store_path,
         subpath=subpath,
