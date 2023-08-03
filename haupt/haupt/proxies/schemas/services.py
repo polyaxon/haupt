@@ -4,7 +4,9 @@ from haupt.proxies.schemas.urls import get_service_url
 from polyaxon.api import (
     AUTH_REQUEST_V1_LOCATION,
     EXTERNAL_V1_LOCATION,
+    MONITORS_V1_LOCATION,
     REWRITE_EXTERNAL_V1_LOCATION,
+    REWRITE_MONITORS_V1_LOCATION,
     REWRITE_SERVICES_V1_LOCATION,
     SERVICES_V1_LOCATION,
 )
@@ -139,6 +141,57 @@ def get_services_location_config(
     )
 
 
+SERVICES_MONITORS_OPTIONS = r"""
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
+    {auth}
+    {resolver}
+    proxy_pass http://$5.$1.svc.{dns_custom_cluster}:$6;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_hide_header X-Frame-Options;
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}}
+"""  # noqa
+
+SERVICES_MONITORS_REWRITE_OPTIONS = r"""
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
+    {auth}
+    {resolver}
+    rewrite_log on;
+    rewrite ^/rewrite-monitors/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/(.*) /$7 break;
+    proxy_pass http://$5.$1.svc.{dns_custom_cluster}:$6;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_hide_header X-Frame-Options;
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}}
+"""  # noqa
+
+
+def get_service_monitors_location_config(
+    resolver: str, auth: str, rewrite: bool = False
+):
+    options = (
+        SERVICES_MONITORS_REWRITE_OPTIONS if rewrite else SERVICES_MONITORS_OPTIONS
+    )
+    app = REWRITE_MONITORS_V1_LOCATION if rewrite else MONITORS_V1_LOCATION
+    return get_config(
+        options=options,
+        app=app,
+        resolver=resolver,
+        auth=auth,
+        dns_custom_cluster=settings.PROXIES_CONFIG.dns_custom_cluster,
+    )
+
+
 def get_services_definitions(resolver: str, auth: str):
     return [
         get_services_location_config(
@@ -164,6 +217,16 @@ def get_services_definitions(resolver: str, auth: str):
             auth=auth,
             rewrite=True,
             external=True,
+        ),
+        get_service_monitors_location_config(
+            resolver=resolver,
+            auth=auth,
+            rewrite=False,
+        ),
+        get_service_monitors_location_config(
+            resolver=resolver,
+            auth=auth,
+            rewrite=True,
         ),
     ]
 
