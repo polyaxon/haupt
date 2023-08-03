@@ -74,7 +74,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     {auth}
     {resolver}
     rewrite_log on;
-    rewrite ^/rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) /$6 break;
+    rewrite ^{app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) /$6 break;
     proxy_pass http://plx-operation-$4.$1.svc.{dns_custom_cluster}:$5;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -106,7 +106,7 @@ EXTERNAL_REWRITE_OPTIONS = r"""
 location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
     {resolver}
     rewrite_log on;
-    rewrite ^/rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) /$6 break;
+    rewrite ^{app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) /$6 break;
     proxy_pass http://plx-operation-$4-ext.$1.svc.{dns_custom_cluster}:$5;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -162,7 +162,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     {auth}
     {resolver}
     rewrite_log on;
-    rewrite ^/rewrite-monitors/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/(.*) /$7 break;
+    rewrite ^{app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/(.*) /$7 break;
     proxy_pass http://$5.$1.svc.{dns_custom_cluster}:$6;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
