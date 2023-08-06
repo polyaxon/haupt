@@ -1,5 +1,5 @@
-celery==5.2.7
-psycopg==3.1.8
-psycopg-binary==3.1.8
-redis==4.5.4
-whitenoise==6.3.0
+celery==5.3.1
+psycopg==3.1.10
+psycopg-binary==3.1.10
+redis==4.6.0
+whitenoise==6.5.0
