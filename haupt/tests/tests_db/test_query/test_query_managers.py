@@ -2,6 +2,8 @@ import pytest
 
 from flaky import flaky
 
+from clipped.utils.tz import get_datetime_from_now
+
 from django.conf import settings
 from django.db.models import Q
 
@@ -39,6 +41,7 @@ class TestQueryManager(BaseTestQuery):
     def test_tokenize(self):
         tokenized_query = RunQueryManager.tokenize(self.query1)
         assert dict(tokenized_query.items()) == {
+            "created_at": ["last_3_months"],  # Default filter
             "updated_at": ["<=2020-10-10"],
             "started_at": [">2010-10-10", "~2016-10-01 10:10"],
         }
@@ -49,24 +52,36 @@ class TestQueryManager(BaseTestQuery):
 
         tokenized_query = RunQueryManager.tokenize(self.query2)
         assert dict(tokenized_query) == {
+            "created_at": ["last_3_months"],  # Default filter
             "metrics.loss": ["<=0.8"],
             "status": ["starting|running"],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query3)
-        assert tokenized_query == {"finished_at": ["2012-12-12..2042-12-12"]}
+        assert tokenized_query == {
+            "created_at": ["last_3_months"],  # Default filter
+            "finished_at": ["2012-12-12..2042-12-12"],
+        }
 
         tokenized_query = RunQueryManager.tokenize(self.query4)
-        assert tokenized_query == {"tags": ["~tag1|tag2", "tag3"]}
+        assert tokenized_query == {
+            "created_at": ["last_3_months"],  # Default filter
+            "tags": ["~tag1|tag2", "tag3"],
+        }
 
         tokenized_query = RunQueryManager.tokenize(self.query5)
-        assert tokenized_query == {"name": ["%foo%"], "description": ["~bal%"]}
+        assert tokenized_query == {
+            "created_at": ["last_3_months"],  # Default filter
+            "name": ["%foo%"],
+            "description": ["~bal%"],
+        }
 
         with self.assertRaises(PQLException):
             RunQueryManager.tokenize(self.query6)
 
         tokenized_query = RunQueryManager.tokenize(self.query7)
         assert dict(tokenized_query) == {
+            "created_at": ["last_3_months"],  # Default filter
             "metrics.loss": ["nil"],
             "status": ["~nil"],
         }
@@ -80,6 +95,8 @@ class TestQueryManager(BaseTestQuery):
                 QueryOpSpec(op=">", negation=False, params="2010-10-10"),
                 QueryOpSpec(op="=", negation=True, params="2016-10-01 10:10"),
             ],
+            # Default filter
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
         }
         tokenized_query = RunQueryManager.tokenize(self.query12)
         parsed_query = RunQueryManager.parse(tokenized_query)
@@ -94,6 +111,8 @@ class TestQueryManager(BaseTestQuery):
             "status": [
                 QueryOpSpec(op="|", negation=False, params=["starting", "running"])
             ],
+            # Default filter
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query3)
@@ -101,7 +120,9 @@ class TestQueryManager(BaseTestQuery):
         assert parsed_query == {
             "finished_at": [
                 QueryOpSpec("..", False, params=["2012-12-12", "2042-12-12"])
-            ]
+            ],
+            # Default filter
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query4)
@@ -110,7 +131,9 @@ class TestQueryManager(BaseTestQuery):
             "tags": [
                 QueryOpSpec("|", True, params=["tag1", "tag2"]),
                 QueryOpSpec("=", False, params="tag3"),
-            ]
+            ],
+            # Default filter
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query5)
@@ -118,6 +141,8 @@ class TestQueryManager(BaseTestQuery):
         assert parsed_query == {
             "name": [QueryOpSpec("%%", False, params="foo")],
             "description": [QueryOpSpec("_%", True, params="bal")],
+            # Default filter
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
         }
 
     def test_build(self):
@@ -137,6 +162,12 @@ class TestQueryManager(BaseTestQuery):
                 QueryCondSpec(
                     DateTimeCondition(op="=", negation=True), params="2016-10-01 10:10"
                 ),
+            ],
+            # Default filter
+            "created_at": [
+                QueryCondSpec(
+                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                )
             ],
         }
 
@@ -164,6 +195,12 @@ class TestQueryManager(BaseTestQuery):
                     params=["starting", "running"],
                 )
             ],
+            # Default filter
+            "created_at": [
+                QueryCondSpec(
+                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                )
+            ],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query3)
@@ -175,7 +212,13 @@ class TestQueryManager(BaseTestQuery):
                     DateTimeCondition(op="..", negation=False),
                     params=["2012-12-12", "2042-12-12"],
                 )
-            ]
+            ],
+            # Default filter
+            "created_at": [
+                QueryCondSpec(
+                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                )
+            ],
         }
 
         # Current tags condition
@@ -195,7 +238,14 @@ class TestQueryManager(BaseTestQuery):
                     QueryCondSpec(
                         ArrayCondition(op="=", negation=False), params="tag3"
                     ),
-                ]
+                ],
+                # Default filter
+                "created_at": [
+                    QueryCondSpec(
+                        DateTimeCondition(op="=", negation=False),
+                        params="last_3_months",
+                    )
+                ],
             }
 
         # Set to different condition
@@ -209,7 +259,13 @@ class TestQueryManager(BaseTestQuery):
                     KeysCondition(op="|", negation=True), params=["tag1", "tag2"]
                 ),
                 QueryCondSpec(KeysCondition(op="=", negation=False), params="tag3"),
-            ]
+            ],
+            # Default filter
+            "created_at": [
+                QueryCondSpec(
+                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                )
+            ],
         }
 
         # Reset to original condition
@@ -225,6 +281,12 @@ class TestQueryManager(BaseTestQuery):
             "description": [
                 QueryCondSpec(SearchCondition(op="_%", negation=True), params="bal")
             ],
+            # Default filter
+            "created_at": [
+                QueryCondSpec(
+                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                )
+            ],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query7)
@@ -236,6 +298,12 @@ class TestQueryManager(BaseTestQuery):
             ],
             "status": [
                 QueryCondSpec(SearchCondition(op="nil", negation=True), params=None)
+            ],
+            # Default filter
+            "created_at": [
+                QueryCondSpec(
+                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                )
             ],
         }
 
@@ -264,6 +332,8 @@ class TestQueryManager(BaseTestQuery):
                 Q(started_at__hour="10"),
                 Q(started_at__minute="10"),
             ),
+            # Default filter
+            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
@@ -279,7 +349,10 @@ class TestQueryManager(BaseTestQuery):
             query_spec=self.query2, queryset=Run.objects
         )
         expected_query = Run.objects.filter(
-            Q(outputs__loss__lte=0.8), Q(status__in=["starting", "running"])
+            Q(outputs__loss__lte=0.8),
+            Q(status__in=["starting", "running"]),
+            # Default filter
+            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
@@ -289,11 +362,17 @@ class TestQueryManager(BaseTestQuery):
 
         if settings.DB_ENGINE_NAME == "sqlite":
             expected_query = Run.objects.filter(
-                ~Q(tags__has_any_keys=["tag1", "tag2"]), Q(tags__has_key=["tag3"])
+                ~Q(tags__has_any_keys=["tag1", "tag2"]),
+                Q(tags__has_key=["tag3"]),
+                # Default filter
+                Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
             )
         else:
             expected_query = Run.objects.filter(
-                ~Q(tags__overlap=["tag1", "tag2"]), Q(tags__contains=["tag3"])
+                ~Q(tags__overlap=["tag1", "tag2"]),
+                Q(tags__contains=["tag3"]),
+                # Default filter
+                Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
             )
         assert str(result_queryset.query) == str(expected_query.query)
 
@@ -301,7 +380,10 @@ class TestQueryManager(BaseTestQuery):
             query_spec=self.query5, queryset=Run.objects
         )
         expected_query = Run.objects.filter(
-            Q(name__icontains="foo"), ~Q(description__istartswith="bal")
+            Q(name__icontains="foo"),
+            ~Q(description__istartswith="bal"),
+            # Default filter
+            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
         )
 
         assert str(result_queryset.query) == str(expected_query.query)
@@ -310,7 +392,10 @@ class TestQueryManager(BaseTestQuery):
             query_spec=self.query7, queryset=Run.objects
         )
         expected_query = Run.objects.filter(
-            Q(outputs__loss__isnull=True), Q(status__isnull=False)
+            Q(outputs__loss__isnull=True),
+            Q(status__isnull=False),
+            # Default filter
+            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
