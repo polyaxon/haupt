@@ -41,7 +41,7 @@ class TestQueryManager(BaseTestQuery):
     def test_tokenize(self):
         tokenized_query = RunQueryManager.tokenize(self.query1)
         assert dict(tokenized_query.items()) == {
-            "created_at": ["last_3_months"],  # Default filter
+            "created_at": ["last_month"],  # Default filter
             "updated_at": ["<=2020-10-10"],
             "started_at": [">2010-10-10", "~2016-10-01 10:10"],
         }
@@ -52,26 +52,26 @@ class TestQueryManager(BaseTestQuery):
 
         tokenized_query = RunQueryManager.tokenize(self.query2)
         assert dict(tokenized_query) == {
-            "created_at": ["last_3_months"],  # Default filter
+            "created_at": ["last_month"],  # Default filter
             "metrics.loss": ["<=0.8"],
             "status": ["starting|running"],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query3)
         assert tokenized_query == {
-            "created_at": ["last_3_months"],  # Default filter
+            "created_at": ["last_month"],  # Default filter
             "finished_at": ["2012-12-12..2042-12-12"],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query4)
         assert tokenized_query == {
-            "created_at": ["last_3_months"],  # Default filter
+            "created_at": ["last_month"],  # Default filter
             "tags": ["~tag1|tag2", "tag3"],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query5)
         assert tokenized_query == {
-            "created_at": ["last_3_months"],  # Default filter
+            "created_at": ["last_month"],  # Default filter
             "name": ["%foo%"],
             "description": ["~bal%"],
         }
@@ -81,7 +81,7 @@ class TestQueryManager(BaseTestQuery):
 
         tokenized_query = RunQueryManager.tokenize(self.query7)
         assert dict(tokenized_query) == {
-            "created_at": ["last_3_months"],  # Default filter
+            "created_at": ["last_month"],  # Default filter
             "metrics.loss": ["nil"],
             "status": ["~nil"],
         }
@@ -96,7 +96,7 @@ class TestQueryManager(BaseTestQuery):
                 QueryOpSpec(op="=", negation=True, params="2016-10-01 10:10"),
             ],
             # Default filter
-            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
         tokenized_query = RunQueryManager.tokenize(self.query12)
         parsed_query = RunQueryManager.parse(tokenized_query)
@@ -112,7 +112,7 @@ class TestQueryManager(BaseTestQuery):
                 QueryOpSpec(op="|", negation=False, params=["starting", "running"])
             ],
             # Default filter
-            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query3)
@@ -122,7 +122,7 @@ class TestQueryManager(BaseTestQuery):
                 QueryOpSpec("..", False, params=["2012-12-12", "2042-12-12"])
             ],
             # Default filter
-            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query4)
@@ -133,7 +133,7 @@ class TestQueryManager(BaseTestQuery):
                 QueryOpSpec("=", False, params="tag3"),
             ],
             # Default filter
-            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
         tokenized_query = RunQueryManager.tokenize(self.query5)
@@ -142,7 +142,7 @@ class TestQueryManager(BaseTestQuery):
             "name": [QueryOpSpec("%%", False, params="foo")],
             "description": [QueryOpSpec("_%", True, params="bal")],
             # Default filter
-            "created_at": [QueryOpSpec(op="=", negation=False, params="last_3_months")],
+            "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
     def test_build(self):
@@ -166,7 +166,7 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [
                 QueryCondSpec(
-                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                    DateTimeCondition(op="=", negation=False), params="last_month"
                 )
             ],
         }
@@ -198,7 +198,7 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [
                 QueryCondSpec(
-                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                    DateTimeCondition(op="=", negation=False), params="last_month"
                 )
             ],
         }
@@ -216,7 +216,7 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [
                 QueryCondSpec(
-                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                    DateTimeCondition(op="=", negation=False), params="last_month"
                 )
             ],
         }
@@ -243,7 +243,7 @@ class TestQueryManager(BaseTestQuery):
                 "created_at": [
                     QueryCondSpec(
                         DateTimeCondition(op="=", negation=False),
-                        params="last_3_months",
+                        params="last_month",
                     )
                 ],
             }
@@ -263,7 +263,7 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [
                 QueryCondSpec(
-                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                    DateTimeCondition(op="=", negation=False), params="last_month"
                 )
             ],
         }
@@ -284,7 +284,7 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [
                 QueryCondSpec(
-                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                    DateTimeCondition(op="=", negation=False), params="last_month"
                 )
             ],
         }
@@ -302,7 +302,7 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [
                 QueryCondSpec(
-                    DateTimeCondition(op="=", negation=False), params="last_3_months"
+                    DateTimeCondition(op="=", negation=False), params="last_month"
                 )
             ],
         }

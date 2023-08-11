@@ -98,7 +98,7 @@ class RunQueryManager(BaseQueryManager):
     }
     FIELDS_DEFAULT_ORDERING = ("-updated_at",)
     CHECK_ALIVE = True
-    DEFAULT_FILTERS = {"created_at": ["last_3_months"]}
+    DEFAULT_FILTERS = {"created_at": ["last_month"]}
     PARSERS_BY_FIELD = {
         # Uuid
         "id": parse_search_operation,
