@@ -57,6 +57,7 @@ class APIHandler:
             if (
                 not eager
                 and event.instance.cloning_kind is None
+                and event.instance.status != V1Statuses.RESUMING
                 and event.instance.meta_info is not None
                 and META_UPLOAD_ARTIFACTS in event.instance.meta_info
             ):
@@ -169,6 +170,17 @@ class APIHandler:
                 f"last build status: {run.status}.",
             )
             bulk_new_run_status(awaiting_build, condition)
+
+        if run.pipeline_id:
+            workers_backend.send(
+                SchedulerCeleryTasks.RUNS_CHECK_PIPELINE,
+                kwargs={"run_id": run.pipeline_id},
+            )
+        if run.controller_id and run.controller_id != run.pipeline_id:
+            workers_backend.send(
+                SchedulerCeleryTasks.RUNS_CHECK_PIPELINE,
+                kwargs={"run_id": run.controller_id},
+            )
         if not run.has_pipeline:
             return
 

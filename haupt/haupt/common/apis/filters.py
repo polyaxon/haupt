@@ -47,6 +47,11 @@ class QueryFilter(BaseFilterBackend):
         if check_alive:
             query_spec = self.process_alive(query_spec=query_spec)
 
+        if not query_spec and query_manager and query_manager.DEFAULT_FILTERS:
+            query_spec = ",".join(
+                "{}: {}".format(k, v) for k, v in query_manager.DEFAULT_FILTERS.items()
+            )
+
         if query_spec and query_manager:
             try:
                 queryset = query.filter_queryset(

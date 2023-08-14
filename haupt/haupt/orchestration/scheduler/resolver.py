@@ -386,8 +386,10 @@ class RunsResolver(resolver.BaseResolver):
             project_name = run.project.name
             for edge in edges:
                 edge_values = edge.values
-                edge_io = upstream_runs[edge.upstream_id]
-                edge_io = edge_io or {}
+                edge_io = upstream_runs.get(edge.upstream_id)
+                # Check if the edge still exists, user might have deleted the upstream run
+                if not edge_io:
+                    continue
                 for edge_k, edge_v in edge_values.items():
                     param_value, is_value_artifacts = cls._get_edge_param_value(
                         edge_v=edge_v,

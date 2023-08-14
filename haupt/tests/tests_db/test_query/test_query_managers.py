@@ -333,7 +333,7 @@ class TestQueryManager(BaseTestQuery):
                 Q(started_at__minute="10"),
             ),
             # Default filter
-            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
+            Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
@@ -352,7 +352,7 @@ class TestQueryManager(BaseTestQuery):
             Q(outputs__loss__lte=0.8),
             Q(status__in=["starting", "running"]),
             # Default filter
-            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
+            Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
@@ -365,14 +365,14 @@ class TestQueryManager(BaseTestQuery):
                 ~Q(tags__has_any_keys=["tag1", "tag2"]),
                 Q(tags__has_key=["tag3"]),
                 # Default filter
-                Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
+                Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
             )
         else:
             expected_query = Run.objects.filter(
                 ~Q(tags__overlap=["tag1", "tag2"]),
                 Q(tags__contains=["tag3"]),
                 # Default filter
-                Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
+                Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
             )
         assert str(result_queryset.query) == str(expected_query.query)
 
@@ -383,7 +383,7 @@ class TestQueryManager(BaseTestQuery):
             Q(name__icontains="foo"),
             ~Q(description__istartswith="bal"),
             # Default filter
-            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
+            Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
         )
 
         assert str(result_queryset.query) == str(expected_query.query)
@@ -395,7 +395,7 @@ class TestQueryManager(BaseTestQuery):
             Q(outputs__loss__isnull=True),
             Q(status__isnull=False),
             # Default filter
-            Q(created_at__date__gte=get_datetime_from_now(days=30 * 3).date()),
+            Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
