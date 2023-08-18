@@ -4,14 +4,17 @@ from typing import Dict, Optional
 
 from clipped.utils.imports import import_string
 
+from django.conf import settings
 from django.db import transaction
 
-from haupt.background.celeryp.app import app
-from haupt.background.celeryp.polyaxon_task import HauptTask
 from haupt.common import conf
 from haupt.common.options.registry.core import SCHEDULER_ENABLED
 
-app.Task = HauptTask  # Custom base class for logging
+if settings.SCHEDULER_ENABLED:
+    from haupt.background.celeryp.app import app
+    from haupt.background.celeryp.polyaxon_task import HauptTask
+
+    app.Task = HauptTask  # Custom base class for logging
 
 
 def send(

@@ -1,7 +1,11 @@
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+
+if settings.DB_ENGINE_NAME == "sqlite":
+    ArrayField = None
+else:
+    from django.contrib.postgres.fields import ArrayField
 
 
 class TagModel(models.Model):

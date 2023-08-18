@@ -1,10 +1,14 @@
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
 from polyaxon.lifecycle import V1Statuses
 from polyaxon.polyflow import V1RunEdgeKind
+
+if settings.DB_ENGINE_NAME == "sqlite":
+    ArrayField = None
+else:
+    from django.contrib.postgres.fields import ArrayField
 
 
 class BaseRunEdge(models.Model):
