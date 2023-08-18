@@ -22,7 +22,7 @@ async def notify_run(
     connections: List[str],
 ):
     executor = AsyncExecutor(namespace=namespace)
-    await executor.manager.setup()
+    await executor.refresh()
     for connection in connections:
         connection_type = settings.AGENT_CONFIG.connections_by_names.get(connection)
         if not connection_type:
