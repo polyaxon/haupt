@@ -2,4 +2,3 @@ celery==5.3.1
 psycopg==3.1.10
 psycopg-binary==3.1.10
 redis==4.6.0
-whitenoise==6.5.0

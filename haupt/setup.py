@@ -36,6 +36,9 @@ with open("requirements/requirements.txt") as requirements_file:
 with open("requirements/platform.txt") as requirements_file:
     platform_requirements = requirements_file.read().splitlines()
 
+with open("requirements/sandbox.txt") as requirements_file:
+    sandbox_requirements = requirements_file.read().splitlines()
+
 with open("requirements/dev.txt") as requirements_file:
     dev_requirements = requirements_file.read().splitlines()
 
@@ -51,6 +54,7 @@ if os.environ.get("USE_PROD_PACKAGES"):
 
 extra = {
     "platform": platform_requirements,
+    "sandbox": sandbox_requirements + stream_requirements,
     "fs": fs_requirements,
     "streams": stream_requirements,
     "dev": dev_requirements,
