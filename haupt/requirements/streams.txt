@@ -4,7 +4,7 @@ uvicorn[standard]==0.23.2
 uvloop==0.17.0
 
 aiofiles==23.1.0
-kubernetes_asyncio==24.2.3
+kubernetes_asyncio==25.11.0
 nbconvert>=6.5.0
 python-multipart==0.0.6
 pandas==2.0.3
