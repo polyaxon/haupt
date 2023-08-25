@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models import Q
+from django.utils.timezone import now
 
 from haupt.db.abstracts.projects import BaseProject
 from haupt.db.abstracts.runs import BaseRun
@@ -45,7 +46,7 @@ def archive_project(project: BaseProject):
         live_state=LiveState.ARCHIVED
     )
     run_queryset_stopping(queryset=queryset)
-    queryset.update(live_state=LiveState.ARCHIVED)
+    queryset.update(live_state=LiveState.ARCHIVED, archived_at=now())
     return True
 
 
@@ -54,24 +55,53 @@ def archive_run(run: BaseRun):
         return False
     if not LifeCycle.is_done(run.status, progressing=True):
         run.status = V1Statuses.STOPPING
-    run.save(update_fields=["live_state", "status"])
+    run.save(update_fields=["live_state", "status", "archived_at"])
     queryset = Models.Run.objects.filter(
         Q(pipeline_id=run.id) | Q(controller_id=run.id)
     ).exclude(live_state=LiveState.ARCHIVED)
     run_queryset_stopping(queryset=queryset)
-    queryset.update(live_state=LiveState.ARCHIVED)
+    queryset.update(live_state=LiveState.ARCHIVED, archived_at=now())
+    return True
+
+
+def pre_delete_project(project: BaseProject):
+    if not project.pre_delete():
+        return False
+    queryset = Models.Run.all.filter(project=project).exclude(
+        live_state=LiveState.DELETED,
+    )
+    run_queryset_stopping(queryset=queryset)
+    queryset.update(live_state=LiveState.DELETED, deleted_at=now())
+    return True
+
+
+def pre_delete_run(run: BaseRun):
+    if not run.pre_delete(commit=False):
+        return False
+    if not LifeCycle.is_done(run.status, progressing=True):
+        run.status = V1Statuses.STOPPING
+    run.save(update_fields=["live_state", "status", "deleted_at"])
+    queryset = Models.Run.all.filter(
+        Q(pipeline_id=run.id) | Q(controller_id=run.id)
+    ).exclude(live_state=LiveState.DELETED)
+    run_queryset_stopping(queryset=queryset)
+    queryset.update(live_state=LiveState.DELETED, deleted_at=now())
     return True
 
 
 def restore_project(project: BaseProject):
     if not project.restore():
         return False
-    Models.Run.archived.filter(project=project).update(live_state=LiveState.LIVE)
+    Models.Run.archived.filter(project=project).update(
+        live_state=LiveState.LIVE, archived_at=None, deleted_at=None
+    )
     return True
 
 
 def restore_run(run: BaseRun):
     if not run.restore():
         return False
-    Models.Run.archived.filter(pipeline=run).update(live_state=LiveState.LIVE)
+    Models.Run.archived.filter(pipeline=run).update(
+        live_state=LiveState.LIVE, archived_at=None, deleted_at=None
+    )
     return True

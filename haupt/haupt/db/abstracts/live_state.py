@@ -1,6 +1,7 @@
 import random
 
 from django.db import models
+from django.utils.timezone import now
 
 from haupt.db.managers.deleted import ArchivedManager, LiveManager, RestorableManager
 from polyaxon.lifecycle import LiveState
@@ -14,6 +15,8 @@ class LiveStateModel(models.Model):
         choices=LiveState.to_choices(),
         db_index=True,
     )
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
 
     objects = LiveManager()
     restorable = RestorableManager()
@@ -36,16 +39,28 @@ class LiveStateModel(models.Model):
             self.save(update_fields=["name", "live_state"])
         return True
 
-    def archive(self, commit=True) -> bool:
-        if (
-            self.live_state == LiveState.ARCHIVED
-            or self.live_state == LiveState.DELETION_PROGRESSING
-        ):
+    def pre_delete(self, commit=True) -> bool:
+        if self.live_state == LiveState.DELETED:
             return False
 
+        self.deleted_at = now()
+        self.live_state = LiveState.DELETED
+        if commit:
+            self.save(update_fields=["live_state", "deleted_at"])
+        return True
+
+    def archive(self, commit=True) -> bool:
+        if self.live_state in {
+            LiveState.ARCHIVED,
+            LiveState.DELETION_PROGRESSING,
+            LiveState.DELETED,
+        }:
+            return False
+
+        self.archived_at = now()
         self.live_state = LiveState.ARCHIVED
         if commit:
-            self.save(update_fields=["live_state"])
+            self.save(update_fields=["live_state", "archived_at"])
         return True
 
     def restore(self) -> bool:
@@ -53,5 +68,12 @@ class LiveStateModel(models.Model):
             return False
 
         self.live_state = LiveState.LIVE
-        self.save(update_fields=["live_state"])
+        update_fields = ["live_state"]
+        if self.archived_at:
+            self.archived_at = None
+            update_fields.append("archived_at")
+        if self.deleted_at:
+            self.deleted_at = None
+            update_fields.append("deleted_at")
+        self.save(update_fields=update_fields)
         return True
