@@ -5,7 +5,6 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.core.serializers.json
 import django.core.validators
-import django.db.models.deletion
 import django.utils.timezone
 
 from django.conf import settings
@@ -248,12 +247,15 @@ class Migration(migrations.Migration):
                             (1, "live"),
                             (0, "archived"),
                             (-1, "deletion_progressing"),
+                            (-2, "deleted"),
                         ],
                         db_index=True,
                         default=polyaxon.lifecycle.LiveState["LIVE"],
                         null=True,
                     ),
                 ),
+                ("deleted_at", models.DateTimeField(blank=True, null=True)),
+                ("archived_at", models.DateTimeField(blank=True, null=True)),
                 (
                     "tags",
                     models.JSONField(
@@ -312,12 +314,15 @@ class Migration(migrations.Migration):
                             (1, "live"),
                             (0, "archived"),
                             (-1, "deletion_progressing"),
+                            (-2, "deleted"),
                         ],
                         db_index=True,
                         default=polyaxon.lifecycle.LiveState["LIVE"],
                         null=True,
                     ),
                 ),
+                ("deleted_at", models.DateTimeField(blank=True, null=True)),
+                ("archived_at", models.DateTimeField(blank=True, null=True)),
                 (
                     "tags",
                     models.JSONField(
@@ -463,14 +468,10 @@ class Migration(migrations.Migration):
                     "managed_by",
                     models.CharField(
                         blank=True,
-                        choices=[
-                            ("user", "user"),
-                            ("cli", "cli"),
-                            ("agent", "agent"),
-                        ],
+                        choices=[("user", "user"), ("cli", "cli"), ("agent", "agent")],
                         db_index=True,
-                        max_length=5,
                         default=polyaxon.lifecycle.ManagedBy["AGENT"],
+                        max_length=5,
                         null=True,
                     ),
                 ),
@@ -760,6 +761,49 @@ class Migration(migrations.Migration):
             ],
             options={
                 "db_table": "db_projectversion",
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
+            name="ProjectStats",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("user_count", models.IntegerField(blank=True, default=0, null=True)),
+                ("run_count", models.IntegerField(blank=True, default=0, null=True)),
+                ("model_count", models.IntegerField(blank=True, default=0, null=True)),
+                (
+                    "artifact_count",
+                    models.IntegerField(blank=True, default=0, null=True),
+                ),
+                (
+                    "component_count",
+                    models.IntegerField(blank=True, default=0, null=True),
+                ),
+                (
+                    "tracking_time",
+                    models.IntegerField(blank=True, default=0, null=True),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="stats",
+                        to="db.project",
+                    ),
+                ),
+            ],
+            options={
+                "db_table": "db_projectstats",
                 "abstract": False,
             },
         ),

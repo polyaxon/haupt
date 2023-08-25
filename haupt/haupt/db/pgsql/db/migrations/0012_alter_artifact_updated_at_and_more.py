@@ -22,7 +22,12 @@ class Migration(migrations.Migration):
             name="live_state",
             field=models.IntegerField(
                 blank=True,
-                choices=[(1, "live"), (0, "archived"), (-1, "deletion_progressing")],
+                choices=[
+                    (1, "live"),
+                    (0, "archived"),
+                    (-1, "deletion_progressing"),
+                    (-2, "deleted"),
+                ],
                 db_index=True,
                 default=1,
                 null=True,
@@ -38,7 +43,12 @@ class Migration(migrations.Migration):
             name="live_state",
             field=models.IntegerField(
                 blank=True,
-                choices=[(1, "live"), (0, "archived"), (-1, "deletion_progressing")],
+                choices=[
+                    (1, "live"),
+                    (0, "archived"),
+                    (-1, "deletion_progressing"),
+                    (-2, "deleted"),
+                ],
                 db_index=True,
                 default=1,
                 null=True,
