@@ -5,10 +5,9 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.live_state import (
     archive_project,
     archive_run,
+    confirm_delete_run,
     delete_in_progress_project,
     delete_in_progress_run,
-    pre_delete_project,
-    pre_delete_run,
     restore_project,
     restore_run,
 )
@@ -57,7 +56,7 @@ class TestArchiveRestoreDelete(TestCase):
 
         delete_in_progress_project(self.project)
         assert self.project.archived_at is None
-        assert self.project.deleted_at is None
+        assert self.project.deleted_at is not None
         assert self.project.live_state == LiveState.DELETION_PROGRESSING
         assert self.project.runs.count() == 0
         assert Run.all.filter(project=self.project).count() == 1
@@ -68,7 +67,7 @@ class TestArchiveRestoreDelete(TestCase):
         # Cannot archive deletion in progress
         archive_project(self.project)
         assert self.project.archived_at is None
-        assert self.project.deleted_at is None
+        assert self.project.deleted_at is not None
         assert self.project.live_state == LiveState.DELETION_PROGRESSING
         assert self.project.runs.count() == 0
         assert Run.all.filter(project=self.project).count() == 1
@@ -82,7 +81,7 @@ class TestArchiveRestoreDelete(TestCase):
 
         delete_in_progress_project(self.project)
         assert self.project.archived_at is None
-        assert self.project.deleted_at is None
+        assert self.project.deleted_at is not None
         assert self.project.live_state == LiveState.DELETION_PROGRESSING
         assert self.project.runs.count() == 0
         assert Run.all.filter(project=self.project).count() == 1
@@ -90,54 +89,13 @@ class TestArchiveRestoreDelete(TestCase):
         # Cannot restore deletion in progress
         restore_project(self.project)
         assert self.project.archived_at is None
-        assert self.project.deleted_at is None
+        assert self.project.deleted_at is not None
         assert self.project.live_state == LiveState.DELETION_PROGRESSING
         assert self.project.runs.count() == 0
         assert Run.all.filter(project=self.project).count() == 1
         last_run = Run.all.last()
         assert last_run.archived_at is None
         assert last_run.deleted_at is None
-
-        # Delete and in progress project
-        pre_delete_project(self.project)
-        assert self.project.archived_at is None
-        assert self.project.deleted_at is not None
-        assert self.project.live_state == LiveState.DELETED
-        assert self.project.runs.count() == 0
-        assert Run.all.filter(project=self.project).count() == 1
-        last_run = Run.all.last()
-        assert last_run.archived_at is None
-        assert last_run.deleted_at is not None
-
-    def test_project_archive_delete_restore(self):
-        assert self.project.live_state == LiveState.LIVE
-        assert self.project.archived_at is None
-        assert self.project.deleted_at is None
-        assert self.project.runs.count() == 1
-        assert Run.all.filter(project=self.project).count() == 1
-        last_run = Run.all.last()
-        assert last_run.archived_at is None
-        assert last_run.deleted_at is None
-
-        archive_project(self.project)
-        assert self.project.live_state == LiveState.ARCHIVED
-        assert self.project.archived_at is not None
-        assert self.project.deleted_at is None
-        assert self.project.runs.count() == 0
-        assert Run.all.filter(project=self.project).count() == 1
-        last_run = Run.all.last()
-        assert last_run.archived_at is not None
-        assert last_run.deleted_at is None
-
-        pre_delete_project(self.project)
-        assert self.project.live_state == LiveState.DELETED
-        assert self.project.archived_at is not None
-        assert self.project.deleted_at is not None
-        assert self.project.runs.count() == 0
-        assert Run.all.filter(project=self.project).count() == 1
-        last_run = Run.all.last()
-        assert last_run.archived_at is not None
-        assert last_run.deleted_at is not None
 
     def test_archive_trigger_stopping(self):
         assert self.project.live_state == LiveState.LIVE
@@ -160,28 +118,6 @@ class TestArchiveRestoreDelete(TestCase):
         last_run = Run.all.last()
         assert last_run.archived_at is not None
         assert last_run.deleted_at is None
-
-    def test_pre_delete_trigger_stopping(self):
-        assert self.project.live_state == LiveState.LIVE
-        assert self.project.runs.count() == 1
-        last_run = Run.all.last()
-        assert last_run.archived_at is None
-        assert last_run.deleted_at is None
-        assert Run.all.filter(project=self.project).count() == 1
-        assert set(
-            Run.all.filter(project=self.project).values_list("status", flat=True)
-        ) != {V1Statuses.STOPPING}
-
-        pre_delete_project(self.project)
-        assert self.project.live_state == LiveState.DELETED
-        assert self.project.runs.count() == 0
-        assert Run.all.filter(project=self.project).count() == 1
-        assert set(
-            Run.all.filter(project=self.project).values_list("status", flat=True)
-        ) == {V1Statuses.STOPPING}
-        last_run = Run.all.last()
-        assert last_run.archived_at is None
-        assert last_run.deleted_at is not None
 
     def test_run_archive_restore(self):
         assert self.run.live_state == LiveState.LIVE
@@ -252,17 +188,8 @@ class TestArchiveRestoreDelete(TestCase):
         assert last_run.archived_at is None
         assert last_run.deleted_at is None
 
-    def test_run_pre_delete(self):
-        assert self.run.live_state == LiveState.LIVE
-        assert Run.objects.count() == 1
-        assert Run.all.count() == 1
-        last_run = Run.all.last()
-        assert last_run.status != V1Statuses.STOPPING
-        assert last_run.archived_at is None
-        assert last_run.deleted_at is None
-
-        pre_delete_run(self.run)
-        assert self.run.live_state == LiveState.DELETED
+        confirm_delete_run(self.run)
+        assert self.run.live_state == LiveState.DELETION_PROGRESSING
         assert Run.objects.count() == 0
         assert Run.all.count() == 1
         last_run = Run.all.last()
@@ -271,7 +198,7 @@ class TestArchiveRestoreDelete(TestCase):
         assert last_run.deleted_at is not None
 
         restore_run(self.run)
-        assert self.run.live_state == LiveState.DELETED
+        assert self.run.live_state == LiveState.DELETION_PROGRESSING
         assert Run.objects.count() == 0
         assert Run.all.count() == 1
         last_run = Run.all.last()
@@ -281,7 +208,7 @@ class TestArchiveRestoreDelete(TestCase):
 
         # Cannot archive deleted
         archive_run(self.run)
-        assert self.run.live_state == LiveState.DELETED
+        assert self.run.live_state == LiveState.DELETION_PROGRESSING
         assert Run.objects.count() == 0
         assert Run.all.count() == 1
         last_run = Run.all.last()
@@ -303,8 +230,8 @@ class TestArchiveRestoreDelete(TestCase):
         assert last_run.deleted_at is not None
 
         # Cannot restore deletion in progress
-        pre_delete_run(self.run)
-        assert self.run.live_state == LiveState.DELETED
+        confirm_delete_run(self.run)
+        assert self.run.live_state == LiveState.ARCHIVED
         assert Run.objects.count() == 0
         assert Run.all.count() == 1
         last_run = Run.all.last()

@@ -26,34 +26,45 @@ class LiveStateModel(models.Model):
     class Meta:
         abstract = True
 
-    def delete_in_progress(self, update_name=False, commit=True) -> bool:
+    def delete_in_progress(
+        self,
+        update_name: bool = False,
+        set_deleted_at: bool = True,
+        commit: bool = True,
+    ) -> bool:
         if self.live_state == LiveState.DELETION_PROGRESSING:
             return False
 
+        self.live_state = LiveState.DELETION_PROGRESSING
+        update_fields = ["live_state"]
         if update_name:
             self.name = "del_{}_{}".format(
                 self.name, getattr(self, "uuid", random.randint(-90, 100))
             )
-        self.live_state = LiveState.DELETION_PROGRESSING
+            update_fields.append("name")
+        if set_deleted_at:
+            self.deleted_at = now()
+            update_fields.append("deleted_at")
         if commit:
-            self.save(update_fields=["name", "live_state"])
+            self.save(update_fields=update_fields)
         return True
 
-    def pre_delete(self, commit=True) -> bool:
-        if self.live_state == LiveState.DELETED:
+    def confirm_delete(self) -> bool:
+        if self.deleted_at:
             return False
 
+        update_fields = ["deleted_at"]
         self.deleted_at = now()
-        self.live_state = LiveState.DELETED
-        if commit:
-            self.save(update_fields=["live_state", "deleted_at"])
+        if self.live_state != LiveState.DELETION_PROGRESSING:
+            self.live_state = LiveState.DELETION_PROGRESSING
+            update_fields.append("live_state")
+        self.save(update_fields=update_fields)
         return True
 
-    def archive(self, commit=True) -> bool:
+    def archive(self, commit: bool = True) -> bool:
         if self.live_state in {
             LiveState.ARCHIVED,
             LiveState.DELETION_PROGRESSING,
-            LiveState.DELETED,
         }:
             return False
 

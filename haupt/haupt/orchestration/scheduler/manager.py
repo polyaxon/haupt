@@ -1365,7 +1365,7 @@ class RunsManager:
             return
 
         if Models.Run.all.filter(pipeline_id=run_id).count() == 0:
-            run.delete()
+            run.confirm_delete()
 
     @staticmethod
     def delete_archived_project(project_id: int):
