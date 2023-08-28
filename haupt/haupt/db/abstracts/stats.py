@@ -1,15 +1,28 @@
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
 from haupt.db.abstracts.diff import DiffModel
 
 
 class StatsModel(DiffModel):
-    user_count = models.IntegerField(null=True, blank=True, default=0)
-    run_count = models.IntegerField(null=True, blank=True, default=0)
-    model_count = models.IntegerField(null=True, blank=True, default=0)
-    artifact_count = models.IntegerField(null=True, blank=True, default=0)
-    component_count = models.IntegerField(null=True, blank=True, default=0)
-    tracking_time = models.IntegerField(null=True, blank=True, default=0)
+    user_stats = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
+    run_stats = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
+    model_stats = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
+    artifact_stats = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
+    component_stats = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
+    tracking_time_stats = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
 
     class Meta:
         abstract = True

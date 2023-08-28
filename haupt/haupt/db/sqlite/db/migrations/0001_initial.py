@@ -5,6 +5,7 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.core.serializers.json
 import django.core.validators
+import django.db.models.deletion
 import django.utils.timezone
 
 from django.conf import settings
@@ -18,8 +19,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("contenttypes", "0002_remove_content_type_name"),
         ("auth", "0012_alter_user_first_name_max_length"),
+        ("contenttypes", "0002_remove_content_type_name"),
     ]
 
     operations = [
@@ -776,20 +777,59 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
-                ("user_count", models.IntegerField(blank=True, default=0, null=True)),
-                ("run_count", models.IntegerField(blank=True, default=0, null=True)),
-                ("model_count", models.IntegerField(blank=True, default=0, null=True)),
                 (
-                    "artifact_count",
-                    models.IntegerField(blank=True, default=0, null=True),
+                    "user_stats",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
                 ),
                 (
-                    "component_count",
-                    models.IntegerField(blank=True, default=0, null=True),
+                    "run_stats",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
                 ),
                 (
-                    "tracking_time",
-                    models.IntegerField(blank=True, default=0, null=True),
+                    "model_stats",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "artifact_stats",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "component_stats",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "tracking_time_stats",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
                 ),
                 (
                     "project",
