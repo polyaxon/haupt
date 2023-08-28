@@ -8,3 +8,10 @@ class ProjectFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Models.Project
+
+
+class ProjectVersionFactory(factory.django.DjangoModelFactory):
+    name = factory.Sequence("artifact-version-{}".format)
+
+    class Meta:
+        model = Models.ProjectVersion
