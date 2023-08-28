@@ -4,19 +4,14 @@ from django.test import TestCase
 
 from haupt.db.factories.projects import ProjectFactory, ProjectVersionFactory
 from haupt.db.factories.runs import RunFactory
-from haupt.db.factories.users import UserFactory
 from haupt.db.managers.deleted import ArchivedManager, LiveManager
-from haupt.db.managers.projects import (
-    update_project_based_on_last_runs,
-    update_project_based_on_last_versions,
-)
+from haupt.db.managers.projects import update_project_based_on_last_updated_entities
 from haupt.db.models.projects import Project
 
 
 class TestProjectModel(TestCase):
     def setUp(self):
         super().setUp()
-        self.user = UserFactory()
         self.project = ProjectFactory()
 
     def test_managers(self):
@@ -28,7 +23,7 @@ class TestProjectModel(TestCase):
         time_threshold = get_datetime_from_now(days=0, minutes=2)
         project_threshold = get_datetime_from_now(days=0, seconds=15)
 
-        update_project_based_on_last_runs(
+        update_project_based_on_last_updated_entities(
             last_created_at_threshold=time_threshold,
             last_updated_at_threshold=project_threshold,
         )
@@ -36,9 +31,9 @@ class TestProjectModel(TestCase):
         assert self.project.updated_at == current_project_updated_at
 
         # Add a new run
-        RunFactory(project=self.project)
+        run = RunFactory(project=self.project)
 
-        update_project_based_on_last_runs(
+        update_project_based_on_last_updated_entities(
             last_created_at_threshold=time_threshold,
             last_updated_at_threshold=project_threshold,
         )
@@ -49,10 +44,48 @@ class TestProjectModel(TestCase):
         time_threshold = get_datetime_from_now(days=0, minutes=0)
         project_threshold = get_datetime_from_now(days=0, seconds=0)
 
-        update_project_based_on_last_runs(
+        update_project_based_on_last_updated_entities(
             last_created_at_threshold=time_threshold,
             last_updated_at_threshold=project_threshold,
         )
+        assert self.project.updated_at >= current_project_updated_at
+
+        # Update the last checkpoint
+        current_project_updated_at = self.project.updated_at
+
+        update_project_based_on_last_updated_entities(
+            last_created_at_threshold=time_threshold,
+            last_updated_at_threshold=project_threshold,
+        )
+        self.project.refresh_from_db()
+        assert self.project.updated_at == current_project_updated_at
+
+        # Archive run
+        run.archive()
+        update_project_based_on_last_updated_entities(
+            last_created_at_threshold=time_threshold,
+            last_updated_at_threshold=project_threshold,
+        )
+        self.project.refresh_from_db()
+        assert self.project.updated_at >= current_project_updated_at
+
+        # Update the last checkpoint
+        current_project_updated_at = self.project.updated_at
+
+        update_project_based_on_last_updated_entities(
+            last_created_at_threshold=time_threshold,
+            last_updated_at_threshold=project_threshold,
+        )
+        self.project.refresh_from_db()
+        assert self.project.updated_at == current_project_updated_at
+
+        # Delete run
+        run.delete_in_progress()
+        update_project_based_on_last_updated_entities(
+            last_created_at_threshold=time_threshold,
+            last_updated_at_threshold=project_threshold,
+        )
+        self.project.refresh_from_db()
         assert self.project.updated_at >= current_project_updated_at
 
     def test_update_project_based_on_last_versions(self):
@@ -60,7 +93,7 @@ class TestProjectModel(TestCase):
         time_threshold = get_datetime_from_now(days=0, minutes=2)
         project_threshold = get_datetime_from_now(days=0, seconds=15)
 
-        update_project_based_on_last_versions(
+        update_project_based_on_last_updated_entities(
             last_created_at_threshold=time_threshold,
             last_updated_at_threshold=project_threshold,
         )
@@ -70,7 +103,7 @@ class TestProjectModel(TestCase):
         # Add a new version
         ProjectVersionFactory(project=self.project)
 
-        update_project_based_on_last_versions(
+        update_project_based_on_last_updated_entities(
             last_created_at_threshold=time_threshold,
             last_updated_at_threshold=project_threshold,
         )
@@ -81,7 +114,7 @@ class TestProjectModel(TestCase):
         time_threshold = get_datetime_from_now(days=0, minutes=0)
         project_threshold = get_datetime_from_now(days=0, seconds=0)
 
-        update_project_based_on_last_versions(
+        update_project_based_on_last_updated_entities(
             last_created_at_threshold=time_threshold,
             last_updated_at_threshold=project_threshold,
         )
