@@ -3,11 +3,14 @@ from rest_framework import status
 from haupt.common.test_cases.base import PolyaxonBaseTest, PolyaxonBaseTestSerializer
 from haupt.common.test_clients.base import BaseClient
 from haupt.db.defs import Models
-from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.projects import ProjectFactory, ProjectVersionFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
+from haupt.db.models.project_stats import ProjectStats
+from haupt.db.models.project_versions import ProjectVersion
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
+from polyaxon.lifecycle import V1ProjectVersionKind
 from polyaxon.utils.test_utils import patch_settings
 
 
@@ -48,6 +51,47 @@ class BaseTestRunSerializer(PolyaxonBaseTestSerializer):
         super().setUp()
         self.user = UserFactory()
         self.project = ProjectFactory()
+
+
+class BaseTestProjectVersionSerializer(PolyaxonBaseTestSerializer):
+    query = ProjectVersion.objects
+    model_class = ProjectVersion
+    factory_class = ProjectVersionFactory
+
+    def setUp(self):
+        super().setUp()
+        self.user = UserFactory()
+        self.project = ProjectFactory()
+
+    def create_one(self):
+        return self.factory_class(
+            project=self.project, kind=V1ProjectVersionKind.COMPONENT
+        )
+
+
+class BaseTestProjectStatsSerializer(PolyaxonBaseTestSerializer):
+    query = ProjectStats.objects
+    model_class = ProjectStats
+
+    def setUp(self):
+        super().setUp()
+        self.user = UserFactory()
+        self.project = ProjectFactory()
+
+    def create_one(self):
+        stats = ProjectStats(
+            project=self.project,
+            user={"count": 1, "ids": [self.user.id]},
+            run={"1": 1, "0": 2},
+            version={
+                V1ProjectVersionKind.COMPONENT: 1,
+                V1ProjectVersionKind.MODEL: 2,
+                V1ProjectVersionKind.ARTIFACT: 3,
+            },
+            tracking_time={"1": 1111, "0": 200},
+        )
+        stats.save()
+        return stats
 
 
 class BaseTestBookmarkCreateView(BaseTest):
