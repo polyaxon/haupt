@@ -39,7 +39,7 @@ from haupt.db.queries.runs import (
     STATUS_UPDATE_COLUMNS_ONLY,
 )
 from haupt.orchestration import operations
-from haupt.orchestration.scheduler.resolver import RunsResolver
+from haupt.orchestration.scheduler.resolver import SchedulingResolver
 from polyaxon.compiler import resolver
 from polyaxon.constants.metadata import (
     META_BRACKET_ITERATION,
@@ -75,9 +75,9 @@ from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 _logger = logging.getLogger("polyaxon.scheduler")
 
 
-class RunsManager:
+class SchedulingManager:
     DEFAULT_PREFETCH = ["project"]
-    RESOLVER = RunsResolver
+    RESOLVER = SchedulingResolver
 
     @classmethod
     def _resolve(

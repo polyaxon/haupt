@@ -85,7 +85,7 @@ from polyaxon.utils.fqn_utils import (
 )
 
 
-class RunsResolver(resolver.BaseResolver):
+class SchedulingResolver(resolver.BaseResolver):
     def __init__(
         self,
         run: BaseRun,

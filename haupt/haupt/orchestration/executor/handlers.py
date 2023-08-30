@@ -5,7 +5,7 @@ from haupt.db.defs import Models
 from haupt.db.managers.cache import get_cache_clones
 from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.statuses import bulk_new_run_status
-from haupt.orchestration.scheduler.manager import RunsManager
+from haupt.orchestration.scheduler.manager import SchedulingManager
 from polyaxon.constants.metadata import (
     META_HAS_DOWNSTREAM_EVENTS_TRIGGER,
     META_UPLOAD_ARTIFACTS,
@@ -16,7 +16,7 @@ from polyaxon.schemas import V1RunPending
 
 
 class APIHandler:
-    MANAGER = RunsManager
+    MANAGER = SchedulingManager
 
     @classmethod
     def handle_run_created(cls, workers_backend, event: "Event") -> None:  # noqa: F821

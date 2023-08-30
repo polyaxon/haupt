@@ -22,7 +22,7 @@ class TestRunsStart(BaseTest):
         )
         runs_start(run_id=experiment.id)
 
-    @mock.patch("haupt.orchestration.scheduler.manager.RunsManager.runs_start")
+    @mock.patch("haupt.orchestration.scheduler.manager.SchedulingManager.runs_start")
     def test_start_run(self, manager_start):
         experiment = RunFactory(project=self.project, user=self.user)
         new_run_status(
