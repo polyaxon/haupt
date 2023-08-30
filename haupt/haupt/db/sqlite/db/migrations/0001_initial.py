@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("auth", "0012_alter_user_first_name_max_length"),
         ("contenttypes", "0002_remove_content_type_name"),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
@@ -106,6 +106,28 @@ class Migration(migrations.Migration):
                         default=django.utils.timezone.now, verbose_name="date joined"
                     ),
                 ),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "user",
@@ -179,6 +201,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "db_table": "db_artifact",
+                "unique_together": {("name", "state")},
             },
         ),
         migrations.CreateModel(
@@ -196,33 +219,17 @@ class Migration(migrations.Migration):
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
                 ("is_input", models.BooleanField(blank=True, default=False, null=True)),
+                (
+                    "artifact",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="runs_lineage",
+                        to="db.artifact",
+                    ),
+                ),
             ],
             options={
                 "db_table": "db_artifactlineage",
-            },
-        ),
-        migrations.CreateModel(
-            name="Bookmark",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
-                ("enabled", models.BooleanField(default=True)),
-                ("object_id", models.PositiveIntegerField()),
-            ],
-            options={
-                "verbose_name": "bookmark",
-                "verbose_name_plural": "bookmarks",
-                "db_table": "db_bookmark",
-                "abstract": False,
             },
         ),
         migrations.CreateModel(
@@ -775,10 +782,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("created_at", models.DateTimeField(db_index=True)),
                 (
-                    "user_stats",
+                    "user",
                     models.JSONField(
                         blank=True,
                         default=dict,
@@ -787,7 +794,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "run_stats",
+                    "run",
                     models.JSONField(
                         blank=True,
                         default=dict,
@@ -796,7 +803,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "model_stats",
+                    "version",
                     models.JSONField(
                         blank=True,
                         default=dict,
@@ -805,25 +812,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "artifact_stats",
-                    models.JSONField(
-                        blank=True,
-                        default=dict,
-                        encoder=django.core.serializers.json.DjangoJSONEncoder,
-                        null=True,
-                    ),
-                ),
-                (
-                    "component_stats",
-                    models.JSONField(
-                        blank=True,
-                        default=dict,
-                        encoder=django.core.serializers.json.DjangoJSONEncoder,
-                        null=True,
-                    ),
-                ),
-                (
-                    "tracking_time_stats",
+                    "tracking_time",
                     models.JSONField(
                         blank=True,
                         default=dict,
@@ -845,27 +834,48 @@ class Migration(migrations.Migration):
                 "abstract": False,
             },
         ),
-        migrations.AddIndex(
+        migrations.AddField(
             model_name="project",
-            index=models.Index(fields=["name"], name="db_project_name_4bfc0e_idx"),
-        ),
-        migrations.AddField(
-            model_name="bookmark",
-            name="content_type",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
+            name="latest_stats",
+            field=models.OneToOneField(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
                 related_name="+",
-                to="contenttypes.contenttype",
+                to="db.projectstats",
             ),
         ),
-        migrations.AddField(
-            model_name="artifactlineage",
-            name="artifact",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="runs_lineage",
-                to="db.artifact",
-            ),
+        migrations.CreateModel(
+            name="Bookmark",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
+                ("enabled", models.BooleanField(default=True)),
+                ("object_id", models.PositiveIntegerField()),
+                (
+                    "content_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="contenttypes.contenttype",
+                    ),
+                ),
+            ],
+            options={
+                "verbose_name": "bookmark",
+                "verbose_name_plural": "bookmarks",
+                "db_table": "db_bookmark",
+                "abstract": False,
+            },
         ),
         migrations.AddField(
             model_name="artifactlineage",
@@ -874,34 +884,6 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="artifacts_lineage",
                 to="db.run",
-            ),
-        ),
-        migrations.AlterUniqueTogether(
-            name="artifact",
-            unique_together={("name", "state")},
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="groups",
-            field=models.ManyToManyField(
-                blank=True,
-                help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
-                related_name="user_set",
-                related_query_name="user",
-                to="auth.group",
-                verbose_name="groups",
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="user_permissions",
-            field=models.ManyToManyField(
-                blank=True,
-                help_text="Specific permissions for this user.",
-                related_name="user_set",
-                related_query_name="user",
-                to="auth.permission",
-                verbose_name="user permissions",
             ),
         ),
         migrations.AddIndex(
@@ -915,6 +897,10 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name="projectversion",
             unique_together={("project", "name", "kind")},
+        ),
+        migrations.AddIndex(
+            model_name="project",
+            index=models.Index(fields=["name"], name="db_project_name_4bfc0e_idx"),
         ),
         migrations.AlterUniqueTogether(
             name="artifactlineage",

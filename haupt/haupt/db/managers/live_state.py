@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
 
-from haupt.db.abstracts.projects import BaseProject
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from polyaxon.lifecycle import LifeCycle, LiveState, V1Statuses
@@ -16,7 +15,7 @@ def run_queryset_stopping(queryset):
     )
 
 
-def delete_in_progress_project(project: BaseProject):
+def delete_in_progress_project(project: Models.Project):
     if not project.delete_in_progress(update_name=True):
         return False
     Models.Run.all.filter(project=project).exclude(
@@ -45,7 +44,7 @@ def delete_in_progress_run(run: BaseRun):
     return True
 
 
-def archive_project(project: BaseProject):
+def archive_project(project: Models.Project):
     if not project.archive():
         return False
     queryset = Models.Run.objects.filter(project=project).exclude(
@@ -91,7 +90,7 @@ def confirm_delete_runs(runs: QuerySet, run_ids: List[int] = None):
     queryset.update(live_state=LiveState.DELETION_PROGRESSING, deleted_at=now())
 
 
-def restore_project(project: BaseProject):
+def restore_project(project: Models.Project):
     if not project.restore():
         return False
     Models.Run.archived.filter(project=project).update(
