@@ -22,6 +22,7 @@ class APIsConfig(AppConfig):
         import haupt.db.signals.runs  # noqa
         import haupt.db.signals.versions  # noqa
         import haupt.db.signals.bookmarks  # noqa
+        import haupt.db.signals.stats  # noqa
 
         import haupt.common.options.conf_subscriptions  # noqa
         from haupt.common.events import auditor_subscriptions  # noqa

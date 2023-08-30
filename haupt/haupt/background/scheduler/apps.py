@@ -7,6 +7,8 @@ class SchedulerConfig(AppConfig):
 
     def ready(self):
         import haupt.db.signals.runs  # noqa
+        import haupt.db.signals.stats  # noqa
+        import haupt.db.signals.stats  # noqa
         from haupt.common import auditor, conf
         from haupt.orchestration import executor, operations
 

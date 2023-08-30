@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Tuple
+from typing import Any, Tuple
 
 from rest_framework.exceptions import ValidationError
 
@@ -249,3 +249,46 @@ def annotate_quota(queryset):
         cpu=Sum("runs__cpu", filter=queryset_filter),
         memory=Sum("runs__memory", filter=queryset_filter),
     )
+
+
+def collect_project_run_count_stats(project: Models.Project):
+    data = (
+        Models.Run.all.filter(project=project)
+        .values("live_state")
+        .annotate(run_count=Count("id"))
+    )
+    return {item["live_state"]: item["run_count"] for item in data}
+
+
+def collect_project_run_duration_stats(project: Models.Project):
+    data = (
+        Models.Run.all.filter(project=project)
+        .values("live_state")
+        .annotate(sum_duration=Sum("duration"))
+    )
+    return {item["live_state"]: item["sum_duration"] for item in data}
+
+
+def collect_project_version_stats(project: Models.Project):
+    data = project.versions.values("kind").annotate(kind_count=Count("kind"))
+    return {item["kind"]: item["kind_count"] for item in data}
+
+
+def collect_project_unique_user_stats(project):
+    unique_users = list(
+        Models.Run.all.filter(project=project)
+        .values_list("user_id", flat=True)
+        .distinct()
+    )
+    if not unique_users:
+        return {}
+    return {"count": len(unique_users), "ids": unique_users}
+
+
+def collect_org_project_count_stats(org: Any):
+    data = (
+        Models.Project.all.filter(owner=org)
+        .values("live_state")
+        .annotate(project_count=Count("id"))
+    )
+    return {item["live_state"]: item["project_count"] for item in data}

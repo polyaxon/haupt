@@ -125,6 +125,9 @@ class PlatformConfig(BaseSchemaModel):
     intervals_heartbeat_check: Optional[int] = Field(
         alias="POLYAXON_INTERVALS_HEARTBEAT_CHECK", default=60
     )
+    intervals_stats_calculation: Optional[int] = Field(
+        alias="POLYAXON_INTERVALS_STATS_CALCULATION", default=60 * 15
+    )
     intervals_clean_activity_logs: Optional[int] = Field(
         alias="POLYAXON_INTERVALS_CLEAN_ACTIVITY_LOGS", default=60
     )
