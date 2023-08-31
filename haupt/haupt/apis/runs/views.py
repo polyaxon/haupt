@@ -23,6 +23,7 @@ from haupt.common.endpoints.base import (
     RetrieveEndpoint,
     UpdateEndpoint,
 )
+from haupt.common.endpoints.mixins import StatsMixin
 from haupt.common.events.registry.archive import RUN_ARCHIVED_ACTOR, RUN_RESTORED_ACTOR
 from haupt.common.events.registry.bookmark import (
     RUN_BOOKMARKED_ACTOR,
@@ -304,7 +305,7 @@ class RunBookmarkDeleteView(RunEndpoint, BookmarkDeleteView):
     AUDIT_INSTANCE = True
 
 
-class RunStatsView(RunEndpoint, RetrieveEndpoint):
+class RunStatsView(RunEndpoint, RetrieveEndpoint, StatsMixin):
     AUDITOR_EVENT_TYPES = {
         "GET": RUN_STATS_ACTOR,
     }
@@ -319,6 +320,7 @@ class RunStatsView(RunEndpoint, RetrieveEndpoint):
     bookmarked_model = "run"
 
     def get_serializer(self, *args, **kwargs):
+        self.validate_stats_mode()
         queryset = Models.Run.restorable.filter(pipeline_id=self.run.id)
         queryset = StatsSerializer.filter_queryset(
             queryset=queryset,

@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.mixins import CreateModelMixin as DJRCreateModelMixin
 from rest_framework.mixins import DestroyModelMixin as DJRDestroyModelMixin
 from rest_framework.mixins import ListModelMixin as DRFListModelMixin
@@ -59,3 +60,11 @@ class DestroyModelMixin(DJRDestroyModelMixin):
 
     def perform_destroy(self, instance):
         return super().perform_destroy(instance)
+
+
+class StatsMixin:
+    def validate_stats_mode(self):
+        mode = self.request.query_params.get("mode")
+        if mode not in {"stats", "analytics"}:
+            raise ValidationError("Received an unsupported mode: {}".format(mode))
+        return mode

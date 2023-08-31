@@ -7,6 +7,7 @@ from django.conf import settings
 from haupt.apis.bookmarks.views import BookmarkCreateView, BookmarkDeleteView
 from haupt.apis.endpoints.project import ProjectEndpoint
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedListMixinView
+from haupt.apis.serializers.project_stats import ProjectStatsSerializer
 from haupt.apis.serializers.projects import (
     BookmarkedProjectSerializer,
     ProjectCreateSerializer,
@@ -23,6 +24,7 @@ from haupt.common.endpoints.base import (
     RetrieveEndpoint,
     UpdateEndpoint,
 )
+from haupt.common.endpoints.mixins import StatsMixin
 from haupt.common.events.registry.archive import (
     PROJECT_ARCHIVED_ACTOR,
     PROJECT_RESTORED_ACTOR,
@@ -153,7 +155,7 @@ class ProjectBookmarkDeleteView(ProjectEndpoint, BookmarkDeleteView):
     AUDIT_INSTANCE = True
 
 
-class ProjectStatsView(ProjectEndpoint, RetrieveEndpoint):
+class ProjectStatsView(ProjectEndpoint, RetrieveEndpoint, StatsMixin):
     queryset = (
         Models.Project.all.select_related("owner")
         if settings.HAS_ORG_MANAGEMENT
@@ -170,7 +172,17 @@ class ProjectStatsView(ProjectEndpoint, RetrieveEndpoint):
     AUDIT_INSTANCE = True
     bookmarked_model = "run"
 
+    def get_queryset(self):
+        mode = self.validate_stats_mode()
+        queryset = super().get_queryset()
+        if mode == "stats":
+            return queryset.select_related("latest_stats")
+        return queryset
+
     def get_serializer(self, *args, **kwargs):
+        mode = self.validate_stats_mode()
+        if mode == "stats":
+            return ProjectStatsSerializer(self.project.latest_stats)
         queryset = Models.Run.objects.filter(project_id=self.project.id)
         queryset = StatsSerializer.filter_queryset(
             queryset=queryset,

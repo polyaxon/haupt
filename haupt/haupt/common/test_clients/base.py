@@ -87,3 +87,17 @@ class BaseClient(Client):
         request.update(extra)
 
         return request
+
+    def request(self, **request):
+        authorization_header = getattr(self, "authorization_header", None)
+        service = getattr(self, "polyaxon_service", None)
+        updated_request = {}
+        if authorization_header:
+            updated_request = {"HTTP_AUTHORIZATION": authorization_header}
+        if "HTTP_X_REQUEST_ID" not in request:
+            request["HTTP_X_REQUEST_ID"] = str(uuid.uuid4())
+        if service:
+            request["HTTP_X_POLYAXON_SERVICE"] = service
+
+        updated_request.update(request)
+        return super().request(**updated_request)
