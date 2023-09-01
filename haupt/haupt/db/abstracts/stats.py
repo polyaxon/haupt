@@ -12,6 +12,9 @@ class StatsModel(DiffModel):
     run = models.JSONField(
         encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
     )
+    status = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
     version = models.JSONField(
         encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
     )

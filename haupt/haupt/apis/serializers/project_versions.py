@@ -14,7 +14,7 @@ from haupt.apis.serializers.base.project import ProjectMixin
 from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.apis.serializers.base.uuid_slug_related_field import UuidSlugRelatedField
 from haupt.db.defs import Models
-from haupt.db.managers.components import get_component_version_state
+from haupt.db.managers.versions import get_component_version_state
 from polyaxon.config.spec import ConfigSpec
 from polyaxon.constants.metadata import META_IS_PROMOTED
 from polyaxon.lifecycle import V1ProjectVersionKind

@@ -83,6 +83,7 @@ class BaseTestProjectStatsSerializer(PolyaxonBaseTestSerializer):
             project=self.project,
             user={"count": 1, "ids": [self.user.id]},
             run={"1": 1, "0": 2},
+            status={"running": 1, "succeeded": 2},
             version={
                 V1ProjectVersionKind.COMPONENT: 1,
                 V1ProjectVersionKind.MODEL: 2,

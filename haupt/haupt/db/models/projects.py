@@ -3,11 +3,12 @@ from django.db import models
 
 from haupt.common.validation.blacklist import validate_blacklist_name
 from haupt.db.abstracts.catalogs import BaseLiveStateCatalog
+from haupt.db.abstracts.contributors import ContributorsModel
 from haupt.db.abstracts.projects import Actor, Owner
 from haupt.db.abstracts.readme import ReadmeModel
 
 
-class Project(BaseLiveStateCatalog, ReadmeModel):
+class Project(BaseLiveStateCatalog, ReadmeModel, ContributorsModel):
     latest_stats = models.OneToOneField(
         "db.ProjectStats",
         related_name="+",

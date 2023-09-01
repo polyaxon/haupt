@@ -8,7 +8,9 @@ from django.conf import settings
 from django.db.models import Q
 
 from haupt.db.defs import Models
-from haupt.db.managers.runs import base_approve_run
+from haupt.db.managers.live_state import archive_run as base_archive_run
+from haupt.db.managers.live_state import restore_run as base_restore_run
+from haupt.db.managers.runs import add_run_contributors, base_approve_run
 from haupt.db.managers.statuses import new_run_status, new_run_stopping_status
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.lifecycle import V1StatusCondition
@@ -37,6 +39,7 @@ def clone_run(view, request, *args, **kwargs):
     except (PydanticValidationError, PolyaxonException, ValueError) as e:
         raise ValidationError("Cloning was not successful, error: {}".format(e))
 
+    add_run_contributors(new_obj, users=[request.user])
     view.audit(request, *args, **kwargs)
     serializer = view.get_serializer(new_obj)
     return Response(status=status.HTTP_201_CREATED, data=serializer.data)
@@ -58,6 +61,7 @@ def create_status(view, serializer):
 
 def stop_run(view, request, *args, **kwargs):
     if new_run_stopping_status(run=view.run, message="User requested to stop the run."):
+        add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
@@ -66,6 +70,7 @@ def approve_run(view, request, *args, **kwargs):
     pending = view.run.pending
     if pending:
         base_approve_run(view.run)
+        add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
@@ -92,5 +97,30 @@ def transfer_run(view, request, *args, **kwargs):
         Models.Run.all.filter(Q(pipeline=view.run) | Q(controller=view.run)).update(
             project_id=dest_project.id
         )
+    add_run_contributors(view.run, users=[request.user])
     view.audit(request, *args, **kwargs)
+    return Response(status=status.HTTP_200_OK, data={})
+
+
+def invalidate_run(view, request, *args, **kwargs):
+    view.run.state = None
+    view.run.save(update_fields=["state"])
+    add_run_contributors(view.run, users=[request.user])
+    view.audit(request, *args, **kwargs)
+    return Response(status=status.HTTP_200_OK, data={})
+
+
+def archive_run(view, request, *args, **kwargs):
+    view.run = view.get_object()
+    view.audit(request, *args, **kwargs)
+    add_run_contributors(view.run, users=[request.user])
+    base_archive_run(view.run)
+    return Response(status=status.HTTP_200_OK, data={})
+
+
+def restore_run(view, request, *args, **kwargs):
+    view.run = view.get_object()
+    view.audit(request, *args, **kwargs)
+    add_run_contributors(view.run, users=[request.user])
+    base_restore_run(view.run)
     return Response(status=status.HTTP_200_OK, data={})

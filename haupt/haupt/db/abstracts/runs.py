@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import validate_slug
 from django.db import models
 
+from haupt.db.abstracts.contributors import ContributorsModel
 from haupt.db.abstracts.describable import DescribableModel
 from haupt.db.abstracts.diff import DiffModel
 from haupt.db.abstracts.duration import DurationModel
@@ -35,6 +36,7 @@ class BaseRun(
     OptionalStateModel,
     RunPipelines,
     RunResources,
+    ContributorsModel,
 ):
     name = models.CharField(
         max_length=128,

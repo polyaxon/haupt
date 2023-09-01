@@ -2,13 +2,16 @@ from django.db import models
 
 from haupt.common.validation.slugs import validate_slug_with_dots
 from haupt.db.abstracts.catalogs import BaseCatalog
+from haupt.db.abstracts.contributors import ContributorsModel
 from haupt.db.abstracts.readme import ReadmeModel
 from haupt.db.abstracts.stage import StageModel
 from haupt.db.abstracts.state import OptionalStateModel
 from polyaxon.lifecycle import V1ProjectVersionKind
 
 
-class BaseProjectVersion(BaseCatalog, StageModel, ReadmeModel, OptionalStateModel):
+class BaseProjectVersion(
+    BaseCatalog, StageModel, ReadmeModel, OptionalStateModel, ContributorsModel
+):
     live_state = None
 
     kind = models.CharField(

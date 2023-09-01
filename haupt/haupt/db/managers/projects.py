@@ -1,8 +1,11 @@
 from datetime import datetime
+from typing import List, Optional
 
+from django.conf import settings
 from django.db.models import Q
 from django.utils.timezone import now
 
+from haupt.common.authentication.base import is_user
 from haupt.db.defs import Models
 
 
@@ -41,3 +44,19 @@ def update_project_based_on_last_updated_entities(
     Models.Project.objects.filter(id__in=project_ids_with_recent_entities).update(
         updated_at=current_check
     )
+
+
+def add_project_contributors(
+    project: Models.Project,
+    users: Optional[List[Models.User]] = None,
+    user_ids: Optional[List[int]] = None,
+):
+    if not settings.HAS_ORG_MANAGEMENT:
+        return
+    if not project:
+        return
+    _users = [u.id for u in users if is_user(u)] if users else user_ids
+    if not _users:
+        return
+
+    project.contributors.add(*_users)

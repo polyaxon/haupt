@@ -11,11 +11,12 @@ from haupt.db.managers.projects import update_project_based_on_last_updated_enti
 from haupt.db.managers.stats import (
     collect_project_run_count_stats,
     collect_project_run_duration_stats,
+    collect_project_run_status_stats,
     collect_project_version_stats,
 )
 from haupt.db.models.project_stats import ProjectStats
 from haupt.db.models.projects import Project
-from polyaxon.lifecycle import LiveState, V1ProjectVersionKind
+from polyaxon.lifecycle import LiveState, V1ProjectVersionKind, V1Statuses
 
 
 class TestProjectModel(TestCase):
@@ -157,6 +158,31 @@ class TestProjectModel(TestCase):
             LiveState.LIVE.value: 2,
             LiveState.ARCHIVED.value: 1,
             LiveState.DELETION_PROGRESSING.value: 1,
+        }
+
+    def test_collect_project_run_status_stats(self):
+        run_count = collect_project_run_status_stats(self.project)
+        assert run_count == {}
+
+        # Add a new runs
+        RunFactory(project=self.project, status=V1Statuses.RUNNING)
+        RunFactory(project=self.project, status=V1Statuses.RUNNING)
+        RunFactory(
+            project=self.project,
+            live_state=LiveState.ARCHIVED,
+            status=V1Statuses.STOPPED,
+        )
+        RunFactory(
+            project=self.project,
+            live_state=LiveState.DELETION_PROGRESSING,
+            status=V1Statuses.STARTING,
+        )
+
+        run_count = collect_project_run_status_stats(self.project)
+        assert run_count == {
+            V1Statuses.RUNNING.value: 2,
+            V1Statuses.STOPPED.value: 1,
+            V1Statuses.STARTING.value: 1,
         }
 
     def test_collect_project_run_duration_stats(self):

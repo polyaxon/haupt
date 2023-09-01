@@ -1,12 +1,30 @@
 from typing import Dict, List, Optional, Set
 
+from django.conf import settings
 from django.db.models import Count, Q
 
+from haupt.common.authentication.base import is_user
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyflow import V1CompiledOperation, V1RunKind
 from polyaxon.schemas import V1RunPending
+
+
+def add_run_contributors(
+    run: Models.Run,
+    users: Optional[List[Models.User]] = None,
+    user_ids: Optional[List[int]] = None,
+):
+    if not settings.HAS_ORG_MANAGEMENT:
+        return
+    if not run:
+        return
+    _users = [u.id for u in users if is_user(u)] if users else user_ids
+    if not _users:
+        return
+
+    run.contributors.add(*_users)
 
 
 def create_run(

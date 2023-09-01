@@ -260,6 +260,15 @@ def collect_project_run_count_stats(project: Models.Project):
     return {item["live_state"]: item["run_count"] for item in data}
 
 
+def collect_project_run_status_stats(project: Models.Project):
+    data = (
+        Models.Run.all.filter(project=project)
+        .values("status")
+        .annotate(run_count=Count("id"))
+    )
+    return {item["status"]: item["run_count"] for item in data}
+
+
 def collect_project_run_duration_stats(project: Models.Project):
     data = (
         Models.Run.all.filter(project=project)
@@ -275,14 +284,27 @@ def collect_project_version_stats(project: Models.Project):
 
 
 def collect_project_unique_user_stats(project):
-    unique_users = list(
+    # TODO: Remove after migration
+    creator_unique_users = list(
         Models.Run.all.filter(project=project)
         .values_list("user_id", flat=True)
         .distinct()
     )
+    runs_unique_users = list(
+        Models.Run.all.filter(project=project)
+        .filter(contributors__isnull=False)
+        .values_list("contributors__id", flat=True)
+        .distinct()
+    )
+    versions_unique_users = list(
+        project.versions.filter(contributors__isnull=False)
+        .values_list("contributors__id", flat=True)
+        .distinct()
+    )
+    unique_users = set(creator_unique_users + runs_unique_users + versions_unique_users)
     if not unique_users:
         return {}
-    return {"count": len(unique_users), "ids": unique_users}
+    return {"count": len(unique_users), "ids": list(unique_users)}
 
 
 def collect_org_project_count_stats(org: Any):
@@ -292,3 +314,14 @@ def collect_org_project_count_stats(org: Any):
         .annotate(project_count=Count("id"))
     )
     return {item["live_state"]: item["project_count"] for item in data}
+
+
+def collect_org_projects_contributors(org: Any):
+    return set(
+        list(
+            Models.Project.all.filter(owner=org)
+            .filter(contributors__isnull=False)
+            .values_list("contributors__id", flat=True)
+            .distinct()
+        )
+    )

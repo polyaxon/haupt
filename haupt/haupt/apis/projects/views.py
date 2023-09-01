@@ -40,6 +40,7 @@ from haupt.db.managers.live_state import (
     delete_in_progress_project,
     restore_project,
 )
+from haupt.db.managers.projects import add_project_contributors
 from haupt.db.managers.stats import StatsSerializer
 from haupt.db.query_managers.project import ProjectQueryManager
 from polyaxon.services.values import PolyaxonServices
@@ -105,6 +106,10 @@ class ProjectDetailView(
     AUDIT_PROJECT = True
     AUDIT_INSTANCE = True
 
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        add_project_contributors(instance, users=[self.request.user])
+
     def perform_destroy(self, instance):
         delete_in_progress_project(instance)
 
@@ -118,6 +123,7 @@ class ProjectArchiveView(ProjectEndpoint, PostEndpoint):
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
+        add_project_contributors(obj, users=[self.request.user])
         archive_project(obj)
         self.audit(request, *args, **kwargs)
         return Response(status=status.HTTP_200_OK, data={})
@@ -132,6 +138,7 @@ class ProjectRestoreView(ProjectEndpoint, PostEndpoint):
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
+        add_project_contributors(obj, users=[self.request.user])
         self.audit(request, *args, **kwargs)
         restore_project(obj)
         return Response(status=status.HTTP_200_OK, data={})

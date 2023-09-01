@@ -52,6 +52,7 @@ from haupt.common.events.registry.model_version import (
     MODEL_VERSION_VIEWED_ACTOR,
 )
 from haupt.db.defs import Models
+from haupt.db.managers.versions import add_version_contributors
 from haupt.db.query_managers.project_version import ProjectVersionQueryManager
 from polyaxon.lifecycle import V1ProjectVersionKind
 
@@ -76,6 +77,7 @@ class ProjectVersionListView(VersionListEndpoint, ListEndpoint, CreateEndpoint):
         instance = serializer.save(project=self.project)
         if not self.EVENTS_TYPE:
             return
+        add_version_contributors(instance, users=[self.request.user])
         auditor.record(
             event_type=self.EVENTS_TYPE,
             instance=instance,
@@ -227,6 +229,10 @@ class ProjectVersionDetailView(
         kwargs["context"] = context
         return serializer_class(*args, **kwargs)
 
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        add_version_contributors(instance, users=[self.request.user])
+
 
 class ProjectComponentVersionDetailView(ProjectVersionDetailView):
     serializer_class_mapping = {
@@ -312,6 +318,7 @@ class ProjectVersionTransferView(VersionEndpoint, CreateEndpoint):
 
         self.version.project_id = dest_project.id
         self.version.save(update_fields=["project_id"])
+        add_version_contributors(self.version, users=[request.user])
         self.audit(request, *args, **kwargs)
         return Response(status=status.HTTP_200_OK, data={})
 

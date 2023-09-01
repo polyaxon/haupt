@@ -21,8 +21,8 @@ from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from haupt.db.managers.artifacts import set_artifacts
 from haupt.db.managers.cache import get_run_state
-from haupt.db.managers.components import get_component_version_state
 from haupt.db.managers.statuses import new_run_status
+from haupt.db.managers.versions import get_component_version_state
 from haupt.db.query_managers.run import RunsOfflineFilter
 from haupt.orchestration import operations
 from hypertune.search_managers.grid_search.manager import GridSearchManager

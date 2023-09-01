@@ -83,6 +83,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
         assert resp.data == {
             "created_at": None,
             "run": None,
+            "status": None,
             "version": None,
             "tracking_time": None,
         }
@@ -91,6 +92,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
             project=self.project,
             user={"count": 1, "ids": [self.user.id]},
             run={"1": 1, "0": 2},
+            status={"running": 1, "succeeded": 2},
             version={
                 V1ProjectVersionKind.COMPONENT: 1,
                 V1ProjectVersionKind.MODEL: 2,
@@ -105,9 +107,11 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data != {}
         assert resp.data.pop("created_at") is not None
+        assert resp.data.pop("updated_at") is not None
         assert resp.data == {
-            "user": {"count": 1, "users": [self.user.username]},
+            "user": {"count": 1},
             "run": {"1": 1, "0": 2},
+            "status": {"running": 1, "succeeded": 2},
             "version": {
                 V1ProjectVersionKind.COMPONENT: 1,
                 V1ProjectVersionKind.MODEL: 2,

@@ -5,7 +5,6 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.core.serializers.json
 import django.core.validators
-import django.db.models.deletion
 import django.utils.timezone
 
 from django.conf import settings
@@ -291,6 +290,12 @@ class Migration(migrations.Migration):
                         ],
                     ),
                 ),
+                (
+                    "contributors",
+                    models.ManyToManyField(
+                        blank=True, related_name="+", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
                 "db_table": "db_project",
@@ -528,6 +533,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    "contributors",
+                    models.ManyToManyField(
+                        blank=True, related_name="+", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
                     "controller",
                     models.ForeignKey(
                         blank=True,
@@ -741,6 +752,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    "contributors",
+                    models.ManyToManyField(
+                        blank=True, related_name="+", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
                     "lineage",
                     models.ManyToManyField(
                         blank=True, related_name="versions", to="db.artifactlineage"
@@ -795,6 +812,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "run",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=django.core.serializers.json.DjangoJSONEncoder,
+                        null=True,
+                    ),
+                ),
+                (
+                    "status",
                     models.JSONField(
                         blank=True,
                         default=dict,

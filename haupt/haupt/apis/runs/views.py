@@ -1,4 +1,3 @@
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
@@ -42,11 +41,7 @@ from haupt.common.events.registry.run import (
 )
 from haupt.common.options.registry.k8s import K8S_NAMESPACE
 from haupt.db.defs import Models
-from haupt.db.managers.live_state import (
-    archive_run,
-    delete_in_progress_run,
-    restore_run,
-)
+from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.stats import StatsSerializer
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_DEFER
 from haupt.orchestration import operations
@@ -241,9 +236,7 @@ class RunInvalidateView(RunEndpoint, PostEndpoint):
     AUDIT_INSTANCE = True
 
     def post(self, request, *args, **kwargs):
-        self.run.state = None
-        self.run.save(update_fields=["state"])
-        return Response(status=status.HTTP_200_OK, data={})
+        return methods.invalidate_run(view=self, request=request, *args, **kwargs)
 
 
 class RunArchiveView(RunEndpoint, PostEndpoint):
@@ -256,10 +249,7 @@ class RunArchiveView(RunEndpoint, PostEndpoint):
     AUDIT_INSTANCE = True
 
     def post(self, request, *args, **kwargs):
-        self.run = self.get_object()
-        self.audit(request, *args, **kwargs)
-        archive_run(self.run)
-        return Response(status=status.HTTP_200_OK, data={})
+        return methods.archive_run(view=self, request=request, *args, **kwargs)
 
 
 class RunRestoreView(RunEndpoint, PostEndpoint):
@@ -272,10 +262,7 @@ class RunRestoreView(RunEndpoint, PostEndpoint):
     AUDIT_INSTANCE = True
 
     def post(self, request, *args, **kwargs):
-        self.run = self.get_object()
-        self.audit(request, *args, **kwargs)
-        restore_run(self.run)
-        return Response(status=status.HTTP_200_OK, data={})
+        return methods.restore_run(view=self, request=request, *args, **kwargs)
 
 
 SELECT_RELATED = ["project__owner"] if settings.HAS_ORG_MANAGEMENT else []

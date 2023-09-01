@@ -4,10 +4,26 @@ from haupt.db.defs import Models
 
 
 class StatsUserSerializerMixin(serializers.ModelSerializer):
+    LIGHT = True
     user = serializers.SerializerMethodField()
 
+    class Meta:
+        fields = (
+            "created_at",
+            "updated_at",
+            "user",
+            "run",
+            "status",
+            "version",
+            "tracking_time",
+        )
+
     def get_user(self, obj):
-        if not obj.user or not obj.user.get("ids"):
+        if not obj.user:
+            return obj.user
+        if self.LIGHT:
+            return {"count": obj.user.get("count", 0)}
+        if not obj.user.get("ids"):
             return obj.user
         users = Models.User.objects.filter(id__in=obj.user["ids"]).values_list(
             "username", flat=True
@@ -16,12 +32,5 @@ class StatsUserSerializerMixin(serializers.ModelSerializer):
 
 
 class ProjectStatsSerializer(StatsUserSerializerMixin):
-    class Meta:
+    class Meta(StatsUserSerializerMixin.Meta):
         model = Models.ProjectStats
-        fields = (
-            "created_at",
-            "user",
-            "run",
-            "version",
-            "tracking_time",
-        )
