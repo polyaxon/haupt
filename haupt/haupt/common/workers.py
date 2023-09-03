@@ -25,11 +25,11 @@ def send(
     **options,
 ):
     delay = conf.get(SCHEDULER_ENABLED) if delay is None else delay
-    module = os.environ.get("CONFIG_PREFIX", "haupt")
-    tasks_execution = import_string(
-        f"{module}.background.celeryp.executions.TasksExecutions"
-    )
     if not delay:
+        module = os.environ.get("CONFIG_PREFIX", "haupt")
+        tasks_execution = import_string(
+            f"{module}.background.celeryp.executions.TasksExecutions"
+        )
         tasks_execution.run(task=task_name, kwargs=kwargs, eager_kwargs=eager_kwargs)
         return
     options["ignore_result"] = options.get("ignore_result", True)
