@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils.timezone import now
 
-from haupt.common.authentication.base import is_user
+from haupt.common.authentication.base import is_normal_user
 from haupt.db.defs import Models
 
 
@@ -20,8 +20,7 @@ def update_project_based_on_last_updated_entities(
         )
         .filter(
             Q(created_at__gte=last_created_at_threshold)
-            | Q(archived_at__gte=last_created_at_threshold)
-            | Q(deleted_at__gte=last_created_at_threshold)
+            | Q(updated_at__gte=last_created_at_threshold)
         )
         .values_list("project_id", flat=True)
         .distinct()
@@ -55,7 +54,7 @@ def add_project_contributors(
         return
     if not project:
         return
-    _users = [u.id for u in users if is_user(u)] if users else user_ids
+    _users = [u.id for u in users if is_normal_user(u)] if users else user_ids
     if not _users:
         return
 

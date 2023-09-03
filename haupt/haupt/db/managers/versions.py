@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from django.conf import settings
 
-from haupt.common.authentication.base import is_user
+from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.projects import Owner
 from haupt.db.defs import Models
 from polyaxon.pkg import SCHEMA_VERSION
@@ -20,7 +20,7 @@ def add_version_contributors(
         return
     if not version:
         return
-    _users = [u.id for u in users if is_user(u)] if users else user_ids
+    _users = [u.id for u in users if is_normal_user(u)] if users else user_ids
     if not _users:
         return
 

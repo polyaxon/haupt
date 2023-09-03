@@ -43,3 +43,11 @@ class BaseUser:
 
 def is_user(user: Any) -> bool:
     return isinstance(user, get_user_model())
+
+
+def is_normal_user(user: Any) -> bool:
+    return (
+        is_user(user)
+        and user.is_authenticated
+        and not (user.is_staff or user.is_superuser)
+    )

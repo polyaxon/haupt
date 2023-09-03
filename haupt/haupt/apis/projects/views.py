@@ -96,7 +96,7 @@ class ProjectDetailView(
     ProjectEndpoint, RetrieveEndpoint, UpdateEndpoint, DestroyEndpoint
 ):
     queryset = (
-        Models.Project.all.select_related("owner")
+        Models.Project.all.select_related("owner").prefetch_related("contributors")
         if settings.HAS_ORG_MANAGEMENT
         else Models.Project.all
     )

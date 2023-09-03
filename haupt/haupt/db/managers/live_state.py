@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Optional
 
 from django.conf import settings
 from django.db.models import Q, QuerySet
@@ -60,7 +60,7 @@ def archive_run(run: BaseRun):
         return False
     if not LifeCycle.is_done(run.status, progressing=True):
         run.status = V1Statuses.STOPPING
-    run.save(update_fields=["live_state", "status", "archived_at"])
+    run.save(update_fields=["live_state", "status", "archived_at", "updated_at"])
     queryset = Models.Run.objects.filter(
         Q(pipeline_id=run.id) | Q(controller_id=run.id)
     ).exclude(live_state=LiveState.ARCHIVED)

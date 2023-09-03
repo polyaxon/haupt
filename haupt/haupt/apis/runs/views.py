@@ -65,9 +65,16 @@ class RunDetailView(RunEndpoint, RetrieveEndpoint, DestroyEndpoint, UpdateEndpoi
     def _get_related_fields(self):
         return ["original", "pipeline", "project"]
 
+    def _get_prefetch_fields(self):
+        return []
+
     def get_queryset(self):
         if self.request.method == "GET":
-            return Models.Run.all.select_related(*self._get_related_fields())
+            prefetch_fields = self._get_prefetch_fields()
+            queryset = Models.Run.all.select_related(*self._get_related_fields())
+            if prefetch_fields:
+                queryset = queryset.prefetch_related(*prefetch_fields)
+            return queryset
         return super().get_queryset()
 
     def perform_destroy(self, instance):

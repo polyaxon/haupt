@@ -174,14 +174,12 @@ class TestProjectModel(TestCase):
         )
         RunFactory(
             project=self.project,
-            live_state=LiveState.DELETION_PROGRESSING,
             status=V1Statuses.STARTING,
         )
 
         run_count = collect_project_run_status_stats(self.project)
         assert run_count == {
             V1Statuses.RUNNING.value: 2,
-            V1Statuses.STOPPED.value: 1,
             V1Statuses.STARTING.value: 1,
         }
 

@@ -36,7 +36,7 @@ class LiveStateModel(models.Model):
             return False
 
         self.live_state = LiveState.DELETION_PROGRESSING
-        update_fields = ["live_state"]
+        update_fields = ["live_state", "updated_at"]
         if update_name:
             self.name = "del_{}_{}".format(
                 self.name, getattr(self, "uuid", random.randint(-90, 100))
@@ -53,7 +53,7 @@ class LiveStateModel(models.Model):
         if self.deleted_at:
             return False
 
-        update_fields = ["deleted_at"]
+        update_fields = ["deleted_at", "updated_at"]
         self.deleted_at = now()
         if self.live_state != LiveState.DELETION_PROGRESSING:
             self.live_state = LiveState.DELETION_PROGRESSING
@@ -71,7 +71,7 @@ class LiveStateModel(models.Model):
         self.archived_at = now()
         self.live_state = LiveState.ARCHIVED
         if commit:
-            self.save(update_fields=["live_state", "archived_at"])
+            self.save(update_fields=["live_state", "archived_at", "updated_at"])
         return True
 
     def restore(self) -> bool:
@@ -79,7 +79,7 @@ class LiveStateModel(models.Model):
             return False
 
         self.live_state = LiveState.LIVE
-        update_fields = ["live_state"]
+        update_fields = ["live_state", "updated_at"]
         if self.archived_at:
             self.archived_at = None
             update_fields.append("archived_at")

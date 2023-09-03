@@ -177,6 +177,7 @@ ADDITIONAL_SELECT_RELATED_DETAILS = ADDITIONAL_SELECT_RELATED + (
 )
 ADDITIONAL_PREFETCH_RELATED_DETAILS = (
     [
+        "contributors",
         "lineage__connection",
     ]
     if settings.HAS_ORG_MANAGEMENT

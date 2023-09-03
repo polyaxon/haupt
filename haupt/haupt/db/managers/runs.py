@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Set
 from django.conf import settings
 from django.db.models import Count, Q
 
-from haupt.common.authentication.base import is_user
+from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
@@ -20,7 +20,7 @@ def add_run_contributors(
         return
     if not run:
         return
-    _users = [u.id for u in users if is_user(u)] if users else user_ids
+    _users = [u.id for u in users if is_normal_user(u)] if users else user_ids
     if not _users:
         return
 
