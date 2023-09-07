@@ -4,6 +4,7 @@ from typing import Optional
 
 from haupt import settings
 from haupt.cli.runners.base import start_app
+from haupt.cli.runners.cron import start_cron
 from polyaxon import settings as plx_settings
 from polyaxon.contexts import paths as ctx_paths
 from polyaxon.env_vars.keys import EV_KEYS_SERVICE
@@ -33,4 +34,5 @@ def start(
         uds=uds,
         migrate_tables=True,
         migrate_db=True,
+        use_cron=True,
     )
