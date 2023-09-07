@@ -1,8 +1,8 @@
 import pytest
 
-from haupt.background.scheduler.tasks.runs import runs_set_artifacts
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.artifacts import Artifact
+from haupt.orchestration.scheduler.manager import SchedulingManager
 from tests.test_background.case import BaseTest
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 
@@ -27,7 +27,7 @@ class TestSetArtifacts(BaseTest):
             state=state,
             summary=dict(last_value=0.8, max_value=0.99, min_value=0.11, max_step=100),
         )
-        runs_set_artifacts(
+        SchedulingManager.runs_set_artifacts(
             run_id=experiment.id, artifacts=[metric1.to_dict(), metric2.to_dict()]
         )
 
@@ -55,7 +55,7 @@ class TestSetArtifacts(BaseTest):
             state=state,
             summary=dict(last_value=0.1, max_value=0.2, min_value=0.1, max_step=100),
         )
-        runs_set_artifacts(
+        SchedulingManager.runs_set_artifacts(
             run_id=experiment.id, artifacts=[metric1.to_dict(), metric3.to_dict()]
         )
 

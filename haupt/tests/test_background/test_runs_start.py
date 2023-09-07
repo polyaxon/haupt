@@ -2,9 +2,9 @@ import pytest
 
 from mock import mock
 
-from haupt.background.scheduler.tasks.runs import runs_start
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
+from haupt.orchestration.scheduler.manager import SchedulingManager
 from polyaxon.lifecycle import V1StatusCondition, V1Statuses
 from tests.test_background.case import BaseTest
 
@@ -13,14 +13,14 @@ from tests.test_background.case import BaseTest
 class TestRunsStart(BaseTest):
     def test_start_run_not_queued(self):
         experiment = RunFactory(project=self.project, user=self.user)
-        runs_start(run_id=experiment.id)
+        SchedulingManager.runs_start(run_id=experiment.id)
         new_run_status(
             run=experiment,
             condition=V1StatusCondition.get_condition(
                 type=V1Statuses.RUNNING, status=True
             ),
         )
-        runs_start(run_id=experiment.id)
+        SchedulingManager.runs_start(run_id=experiment.id)
 
     @mock.patch("haupt.orchestration.scheduler.manager.SchedulingManager.runs_start")
     def test_start_run(self, manager_start):
@@ -31,5 +31,5 @@ class TestRunsStart(BaseTest):
                 type=V1Statuses.COMPILED, status=True
             ),
         )
-        runs_start(run_id=experiment.id)
+        SchedulingManager.runs_start(run_id=experiment.id)
         assert manager_start.call_count == 1
