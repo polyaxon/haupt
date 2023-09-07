@@ -4,6 +4,7 @@ from haupt.common.options.registry.core import SCHEDULER_ENABLED
 from haupt.db.defs import Models
 from haupt.db.managers.cache import get_cache_clones
 from haupt.db.managers.live_state import delete_in_progress_run
+from haupt.db.managers.runs import add_run_contributors
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.orchestration.scheduler.manager import SchedulingManager
 from polyaxon.constants.metadata import (
@@ -21,6 +22,8 @@ class APIHandler:
     @classmethod
     def handle_run_created(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         """Handles creation, resume, and restart"""
+        if event.instance and event.instance.user:
+            add_run_contributors(event.instance, users=[event.instance.user])
         # Run is not managed by Polyaxon
         if (
             event.instance and event.instance.managed_by == ManagedBy.USER
