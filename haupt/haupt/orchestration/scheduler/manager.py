@@ -758,7 +758,7 @@ class SchedulingManager:
     @staticmethod
     def get_run(
         run_id: int,
-        run: Optional[Models.Run],
+        run: Optional[Models.Run] = None,
         use_all: bool = False,
         only: Optional[List[str]] = None,
         defer: Optional[List[str]] = None,
@@ -785,8 +785,8 @@ class SchedulingManager:
     def runs_prepare(
         cls,
         run_id: int,
-        run: Optional[Models.Run],
-        start: bool = False,
+        run: Optional[Models.Run] = None,
+        start: bool = True,
         extra_message: Optional[str] = None,
     ):
         run = cls.get_run(run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH)
@@ -856,7 +856,7 @@ class SchedulingManager:
         return run
 
     @classmethod
-    def runs_start_immediately(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_start_immediately(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run)
         if not run:
             return
@@ -885,7 +885,7 @@ class SchedulingManager:
         return run
 
     @classmethod
-    def runs_start(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_start(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run, prefetch=["pipeline"])
         if not run:
             return
@@ -934,8 +934,11 @@ class SchedulingManager:
 
     @classmethod
     def runs_set_artifacts(
-        cls, run_id: int, run: Optional[Models.Run], artifacts: List[Dict]
+        cls, run_id: int, run: Optional[Models.Run] = None, artifacts: List[Dict] = None
     ):
+        if not artifacts:
+            return
+
         run = cls.get_run(run_id=run_id, run=run)
         if not run:
             return
@@ -947,7 +950,7 @@ class SchedulingManager:
     def runs_stop(
         cls,
         run_id: int,
-        run: Optional[Models.Run],
+        run: Optional[Models.Run] = None,
         reason: str = "PipelineStopping",
         message: Optional[str] = None,
     ):
@@ -1015,7 +1018,7 @@ class SchedulingManager:
         new_run_stop_status(run=run, message=message)
 
     @classmethod
-    def runs_hooks(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_hooks(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH)
         if not run:
             return
@@ -1080,7 +1083,7 @@ class SchedulingManager:
             )
 
     @classmethod
-    def runs_built(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_built(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH)
         if not run:
             return
@@ -1101,7 +1104,7 @@ class SchedulingManager:
         )
 
     @classmethod
-    def runs_iterate(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_iterate(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run, prefetch=["pipeline"])
         if not run:
             return
@@ -1153,7 +1156,7 @@ class SchedulingManager:
         return run
 
     @classmethod
-    def runs_tune(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_tune(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run)
         if not run:
             return
@@ -1176,7 +1179,7 @@ class SchedulingManager:
             )
 
     @classmethod
-    def runs_notify_status(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_notify_status(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(
             run_id=run_id,
             run=run,
@@ -1205,7 +1208,7 @@ class SchedulingManager:
         cls._trigger_event_downstream(downstream_query)
 
     @classmethod
-    def runs_notify_done(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_notify_done(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(
             run_id=run_id,
             run=run,
@@ -1258,7 +1261,7 @@ class SchedulingManager:
             )
 
     @classmethod
-    def runs_wakeup_schedule(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_wakeup_schedule(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(
             run_id=run_id,
             run=run,
@@ -1270,7 +1273,7 @@ class SchedulingManager:
         cls._start_run_for_schedule(pipeline=run, depends_on_past=True)
 
     @classmethod
-    def runs_check_early_stopping(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_check_early_stopping(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run, defer=STATUS_UPDATE_COLUMNS_DEFER)
         if not run:
             return
@@ -1287,7 +1290,7 @@ class SchedulingManager:
             bulk_new_run_status(pipeline_runs, condition)
 
     @classmethod
-    def runs_check_pipeline(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_check_pipeline(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(run_id=run_id, run=run, defer=STATUS_UPDATE_COLUMNS_DEFER)
         if not run:
             return
@@ -1358,7 +1361,7 @@ class SchedulingManager:
             _early_stop()
 
     @classmethod
-    def runs_check_orphan_pipeline(cls, run_id: int, run: Optional[Models.Run]):
+    def runs_check_orphan_pipeline(cls, run_id: int, run: Optional[Models.Run] = None):
         run = cls.get_run(
             run_id=run_id, run=run, use_all=True, defer=STATUS_UPDATE_COLUMNS_DEFER
         )

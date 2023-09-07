@@ -2,7 +2,7 @@ import pytest
 
 from mock import MagicMock, mock, patch
 
-from haupt.background.scheduler.tasks.runs import runs_prepare
+from haupt.orchestration.scheduler.manager import SchedulingManager
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
 from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
@@ -40,7 +40,7 @@ class TestRunsPrepare(BaseTest):
         )
 
         new_experiment = RunFactory(project=self.project, user=self.user)
-        runs_prepare(run_id=new_experiment.id)
+        SchedulingManager.runs_prepare(run_id=new_experiment.id)
 
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
@@ -59,7 +59,7 @@ class TestRunsPrepare(BaseTest):
         )
 
         new_experiment = RunFactory(project=self.project, user=self.user)
-        runs_prepare(run_id=new_experiment.id)
+        SchedulingManager.runs_prepare(run_id=new_experiment.id)
 
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
@@ -78,7 +78,7 @@ class TestRunsPrepare(BaseTest):
         )
 
         new_experiment = RunFactory(project=self.project, user=self.user)
-        runs_prepare(run_id=new_experiment.id)
+        SchedulingManager.runs_prepare(run_id=new_experiment.id)
 
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
@@ -97,7 +97,7 @@ class TestRunsPrepare(BaseTest):
         )
 
         new_experiment = RunFactory(project=self.project, user=self.user)
-        runs_prepare(run_id=new_experiment.id)
+        SchedulingManager.runs_prepare(run_id=new_experiment.id)
 
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
@@ -116,7 +116,7 @@ class TestRunsPrepare(BaseTest):
         )
 
         new_experiment = RunFactory(project=self.project, user=self.user)
-        runs_prepare(run_id=new_experiment.id)
+        SchedulingManager.runs_prepare(run_id=new_experiment.id)
 
         new_experiment.refresh_from_db()
         assert new_experiment.status == V1Statuses.COMPILED
@@ -137,7 +137,7 @@ class TestRunsPrepare(BaseTest):
                 managed_by=ManagedBy.AGENT,
             )
             # We are patching the automatic call and executing prepare manually
-            runs_prepare(run_id=experiment.id)
+            SchedulingManager.runs_prepare(run_id=experiment.id)
             experiment.refresh_from_db()
             assert experiment.status == V1Statuses.COMPILED
             assert mock_prepare_run.call_count == 1  # Automatic call from executor
