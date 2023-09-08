@@ -87,11 +87,12 @@ class TestAgentState(TestCase):
         run2.save()
         run3.status = V1Statuses.QUEUED
         run3.save()
+        # Set concurrency to 1
+        dj_settings.MAX_CONCURRENCY = 1
         with patch("haupt.common.workers.send") as workers_send:
             state = get_agent_state()
         assert workers_send.call_count == 0
 
-        # Default concurrency at 1
         assert set(state[V1Statuses.QUEUED]) == {
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
