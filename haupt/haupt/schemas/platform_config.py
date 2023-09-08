@@ -74,7 +74,7 @@ class PlatformConfig(BaseSchemaModel):
     static_url: Optional[str] = Field(alias=EV_KEYS_STATIC_URL)
     artifacts_root: Optional[str] = Field(alias=EV_KEYS_ARTIFACTS_ROOT)
     archives_root: Optional[str] = Field(alias=EV_KEYS_ARCHIVES_ROOT)
-    max_concurrency: Optional[int] = Field(alias=EV_KEYS_MAX_CONCURRENCY, default=1)
+    max_concurrency: Optional[int] = Field(alias=EV_KEYS_MAX_CONCURRENCY, default=50)
     broker_backend: Optional[Literal["redis", "rabbitmq"]] = Field(
         alias="POLYAXON_BROKER_BACKEND"
     )

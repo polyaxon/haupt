@@ -9,7 +9,7 @@ from haupt.common.settings.admin import set_admin
 from haupt.common.settings.secrets import set_secrets
 
 context = locals()
-MAX_CONCURRENCY = PLATFORM_CONFIG.max_concurrency
+MAX_CONCURRENCY = PLATFORM_CONFIG.max_concurrency or 1
 set_logging(context=context, config=PLATFORM_CONFIG)
 set_admin(context=context, config=PLATFORM_CONFIG)
 set_secrets(context=context, config=PLATFORM_CONFIG)
