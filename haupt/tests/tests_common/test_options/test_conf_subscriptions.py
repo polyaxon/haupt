@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from haupt.common import conf
 from haupt.common.options.registry import (
+    cleaning,
     containers,
     core,
     installation,
@@ -39,3 +40,6 @@ class TestConfSubscriptions(TestCase):
 
     def test_stats_subscriptions(self):
         self._assert_options_subscriptions(stats.OPTIONS)
+
+    def test_cleaning_subscriptions(self):
+        self._assert_options_subscriptions(cleaning.OPTIONS)
