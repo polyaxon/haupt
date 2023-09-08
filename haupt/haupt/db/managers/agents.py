@@ -5,7 +5,7 @@ from django.conf import settings as dj_settings
 from django.db.models import Count, Q
 from django.utils.timezone import now
 
-from haupt.background.celeryp.tasks import SchedulerCeleryTasks
+from haupt.background.celeryp.tasks import CronsCeleryTasks, SchedulerCeleryTasks
 from haupt.common import workers
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import confirm_delete_runs
@@ -489,7 +489,7 @@ def get_agent_state() -> Dict:
 
     # We collect all jobs/services to stop
     stopping_runs, stopping_full = get_stopping_runs(
-        owner_name="default", max_budget=dj_settings.MAX_CONCURRENCY or 1
+        owner_name="default", max_budget=dj_settings.MAX_CONCURRENCY
     )
     if stopping_full:
         full = True
@@ -521,3 +521,14 @@ def get_agent_state() -> Dict:
         "deleting": deleting_runs,
         "full": full,
     }
+
+
+def trigger_cron():
+    workers.send(CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC_SCHEDULES)
+    workers.send(CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS)
+    workers.send(CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED)
+    workers.send(CronsCeleryTasks.STATS_CALCULATION_PROJECTS)
+    workers.send(CronsCeleryTasks.DELETE_ARCHIVED_PROJECTS)
+    workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_PROJECTS)
+    workers.send(CronsCeleryTasks.DELETE_ARCHIVED_RUNS)
+    workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_RUNS)
