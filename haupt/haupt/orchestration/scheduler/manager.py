@@ -28,6 +28,13 @@ from haupt.db.managers.runs import (
     get_stopping_pipelines_with_no_runs,
     is_pipeline_done,
 )
+from haupt.db.managers.stats import (
+    collect_project_run_count_stats,
+    collect_project_run_duration_stats,
+    collect_project_run_status_stats,
+    collect_project_unique_user_stats,
+    collect_project_version_stats,
+)
 from haupt.db.managers.statuses import (
     bulk_new_run_status,
     new_run_status,
@@ -1388,3 +1395,38 @@ class SchedulingManager:
             return
 
         delete_in_progress_run(run)
+
+    @staticmethod
+    def stats_calculation_project(project_id: int):
+        project = Models.Project.all.select_related("latest_stats").get(id=project_id)
+        current_hour = now().replace(minute=0, second=0, microsecond=0)
+
+        run_count = collect_project_run_count_stats(project=project)
+        status_count = collect_project_run_status_stats(project=project)
+        run_tracking_time = collect_project_run_duration_stats(project=project)
+        version_count = collect_project_version_stats(project=project)
+        user_count = collect_project_unique_user_stats(project=project)
+
+        is_new = False
+        if (
+            project.latest_stats is None
+            or project.latest_stats.created_at < current_hour
+        ):
+            is_new = True
+            latest_stats = Models.ProjectStats(project=project)
+        else:
+            latest_stats = project.latest_stats
+
+        latest_stats.run = run_count
+        latest_stats.status = status_count
+        latest_stats.tracking_time = run_tracking_time
+        latest_stats.version = version_count
+        latest_stats.user = user_count
+        latest_stats.save()
+
+        if is_new:
+            project.latest_stats = latest_stats
+            project.save(update_fields=["latest_stats"])
+        if user_count and user_count.get("ids"):
+            user_count["ids"] = list(user_count["ids"])
+            project.contributors.add(*user_count["ids"])

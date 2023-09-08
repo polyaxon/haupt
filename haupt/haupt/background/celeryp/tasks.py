@@ -24,3 +24,25 @@ class SchedulerCeleryTasks:
     RUNS_TUNE = "runs_tune"
     DELETE_ARCHIVED_PROJECT = "delete_archived_project"
     DELETE_ARCHIVED_RUN = "delete_archived_run"
+    STATS_CALCULATION_PROJECT = "stats_calculation_project"
+
+
+class CronsCeleryTasks:
+    """Crons celery tasks.
+
+    N.B. make sure that the task name is not < 128.
+    """
+
+    CRONS_HEALTH = "crons_health"
+
+    DELETE_ARCHIVED_PROJECTS = "delete_archived_projects"
+    DELETE_IN_PROGRESS_PROJECTS = "delete_in_progress_projects"
+    DELETE_ARCHIVED_RUNS = "delete_archived_runs"
+    DELETE_IN_PROGRESS_RUNS = "delete_in_progress_runs"
+
+    STATS_CALCULATION_PROJECTS = "stats_calculation_projects"
+
+    HEARTBEAT_RUNS = "heartbeat_runs"
+    HEARTBEAT_OUT_OF_SYNC_SCHEDULES = "heartbeat_out_of_sync_schedules"
+    HEARTBEAT_STOPPING_RUNS = "heartbeat_stopping_runs"
+    HEARTBEAT_PROJECT_LAST_UPDATED = "heartbeat_project_last_updated"

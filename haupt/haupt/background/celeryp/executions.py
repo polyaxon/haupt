@@ -1,6 +1,6 @@
 from typing import Dict
 
-from haupt.background.celeryp.tasks import SchedulerCeleryTasks
+from haupt.background.celeryp.tasks import CronsCeleryTasks, SchedulerCeleryTasks
 
 
 class TasksExecutions:
@@ -36,9 +36,9 @@ class TasksExecutions:
 
     @classmethod
     def _set_manager(cls):
-        from haupt.orchestration.scheduler.manager import SchedulingManager
+        from haupt.background.celeryp.manager import BackgroundManager
 
-        cls._MANAGER = SchedulingManager
+        cls._MANAGER = BackgroundManager
 
     @classmethod
     def _set_mapping(cls):
@@ -47,6 +47,7 @@ class TasksExecutions:
         manager = cls.get_manager()
 
         cls._MAPPING = {
+            SchedulerCeleryTasks.STATS_CALCULATION_PROJECT: manager.stats_calculation_project,
             SchedulerCeleryTasks.SCHEDULER_HEALTH: health_task.health_task,
             SchedulerCeleryTasks.RUNS_PREPARE: manager.runs_prepare,
             SchedulerCeleryTasks.RUNS_HOOKS: manager.runs_hooks,
@@ -65,4 +66,13 @@ class TasksExecutions:
             SchedulerCeleryTasks.RUNS_TUNE: manager.runs_tune,
             SchedulerCeleryTasks.DELETE_ARCHIVED_PROJECT: manager.delete_archived_project,
             SchedulerCeleryTasks.DELETE_ARCHIVED_RUN: manager.delete_archived_run,
+            CronsCeleryTasks.CRONS_HEALTH: health_task.health_task,
+            CronsCeleryTasks.DELETE_ARCHIVED_PROJECTS: manager.delete_archived_projects,
+            CronsCeleryTasks.DELETE_IN_PROGRESS_PROJECTS: manager.delete_in_progress_projects,
+            CronsCeleryTasks.DELETE_ARCHIVED_RUNS: manager.delete_archived_runs,
+            CronsCeleryTasks.DELETE_IN_PROGRESS_RUNS: manager.delete_in_progress_runs,
+            CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC_SCHEDULES: manager.heartbeat_out_of_sync_schedules,
+            CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS: manager.heartbeat_stopping_runs,
+            CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED: manager.heartbeat_project_last_updated,
+            CronsCeleryTasks.STATS_CALCULATION_PROJECTS: manager.stats_calculation_projects,
         }
