@@ -21,6 +21,9 @@ class ProjectQueryManager(BaseQueryManager):
         "id": "uuid",
         "uid": "uuid",
     }
+    FIELDS_USE_NAME = {
+        "teams",
+    }
     FIELDS_ORDERING = (
         "created_at",
         "updated_at",
@@ -43,6 +46,8 @@ class ProjectQueryManager(BaseQueryManager):
         "tags": parse_value_operation,
         # Live state
         "live_state": parse_value_operation,
+        # Teams
+        "teams": parse_value_operation,
     }
     CONDITIONS_BY_FIELD = {
         # Uuid
@@ -62,4 +67,6 @@ class ProjectQueryManager(BaseQueryManager):
         else ArrayCondition,
         # Live state
         "live_state": ValueCondition,
+        # Teams
+        "teams": ValueCondition,
     }

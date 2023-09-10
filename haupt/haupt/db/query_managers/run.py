@@ -57,6 +57,7 @@ class RunQueryManager(BaseQueryManager):
         "upstream": "upstream_runs",
         "downstream": "downstream_runs",
         "user": "user__username",
+        "teams": "project__teams__name",
     }
     FIELDS_DISTINCT = {
         "artifacts",
@@ -190,6 +191,10 @@ class RunQueryManager(BaseQueryManager):
         "artifacts": parse_value_operation,
         # Connections
         "connections": parse_value_operation,
+        # Teams
+        "teams": parse_value_operation,
+        # My runs
+        "mine": parse_value_operation,
     }
     CONDITIONS_BY_FIELD = {
         # Uuid
@@ -288,6 +293,10 @@ class RunQueryManager(BaseQueryManager):
         "artifacts": ValueCondition,
         # Connections
         "connections": ValueCondition,
+        # Teams
+        "teams": ValueCondition,
+        # My runs
+        "mine": CallbackCondition(callback_conditions.mine_condition),
     }
 
 
