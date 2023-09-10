@@ -13,6 +13,7 @@ def archived_condition(
     query_backend: Any,
     timezone: Optional[str] = None,
     queryset: Any = None,
+    request: Optional[Any] = None,
 ) -> Any:
     """
     Example:
@@ -34,11 +35,12 @@ def independent_condition(
     query_backend: Any,
     timezone: Optional[str] = None,
     queryset: Any = None,
+    request: Optional[Any] = None,
 ) -> Any:
     params = to_list(params)
     if len(params) == 1 and to_bool(params[0]) is True:
-        return queryset.filter(experiment_group__isnull=True)
-    return queryset
+        return query_backend(experiment_group__isnull=True)
+    return None
 
 
 def metric_condition(
@@ -47,11 +49,12 @@ def metric_condition(
     negation: bool,
     query_backend: Any,
     timezone: Optional[str] = None,
+    request: Optional[Any] = None,
 ) -> Any:
     params = to_list(params)
     if len(params) == 1 and to_bool(params[0]) is True:
-        return queryset.filter(metric_annotations__name=True)
-    return queryset
+        return query_backend(metric_annotations__name=True)
+    return None
 
 
 def commit_condition(
@@ -60,6 +63,7 @@ def commit_condition(
     negation: bool,
     query_backend: Any,
     timezone: Optional[str] = None,
+    request: Optional[Any] = None,
 ) -> Any:
     params = to_list(params)
     if len(params) == 1:
@@ -101,8 +105,9 @@ def in_artifact_kind_condition(
     negation: bool,
     query_backend: Any,
     timezone: Optional[str] = None,
+    request: Optional[Any] = None,
 ) -> Any:
-    return _artifact_kind_condition(True, queryset, params, negation)
+    return _artifact_kind_condition(True, query_backend, params, negation)
 
 
 def out_artifact_kind_condition(
@@ -111,8 +116,9 @@ def out_artifact_kind_condition(
     negation: bool,
     query_backend: Any,
     timezone: Optional[str] = None,
+    request: Optional[Any] = None,
 ) -> Any:
-    return _artifact_kind_condition(False, queryset, params, negation)
+    return _artifact_kind_condition(False, query_backend, params, negation)
 
 
 def is_managed_condition(
@@ -121,6 +127,7 @@ def is_managed_condition(
     negation: bool,
     query_backend: Any,
     timezone: Optional[str] = None,
+    request: Optional[Any] = None,
 ) -> Any:
     params = to_list(params)
     if len(params) == 1:
@@ -130,4 +137,21 @@ def is_managed_condition(
             return ~query_backend(managed_by=ManagedBy.USER)
         else:
             return query_backend(managed_by=ManagedBy.USER)
-    return queryset
+    return None
+
+
+def mine_condition(
+    queryset: Any,
+    params: Union[str, Iterable],
+    negation: bool,
+    query_backend: Any,
+    timezone: Optional[str] = None,
+    request: Optional[Any] = None,
+) -> Any:
+    params = to_list(params)
+    if len(params) == 1:
+        query = query_backend(user=request.user)
+        if negation:
+            return ~query
+        return query
+    return None

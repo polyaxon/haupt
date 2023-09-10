@@ -55,7 +55,10 @@ class QueryFilter(BaseFilterBackend):
         if query_spec and query_manager:
             try:
                 queryset = query.filter_queryset(
-                    manager=query_manager, query_spec=query_spec, queryset=queryset
+                    manager=query_manager,
+                    query_spec=query_spec,
+                    queryset=queryset,
+                    request=request,
                 )
             except PQLException as e:
                 if getattr(view, "exception_class", False):
