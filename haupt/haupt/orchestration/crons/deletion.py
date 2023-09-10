@@ -35,8 +35,8 @@ class CronsDeletionManager:
             live_state=LiveState.DELETION_PROGRESSING, deleted_at__lte=last_date
         ).delete()
 
-    @classmethod
-    def delete_in_progress_runs(cls):
+    @staticmethod
+    def delete_in_progress_runs():
         # Delete pipelines without managed runs
         runs = (
             Models.Run.all.filter(

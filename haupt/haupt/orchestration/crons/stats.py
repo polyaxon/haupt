@@ -6,8 +6,8 @@ from haupt.db.defs import Models
 
 
 class CronsStatsManager:
-    @classmethod
-    def stats_calculation_projects(cls):
+    @staticmethod
+    def stats_calculation_projects():
         projects = Models.Project.objects.filter(
             Q(updated_at__gt=F("latest_stats__updated_at"))
             | Q(latest_stats__isnull=True)
