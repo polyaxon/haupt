@@ -1,5 +1,5 @@
 croniter==1.4.1
-Django==4.2.4
+Django==4.2.5
 djangorestframework==3.14.0
 django-cors-headers==4.2.0
 numpy
