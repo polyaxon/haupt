@@ -129,6 +129,7 @@ def get_deleting_runs(
             status__in=LifeCycle.DONE_VALUES,
             pending__isnull=True,
             managed_by=managed_by,
+            deleted_at__isnull=True,
             updated_at__lte=now().replace(second=0, microsecond=0)
             - timedelta(seconds=dj_settings.MIN_ARTIFACTS_DELETION_TIMEDELTA),
         )
