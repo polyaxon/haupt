@@ -12,8 +12,7 @@ from polyaxon.constants.metadata import (
     META_UPLOAD_ARTIFACTS,
 )
 from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1RunEdgeKind, V1RunKind, V1RunPending
 
 
 class APIHandler:

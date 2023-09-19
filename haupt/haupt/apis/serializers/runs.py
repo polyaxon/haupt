@@ -22,8 +22,7 @@ from haupt.orchestration import operations
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.lifecycle import ManagedBy
 from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon.polyflow import V1RunEdgeKind
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1RunEdgeKind, V1RunPending
 
 
 class BaseRunEdgeSerializer(serializers.ModelSerializer):

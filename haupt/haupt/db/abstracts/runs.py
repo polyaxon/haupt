@@ -18,8 +18,7 @@ from haupt.db.abstracts.tag import TagModel
 from haupt.db.abstracts.uid import UuidModel
 from haupt.db.defs import Models
 from polyaxon.lifecycle import ManagedBy, V1Statuses
-from polyaxon.polyflow import V1CloningKind, V1RunKind
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1CloningKind, V1RunKind, V1RunPending
 
 
 class BaseRun(

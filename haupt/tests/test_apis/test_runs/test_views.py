@@ -19,8 +19,7 @@ from polyaxon.api import API_V1
 from polyaxon.constants.metadata import META_RECOMPILE
 from polyaxon.lifecycle import LiveState, ManagedBy, V1StatusCondition, V1Statuses
 from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon.polyflow import V1RunKind
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1RunKind, V1RunPending
 from tests.base.case import (
     BaseTest,
     BaseTestBookmarkCreateView,

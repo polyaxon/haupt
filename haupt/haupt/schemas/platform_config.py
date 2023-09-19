@@ -8,26 +8,26 @@ from clipped.utils.logging import DEFAULT_LOGS_ROOT
 from haupt import pkg
 from polyaxon.config.parser import ConfigParser
 from polyaxon.env_vars.keys import (
-    EV_KEYS_ARCHIVES_ROOT,
-    EV_KEYS_ARTIFACTS_ROOT,
-    EV_KEYS_DEBUG,
-    EV_KEYS_ENVIRONMENT,
-    EV_KEYS_K8S_NAMESPACE,
-    EV_KEYS_LOG_LEVEL,
-    EV_KEYS_LOGS_ROOT,
-    EV_KEYS_MAX_CONCURRENCY,
-    EV_KEYS_PLATFORM_HOST,
-    EV_KEYS_SECRET_KEY,
-    EV_KEYS_SERVICE,
-    EV_KEYS_STATIC_ROOT,
-    EV_KEYS_STATIC_URL,
-    EV_KEYS_TIME_ZONE,
-    EV_KEYS_UI_ADMIN_ENABLED,
-    EV_KEYS_UI_ASSETS_VERSION,
-    EV_KEYS_UI_BASE_URL,
-    EV_KEYS_UI_ENABLED,
-    EV_KEYS_UI_IN_SANDBOX,
-    EV_KEYS_UI_OFFLINE,
+    ENV_KEYS_ARCHIVES_ROOT,
+    ENV_KEYS_ARTIFACTS_ROOT,
+    ENV_KEYS_DEBUG,
+    ENV_KEYS_ENVIRONMENT,
+    ENV_KEYS_K8S_NAMESPACE,
+    ENV_KEYS_LOG_LEVEL,
+    ENV_KEYS_LOGS_ROOT,
+    ENV_KEYS_MAX_CONCURRENCY,
+    ENV_KEYS_PLATFORM_HOST,
+    ENV_KEYS_SECRET_KEY,
+    ENV_KEYS_SERVICE,
+    ENV_KEYS_STATIC_ROOT,
+    ENV_KEYS_STATIC_URL,
+    ENV_KEYS_TIME_ZONE,
+    ENV_KEYS_UI_ADMIN_ENABLED,
+    ENV_KEYS_UI_ASSETS_VERSION,
+    ENV_KEYS_UI_BASE_URL,
+    ENV_KEYS_UI_ENABLED,
+    ENV_KEYS_UI_IN_SANDBOX,
+    ENV_KEYS_UI_OFFLINE,
 )
 from polyaxon.exceptions import PolyaxonSchemaError
 from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
@@ -40,19 +40,21 @@ if TYPE_CHECKING:
 class PlatformConfig(BaseSchemaModel):
     _IDENTIFIER = "app"
 
-    env: Optional[str] = Field(alias=EV_KEYS_ENVIRONMENT, default="local")
+    env: Optional[str] = Field(alias=ENV_KEYS_ENVIRONMENT, default="local")
     config_module: Optional[str] = Field(
         alias="POLYAXON_CONFIG_MODULE", default="polyconf"
     )
     root_dir: Optional[Path] = Field(alias="POLYAXON_CONFIG_ROOT_DIR")
-    service: Optional[str] = Field(alias=EV_KEYS_SERVICE)
-    is_debug_mode: Optional[bool] = Field(alias=EV_KEYS_DEBUG, default=False)
+    service: Optional[str] = Field(alias=ENV_KEYS_SERVICE)
+    is_debug_mode: Optional[bool] = Field(alias=ENV_KEYS_DEBUG, default=False)
     namespace: Optional[str] = Field(
-        alias=EV_KEYS_K8S_NAMESPACE, default=DEFAULT_NAMESPACE
+        alias=ENV_KEYS_K8S_NAMESPACE, default=DEFAULT_NAMESPACE
     )
-    logs_root: Optional[str] = Field(alias=EV_KEYS_LOGS_ROOT, default=DEFAULT_LOGS_ROOT)
-    log_level: Optional[str] = Field(alias=EV_KEYS_LOG_LEVEL, default="WARNING")
-    timezone: Optional[str] = Field(alias=EV_KEYS_TIME_ZONE, default="UTC")
+    logs_root: Optional[str] = Field(
+        alias=ENV_KEYS_LOGS_ROOT, default=DEFAULT_LOGS_ROOT
+    )
+    log_level: Optional[str] = Field(alias=ENV_KEYS_LOG_LEVEL, default="WARNING")
+    timezone: Optional[str] = Field(alias=ENV_KEYS_TIME_ZONE, default="UTC")
     scheduler_enabled: Optional[bool] = Field(
         alias="POLYAXON_SCHEDULER_ENABLED", default=False
     )
@@ -70,11 +72,11 @@ class PlatformConfig(BaseSchemaModel):
     extra_apps: Optional[List[str]] = Field(alias="POLYAXON_EXTRA_APPS")
     media_root: Optional[str] = Field(alias="POLYAXON_MEDIA_ROOT", default="")
     media_url: Optional[str] = Field(alias="POLYAXON_MEDIA_URL", default="")
-    static_root: Optional[str] = Field(alias=EV_KEYS_STATIC_ROOT)
-    static_url: Optional[str] = Field(alias=EV_KEYS_STATIC_URL)
-    artifacts_root: Optional[str] = Field(alias=EV_KEYS_ARTIFACTS_ROOT)
-    archives_root: Optional[str] = Field(alias=EV_KEYS_ARCHIVES_ROOT)
-    max_concurrency: Optional[int] = Field(alias=EV_KEYS_MAX_CONCURRENCY, default=50)
+    static_root: Optional[str] = Field(alias=ENV_KEYS_STATIC_ROOT)
+    static_url: Optional[str] = Field(alias=ENV_KEYS_STATIC_URL)
+    artifacts_root: Optional[str] = Field(alias=ENV_KEYS_ARTIFACTS_ROOT)
+    archives_root: Optional[str] = Field(alias=ENV_KEYS_ARCHIVES_ROOT)
+    max_concurrency: Optional[int] = Field(alias=ENV_KEYS_MAX_CONCURRENCY, default=50)
     broker_backend: Optional[Literal["redis", "rabbitmq"]] = Field(
         alias="POLYAXON_BROKER_BACKEND"
     )
@@ -170,12 +172,12 @@ class PlatformConfig(BaseSchemaModel):
     )  # secret
     encryption_backend: Optional[str] = Field(alias="POLYAXON_ENCRYPTION_BACKEND")
     secret_key: Optional[str] = Field(
-        alias=EV_KEYS_SECRET_KEY, default="default-secret"
+        alias=ENV_KEYS_SECRET_KEY, default="default-secret"
     )  # secret
     secret_internal_token: Optional[str] = Field(
         alias="POLYAXON_SECRET_INTERNAL_TOKEN", default="default-secret"
     )  # secret
-    platform_host: Optional[str] = Field(alias=EV_KEYS_PLATFORM_HOST)
+    platform_host: Optional[str] = Field(alias=ENV_KEYS_PLATFORM_HOST)
     allowed_hosts: Optional[List[str]] = Field(
         alias="POLYAXON_ALLOWED_HOSTS", default=["*"]
     )
@@ -279,16 +281,16 @@ class PlatformConfig(BaseSchemaModel):
     auth_saml_options: Optional[Dict] = Field(
         alias="POLYAXON_AUTH_SAML_OPTIONS", default={}
     )
-    ui_in_sandbox: Optional[bool] = Field(alias=EV_KEYS_UI_IN_SANDBOX, default=False)
+    ui_in_sandbox: Optional[bool] = Field(alias=ENV_KEYS_UI_IN_SANDBOX, default=False)
     ui_admin_enabled: Optional[bool] = Field(
-        alias=EV_KEYS_UI_ADMIN_ENABLED, default=False
+        alias=ENV_KEYS_UI_ADMIN_ENABLED, default=False
     )
-    ui_base_url: Optional[str] = Field(alias=EV_KEYS_UI_BASE_URL)
+    ui_base_url: Optional[str] = Field(alias=ENV_KEYS_UI_BASE_URL)
     ui_assets_version: Optional[str] = Field(
-        alias=EV_KEYS_UI_ASSETS_VERSION, default=""
+        alias=ENV_KEYS_UI_ASSETS_VERSION, default=""
     )
-    ui_offline: Optional[bool] = Field(alias=EV_KEYS_UI_OFFLINE, default=False)
-    ui_enabled: Optional[bool] = Field(alias=EV_KEYS_UI_ENABLED, default=True)
+    ui_offline: Optional[bool] = Field(alias=ENV_KEYS_UI_OFFLINE, default=False)
+    ui_enabled: Optional[bool] = Field(alias=ENV_KEYS_UI_ENABLED, default=True)
 
     class Config:
         extra = Extra.ignore

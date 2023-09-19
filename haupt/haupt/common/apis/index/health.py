@@ -8,7 +8,7 @@ from haupt.common import conf
 from haupt.common.options.registry.installation import ORGANIZATION_KEY
 from haupt.db.managers.dummy_key import get_dummy_key
 from polyaxon.cli.session import get_compatibility
-from polyaxon.schemas.cli.cli_config import CliConfig
+from polyaxon.schemas.cli import CliConfig
 from polyaxon.services.values import PolyaxonServices
 
 

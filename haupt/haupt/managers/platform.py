@@ -5,7 +5,7 @@ from pathlib import Path
 from haupt.schemas.platform_config import PlatformConfig
 from polyaxon.config.manager import ConfigManager
 from polyaxon.config.spec import ConfigSpec
-from polyaxon.env_vars.keys import EV_KEYS_PLATFORM_CONFIG
+from polyaxon.env_vars.keys import ENV_KEYS_PLATFORM_CONFIG
 
 
 class PlatformManager(ConfigManager):
@@ -29,7 +29,7 @@ class PlatformManager(ConfigManager):
         if config_prefix:
             config_module = "{}.{}".format(config_prefix, config_module)
         glob_path = cls.get_global_config_path()
-        platform_config_path = os.getenv(EV_KEYS_PLATFORM_CONFIG) or {}
+        platform_config_path = os.getenv(ENV_KEYS_PLATFORM_CONFIG) or {}
         config_paths = [
             os.environ,
             {

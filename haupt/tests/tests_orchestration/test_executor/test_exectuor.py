@@ -8,7 +8,7 @@ from haupt.common.events.registry import run as run_events
 from haupt.orchestration import executor
 from haupt.orchestration.executor.handlers import APIHandler
 from polyaxon.lifecycle import ManagedBy
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1RunPending
 
 
 class States:

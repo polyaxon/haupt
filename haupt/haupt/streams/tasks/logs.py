@@ -5,7 +5,6 @@ from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_path
 
 from asgiref.sync import sync_to_async
-from polyaxon import settings
 from polyaxon.fs.async_manager import (
     delete_file_or_dir,
     download_dir,

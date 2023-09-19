@@ -27,7 +27,7 @@ from haupt.common.headers import (
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from polyaxon import settings
 from polyaxon.api import AUTH_V1_LOCATION
-from polyaxon.env_vars.keys import EV_KEYS_PROXY_LOCAL_PORT
+from polyaxon.env_vars.keys import ENV_KEYS_PROXY_LOCAL_PORT
 
 logger = logging.getLogger("haupt.streams.auth")
 
@@ -77,7 +77,7 @@ async def _check_auth_service(headers: Dict):
     async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(
             "http://localhost:{}{}".format(
-                os.environ[EV_KEYS_PROXY_LOCAL_PORT], AUTH_V1_LOCATION
+                os.environ[ENV_KEYS_PROXY_LOCAL_PORT], AUTH_V1_LOCATION
             ),
             headers=headers,
         ) as resp:

@@ -74,9 +74,9 @@ from polyaxon.polyflow import (
     V1Param,
     V1Plugins,
     V1RunEdgeKind,
+    V1RunPending,
 )
 from polyaxon.polyflow.params import ops_params
-from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
 from polyaxon.utils.fqn_utils import (
     get_project_instance,

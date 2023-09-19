@@ -31,8 +31,7 @@ from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
 from polyaxon.api import API_V1
 from polyaxon.lifecycle import LiveState, ManagedBy, V1Statuses
-from polyaxon.polyflow import V1CloningKind, V1RunKind
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1CloningKind, V1RunKind, V1RunPending
 from tests.base.case import BaseTest
 from traceml.artifacts import V1ArtifactKind
 

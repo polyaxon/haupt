@@ -18,7 +18,7 @@ from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import bookmark_obj
 from haupt.db.managers.statuses import bulk_new_run_status
 from polyaxon.lifecycle import LifeCycle, LiveState, V1StatusCondition, V1Statuses
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1RunPending
 
 
 def create_runs_tags(view, request, *args, **kwargs):

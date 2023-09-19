@@ -17,7 +17,7 @@ from polyaxon.api import API_V1
 from polyaxon.connections import V1BucketConnection, V1Connection, V1ConnectionKind
 from polyaxon.lifecycle import LiveState, ManagedBy, V1Statuses
 from polyaxon.polyflow import V1Environment, V1RunKind
-from polyaxon.schemas.cli.agent_config import AgentConfig
+from polyaxon.schemas.agent import AgentConfig
 from polyaxon.utils.fqn_utils import get_run_instance
 from tests.base.case import BaseTest
 

@@ -72,10 +72,10 @@ from polyaxon.polyflow import (
     V1Optimization,
     V1RunEdgeKind,
     V1RunKind,
+    V1RunPending,
     V1TriggerPolicy,
     dags,
 )
-from polyaxon.schemas import V1RunPending
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 
 _logger = logging.getLogger("polyaxon.scheduler")

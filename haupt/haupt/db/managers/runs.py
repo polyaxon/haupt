@@ -7,8 +7,7 @@ from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1CompiledOperation, V1RunKind
-from polyaxon.schemas import V1RunPending
+from polyaxon.polyflow import V1CompiledOperation, V1RunKind, V1RunPending
 
 
 def add_run_contributors(

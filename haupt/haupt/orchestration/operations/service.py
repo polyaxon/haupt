@@ -28,9 +28,9 @@ from polyaxon.polyflow import (
     V1Operation,
     V1RunEdgeKind,
     V1RunKind,
+    V1RunPending,
     V1ScheduleKind,
 )
-from polyaxon.schemas import V1RunPending
 from polyaxon.schemas.types import V1ArtifactsType
 
 

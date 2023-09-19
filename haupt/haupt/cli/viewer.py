@@ -88,9 +88,9 @@ def viewer(
 ):
     """Start a new local viewer session."""
     from haupt.cli.runners.viewer import start
-    from polyaxon.env_vars.keys import EV_KEYS_SANDBOX_ROOT
+    from polyaxon.env_vars.keys import ENV_KEYS_SANDBOX_ROOT
 
     if path:
-        os.environ[EV_KEYS_SANDBOX_ROOT] = path
+        os.environ[ENV_KEYS_SANDBOX_ROOT] = path
 
     return start(host=host, port=port, workers=workers, per_core=per_core, uds=uds)

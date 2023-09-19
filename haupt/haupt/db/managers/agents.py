@@ -22,7 +22,7 @@ from polyaxon.lifecycle import (
     V1Statuses,
 )
 from polyaxon.polyflow import V1RunKind
-from polyaxon.schemas.cli.agent_config import AgentConfig
+from polyaxon.schemas.agent import AgentConfig
 from polyaxon.utils.fqn_utils import get_run_instance
 
 MAX_DELETE_ITEMS = 200
