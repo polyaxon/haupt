@@ -1,7 +1,7 @@
 import os
 
 from haupt.schemas.proxies_config import ProxiesConfig
-from polyaxon.config.manager import ConfigManager
+from polyaxon._config.manager import ConfigManager
 
 
 class ProxiesManager(ConfigManager):

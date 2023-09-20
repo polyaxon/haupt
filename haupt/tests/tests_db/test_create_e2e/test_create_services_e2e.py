@@ -4,9 +4,12 @@ from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
-from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification
-from polyaxon.polyflow import V1RunKind
-from polyaxon.utils.fixtures import get_fxt_service, get_fxt_service_with_inputs
+from polyaxon._polyaxonfile import (
+    CompiledOperationSpecification,
+    OperationSpecification,
+)
+from polyaxon._utils.fixtures import get_fxt_service, get_fxt_service_with_inputs
+from polyaxon.schemas import V1RunKind
 
 
 class TestCreateServices(TestCase):

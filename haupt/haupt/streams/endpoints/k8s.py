@@ -13,9 +13,9 @@ from haupt.streams.controllers.k8s_op_spec import get_op_spec
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.op_spec import download_op_spec
 from polyaxon import settings
-from polyaxon.k8s.manager.async_manager import AsyncK8sManager
-from polyaxon.lifecycle import LifeCycle
-from polyaxon.utils.fqn_utils import get_resource_name_for_kind
+from polyaxon._k8s.manager.async_manager import AsyncK8sManager
+from polyaxon._utils.fqn_utils import get_resource_name_for_kind
+from polyaxon.schemas import LifeCycle
 
 
 @transaction.non_atomic_requests

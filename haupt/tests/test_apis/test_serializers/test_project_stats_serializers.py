@@ -1,7 +1,7 @@
 import pytest
 
 from haupt.apis.serializers.project_stats import ProjectStatsSerializer
-from polyaxon.lifecycle import V1ProjectVersionKind
+from polyaxon.schemas import V1ProjectVersionKind
 from tests.base.case import BaseTestProjectStatsSerializer
 
 

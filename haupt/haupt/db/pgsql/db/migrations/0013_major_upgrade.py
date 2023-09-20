@@ -6,17 +6,13 @@ import django.utils.timezone
 
 from django.db import migrations, models
 
-import polyaxon.lifecycle
+from polyaxon import schemas
 
 
 def migrate_is_managed_by(apps, schema_editor):
     Run = apps.get_model("db", "Run")
-    Run.objects.filter(is_managed=True).update(
-        managed_by=polyaxon.lifecycle.ManagedBy.AGENT.value
-    )
-    Run.objects.filter(is_managed=False).update(
-        managed_by=polyaxon.lifecycle.ManagedBy.USER.value
-    )
+    Run.objects.filter(is_managed=True).update(managed_by=schemas.ManagedBy.AGENT.value)
+    Run.objects.filter(is_managed=False).update(managed_by=schemas.ManagedBy.USER.value)
 
 
 class Migration(migrations.Migration):
@@ -33,7 +29,7 @@ class Migration(migrations.Migration):
                 choices=[("user", "user"), ("cli", "cli"), ("agent", "agent")],
                 db_index=True,
                 max_length=5,
-                default=polyaxon.lifecycle.ManagedBy["AGENT"],
+                default=schemas.ManagedBy["AGENT"],
                 null=True,
             ),
         ),
@@ -149,7 +145,7 @@ class Migration(migrations.Migration):
                             ("disabled", "disabled"),
                         ],
                         db_index=True,
-                        default=polyaxon.lifecycle.V1Stages["TESTING"],
+                        default=schemas.V1Stages["TESTING"],
                         max_length=16,
                         null=True,
                     ),

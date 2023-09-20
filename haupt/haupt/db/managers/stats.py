@@ -10,7 +10,7 @@ from haupt.db.defs import Models
 from haupt.db.query_managers.bookmarks import filter_bookmarks
 from haupt.db.query_managers.run import RunsOfflineFilter
 from polyaxon.exceptions import PQLException
-from polyaxon.lifecycle import LifeCycle
+from polyaxon.schemas import LifeCycle
 
 AGGREGATE_MAP = {
     "avg": Avg,

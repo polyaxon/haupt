@@ -3,9 +3,9 @@ import os
 from pathlib import Path
 
 from haupt.schemas.platform_config import PlatformConfig
-from polyaxon.config.manager import ConfigManager
-from polyaxon.config.spec import ConfigSpec
-from polyaxon.env_vars.keys import ENV_KEYS_PLATFORM_CONFIG
+from polyaxon._config.manager import ConfigManager
+from polyaxon._config.spec import ConfigSpec
+from polyaxon._env_vars.keys import ENV_KEYS_PLATFORM_CONFIG
 
 
 class PlatformManager(ConfigManager):

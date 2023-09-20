@@ -13,7 +13,7 @@ from haupt.db.managers.live_state import restore_run as base_restore_run
 from haupt.db.managers.runs import add_run_contributors, base_approve_run
 from haupt.db.managers.statuses import new_run_status, new_run_stopping_status
 from polyaxon.exceptions import PolyaxonException
-from polyaxon.lifecycle import V1StatusCondition
+from polyaxon.schemas import V1StatusCondition
 
 
 def clone_run(view, request, *args, **kwargs):

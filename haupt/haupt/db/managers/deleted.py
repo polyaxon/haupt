@@ -1,6 +1,6 @@
 from django.db import models
 
-from polyaxon.lifecycle import LiveState
+from polyaxon.schemas import LiveState
 
 
 class LiveManager(models.Manager):

@@ -6,8 +6,8 @@ from clipped.compact.pydantic import Extra, Field, validator
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 
 from haupt import pkg
-from polyaxon.config.parser import ConfigParser
-from polyaxon.env_vars.keys import (
+from polyaxon._config.parser import ConfigParser
+from polyaxon._env_vars.keys import (
     ENV_KEYS_ARCHIVES_ROOT,
     ENV_KEYS_ARTIFACTS_ROOT,
     ENV_KEYS_DEBUG,
@@ -29,9 +29,9 @@ from polyaxon.env_vars.keys import (
     ENV_KEYS_UI_IN_SANDBOX,
     ENV_KEYS_UI_OFFLINE,
 )
+from polyaxon._k8s.namespace import DEFAULT_NAMESPACE
+from polyaxon._schemas.base import BaseSchemaModel
 from polyaxon.exceptions import PolyaxonSchemaError
-from polyaxon.k8s.namespace import DEFAULT_NAMESPACE
-from polyaxon.schemas.base import BaseSchemaModel
 
 if TYPE_CHECKING:
     from clipped.compact.pydantic import ModelField

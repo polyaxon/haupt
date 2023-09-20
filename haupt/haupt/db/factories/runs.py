@@ -3,7 +3,7 @@ import factory
 from haupt.db.defs import Models
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
-from polyaxon.lifecycle import ManagedBy
+from polyaxon.schemas import ManagedBy
 
 
 class RunFactory(factory.django.DjangoModelFactory):

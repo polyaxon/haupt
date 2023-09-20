@@ -12,13 +12,13 @@ import os
 from django.core.asgi import get_asgi_application
 
 from haupt import settings
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.env_vars.keys import (
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon._env_vars.keys import (
     ENV_KEYS_SANDBOX_IS_LOCAL,
     ENV_KEYS_SERVICE,
     ENV_KEYS_UI_IN_SANDBOX,
 )
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.values import PolyaxonServices
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
 os.environ.setdefault("ASGI_APPLICATION", "haupt.polyconf.asgi.viewer.application")

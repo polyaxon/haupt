@@ -8,7 +8,7 @@ from haupt.db.factories.users import UserFactory
 from haupt.db.managers.deleted import ArchivedManager, LiveManager
 from haupt.db.managers.statuses import new_run_status
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
+from polyaxon.schemas import ManagedBy, V1StatusCondition, V1Statuses
 
 
 class TestRunModel(TestCase):

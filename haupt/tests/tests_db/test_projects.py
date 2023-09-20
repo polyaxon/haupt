@@ -16,7 +16,7 @@ from haupt.db.managers.stats import (
 )
 from haupt.db.models.project_stats import ProjectStats
 from haupt.db.models.projects import Project
-from polyaxon.lifecycle import LiveState, V1ProjectVersionKind, V1Statuses
+from polyaxon.schemas import LiveState, V1ProjectVersionKind, V1Statuses
 
 
 class TestProjectModel(TestCase):

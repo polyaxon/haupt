@@ -26,8 +26,8 @@ from haupt.common.headers import (
 )
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
 from polyaxon import settings
+from polyaxon._env_vars.keys import ENV_KEYS_PROXY_LOCAL_PORT
 from polyaxon.api import AUTH_V1_LOCATION
-from polyaxon.env_vars.keys import ENV_KEYS_PROXY_LOCAL_PORT
 
 logger = logging.getLogger("haupt.streams.auth")
 

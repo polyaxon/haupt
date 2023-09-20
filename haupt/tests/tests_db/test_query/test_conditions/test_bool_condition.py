@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.models.artifacts import ArtifactLineage
-from polyaxon.pql.builder import BoolCondition
+from polyaxon._pql.builder import BoolCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
 # pylint:disable=protected-access

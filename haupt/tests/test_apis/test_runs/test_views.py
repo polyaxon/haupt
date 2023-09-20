@@ -15,11 +15,17 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
+from polyaxon._constants.metadata import META_RECOMPILE
+from polyaxon._polyaxonfile import OperationSpecification
 from polyaxon.api import API_V1
-from polyaxon.constants.metadata import META_RECOMPILE
-from polyaxon.lifecycle import LiveState, ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon.polyflow import V1RunKind, V1RunPending
+from polyaxon.schemas import (
+    LiveState,
+    ManagedBy,
+    V1RunKind,
+    V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
+)
 from tests.base.case import (
     BaseTest,
     BaseTestBookmarkCreateView,

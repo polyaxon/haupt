@@ -3,7 +3,7 @@ from typing import Optional
 from clipped.compact.pydantic import ValidationError
 from clipped.formatting import Printer
 
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.values import PolyaxonServices
 
 PROXIES_CONFIG = None
 SANDBOX_CONFIG = None
@@ -21,7 +21,7 @@ def set_proxies_config():
 
 def set_sandbox_config(path: Optional[str] = None):
     from haupt.managers.sandbox import SandboxConfigManager
-    from polyaxon.contexts.paths import mount_sandbox
+    from polyaxon._contexts.paths import mount_sandbox
     from polyaxon.settings import HOME_CONFIG, set_agent_config
 
     SandboxConfigManager.set_config_path(HOME_CONFIG.path)

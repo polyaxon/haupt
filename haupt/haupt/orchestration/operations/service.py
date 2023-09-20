@@ -7,7 +7,7 @@ from haupt.common.service_interface import Service
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from haupt.db.managers.statuses import new_run_status
-from polyaxon.constants.metadata import (
+from polyaxon._constants.metadata import (
     META_COPY_ARTIFACTS,
     META_DESTINATION_IMAGE,
     META_HAS_DAGS,
@@ -19,9 +19,10 @@ from polyaxon.constants.metadata import (
     META_RECOMPILE,
     META_UPLOAD_ARTIFACTS,
 )
-from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon.polyflow import (
+from polyaxon._polyaxonfile import OperationSpecification
+from polyaxon._schemas.types import V1ArtifactsType
+from polyaxon.schemas import (
+    ManagedBy,
     V1CloningKind,
     V1CompiledOperation,
     V1MatrixKind,
@@ -30,8 +31,9 @@ from polyaxon.polyflow import (
     V1RunKind,
     V1RunPending,
     V1ScheduleKind,
+    V1StatusCondition,
+    V1Statuses,
 )
-from polyaxon.schemas.types import V1ArtifactsType
 
 
 class OperationInitSpec(

@@ -3,11 +3,11 @@ import logging
 from typing import List
 
 from polyaxon import settings
-from polyaxon.k8s import converter
-from polyaxon.k8s.executor.async_executor import AsyncExecutor
-from polyaxon.lifecycle import V1StatusCondition
-from polyaxon.operations import get_notifier_operation
-from polyaxon.polyaxonfile import OperationSpecification
+from polyaxon._k8s import converter
+from polyaxon._k8s.executor.async_executor import AsyncExecutor
+from polyaxon._operations import get_notifier_operation
+from polyaxon._polyaxonfile import OperationSpecification
+from polyaxon.schemas import V1StatusCondition
 
 logger = logging.getLogger("haupt.streams.notification")
 

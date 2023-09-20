@@ -12,18 +12,18 @@ from haupt.db.managers.live_state import confirm_delete_runs
 from haupt.db.managers.queues import get_num_to_start
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_ONLY
-from polyaxon import operations, settings
-from polyaxon.auxiliaries import V1DefaultScheduling
-from polyaxon.lifecycle import (
+from polyaxon import _operations, settings
+from polyaxon._auxiliaries import V1DefaultScheduling
+from polyaxon._schemas.agent import AgentConfig
+from polyaxon._utils.fqn_utils import get_run_instance
+from polyaxon.schemas import (
     LifeCycle,
     LiveState,
     ManagedBy,
+    V1RunKind,
     V1StatusCondition,
     V1Statuses,
 )
-from polyaxon.polyflow import V1RunKind
-from polyaxon.schemas.agent import AgentConfig
-from polyaxon.utils.fqn_utils import get_run_instance
 
 MAX_DELETE_ITEMS = 200
 
@@ -150,7 +150,7 @@ def get_deleting_runs(
             )
     paths = [run[0].hex for run in deleting_runs]
     if paths:
-        op = operations.get_batch_cleaner_operation(
+        op = _operations.get_batch_cleaner_operation(
             connection=agent_config.artifacts_store,
             paths=paths,
             environment=V1DefaultScheduling.get_service_environment(

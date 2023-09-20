@@ -6,9 +6,9 @@ from typing import List, Optional
 from clipped.utils.lists import to_list
 
 from haupt import settings
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon._env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
+from polyaxon._services.values import PolyaxonServices
 
 _logger = logging.getLogger("haupt.cli.manage")
 

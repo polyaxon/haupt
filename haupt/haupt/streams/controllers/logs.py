@@ -10,10 +10,10 @@ from haupt.streams.tasks.logs import (
     download_logs_file,
     download_tmp_logs,
 )
-from polyaxon.fs.async_manager import list_files
-from polyaxon.fs.types import FSSystem
-from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
-from polyaxon.k8s.manager.async_manager import AsyncK8sManager
+from polyaxon._fs.async_manager import list_files
+from polyaxon._fs.types import FSSystem
+from polyaxon._k8s.logging.async_monitor import query_k8s_operation_logs
+from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from traceml.logging import V1Log
 
 

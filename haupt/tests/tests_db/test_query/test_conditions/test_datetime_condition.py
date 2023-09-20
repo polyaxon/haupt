@@ -8,9 +8,9 @@ from django.db.models import Q
 
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.runs import Run
+from polyaxon._pql.builder import DateTimeCondition
 from polyaxon.exceptions import PQLException
-from polyaxon.lifecycle import ManagedBy
-from polyaxon.pql.builder import DateTimeCondition
+from polyaxon.schemas import ManagedBy
 from tests.tests_db.test_query.base import BaseTestQuery
 
 # pylint:disable=protected-access

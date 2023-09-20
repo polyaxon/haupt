@@ -6,7 +6,7 @@ from django.utils.timezone import now
 
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from polyaxon.lifecycle import LifeCycle, LiveState, V1Statuses
+from polyaxon.schemas import LifeCycle, LiveState, V1Statuses
 
 
 def run_queryset_stopping(queryset):

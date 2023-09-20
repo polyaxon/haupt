@@ -18,7 +18,7 @@ from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import LifeCycle, LiveState, V1Statuses
+from polyaxon.schemas import LifeCycle, LiveState, V1Statuses
 from tests.base.case import (
     BaseTest,
     BaseTestBookmarkCreateView,

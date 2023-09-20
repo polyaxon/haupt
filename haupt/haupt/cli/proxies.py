@@ -19,8 +19,8 @@ def proxy(component, path, root):
         generate_streams_conf,
     )
     from haupt.settings import set_proxies_config
+    from polyaxon._services.values import PolyaxonServices
     from polyaxon.exceptions import PolyaxonException
-    from polyaxon.services.values import PolyaxonServices
 
     if not root:
         root = os.path.abspath(".")

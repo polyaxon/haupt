@@ -2,8 +2,8 @@ from typing import Dict
 
 from clipped.utils.json import orjson_dumps
 
-from polyaxon.fs.async_manager import download_file, upload_data
-from polyaxon.fs.types import FSSystem
+from polyaxon._fs.async_manager import download_file, upload_data
+from polyaxon._fs.types import FSSystem
 
 
 async def upload_op_spec(fs: FSSystem, store_path: str, run_uuid: str, op_spec: Dict):

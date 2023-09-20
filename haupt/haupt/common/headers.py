@@ -2,7 +2,7 @@ from clipped.utils.enums import get_enum_value
 
 from django.http import HttpRequest
 
-from polyaxon.services.headers import PolyaxonServiceHeaders
+from polyaxon._services.headers import PolyaxonServiceHeaders
 
 try:
     from rest_framework import HTTP_HEADER_ENCODING

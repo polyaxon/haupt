@@ -14,7 +14,7 @@ from haupt.common.events.registry.run import (
 )
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
+from polyaxon.schemas import LifeCycle, V1StatusCondition, V1Statuses
 
 
 def get_run_conditions(entity) -> List[V1StatusCondition]:

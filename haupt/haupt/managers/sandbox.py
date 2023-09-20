@@ -1,7 +1,7 @@
 import os
 
 from haupt.schemas.sandbox_config import SandboxConfig
-from polyaxon.config.manager import ConfigManager
+from polyaxon._config.manager import ConfigManager
 
 
 class SandboxConfigManager(ConfigManager):

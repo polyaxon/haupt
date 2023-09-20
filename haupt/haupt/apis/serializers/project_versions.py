@@ -15,10 +15,10 @@ from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.apis.serializers.base.uuid_slug_related_field import UuidSlugRelatedField
 from haupt.db.defs import Models
 from haupt.db.managers.versions import get_component_version_state
-from polyaxon.config.spec import ConfigSpec
-from polyaxon.constants.metadata import META_IS_PROMOTED
-from polyaxon.lifecycle import V1ProjectVersionKind
-from polyaxon.polyaxonfile import ComponentSpecification
+from polyaxon._config.spec import ConfigSpec
+from polyaxon._constants.metadata import META_IS_PROMOTED
+from polyaxon._polyaxonfile import ComponentSpecification
+from polyaxon.schemas import V1ProjectVersionKind
 
 
 class ProjectVersionStageSerializer(serializers.ModelSerializer):

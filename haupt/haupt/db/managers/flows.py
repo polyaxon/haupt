@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from polyaxon.polyflow import dags
+from polyaxon.schemas import dags
 
 
 def get_run_upstream(

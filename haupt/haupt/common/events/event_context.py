@@ -5,7 +5,7 @@ from clipped.utils.http import absolute_uri
 
 from haupt.common import user_system
 from haupt.common.events import event_subjects
-from polyaxon.utils.urls_utils import get_fqn_run_url, get_owner_url, get_project_url
+from polyaxon._utils.urls_utils import get_fqn_run_url, get_owner_url, get_project_url
 
 
 class EventItemContextSpec(namedtuple("EventItemContextSpec", "name url object_id")):

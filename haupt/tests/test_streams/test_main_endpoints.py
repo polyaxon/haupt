@@ -2,7 +2,7 @@
 #
 # from starlette.exceptions import HTTPException
 #
-# from polyaxon.utils.test_utils import set_store
+# from polyaxon._utils.test_utils import set_store
 # from tests.base.case import BaseTest
 #
 #

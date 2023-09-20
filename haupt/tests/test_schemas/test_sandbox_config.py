@@ -4,16 +4,16 @@ from clipped.compact.pydantic import ValidationError
 from clipped.utils.json import orjson_dumps
 
 from haupt.schemas.sandbox_config import SandboxConfig
-from polyaxon.connections import (
+from polyaxon._connections import (
     V1BucketConnection,
     V1ConnectionKind,
     V1ConnectionResource,
 )
-from polyaxon.env_vars.keys import (
+from polyaxon._env_vars.keys import (
     ENV_KEYS_AGENT_ARTIFACTS_STORE,
     ENV_KEYS_AGENT_CONNECTIONS,
 )
-from polyaxon.utils.test_utils import BaseTestCase
+from polyaxon._utils.test_utils import BaseTestCase
 
 
 @pytest.mark.schemas_mark

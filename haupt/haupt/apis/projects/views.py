@@ -43,7 +43,7 @@ from haupt.db.managers.live_state import (
 from haupt.db.managers.projects import add_project_contributors
 from haupt.db.managers.stats import StatsSerializer
 from haupt.db.query_managers.project import ProjectQueryManager
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.values import PolyaxonServices
 
 
 class ProjectCreateView(BaseEndpoint, CreateAPIView):

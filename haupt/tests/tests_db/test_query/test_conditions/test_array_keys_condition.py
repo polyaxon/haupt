@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db.models import Q
 
 from haupt.db.models.runs import Run
-from polyaxon.pql.builder import ArrayCondition, KeysCondition
+from polyaxon._pql.builder import ArrayCondition, KeysCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
 # pylint:disable=protected-access

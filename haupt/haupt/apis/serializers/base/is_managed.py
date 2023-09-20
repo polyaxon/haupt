@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from polyaxon.lifecycle import ManagedBy
+from polyaxon.schemas import ManagedBy
 
 
 class IsManagedMixin(serializers.Serializer):

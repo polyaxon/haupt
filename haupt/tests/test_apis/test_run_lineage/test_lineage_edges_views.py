@@ -12,8 +12,7 @@ from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.run_edges import RunEdge
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import ManagedBy, V1Statuses
-from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
+from polyaxon.schemas import ManagedBy, V1RunEdgeKind, V1RunKind, V1Statuses
 from tests.base.case import BaseTest
 
 

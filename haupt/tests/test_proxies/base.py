@@ -1,6 +1,6 @@
 from haupt import settings
 from haupt.schemas.proxies_config import ProxiesConfig
-from polyaxon.utils.test_utils import BaseTestCase
+from polyaxon._utils.test_utils import BaseTestCase
 
 
 class BaseProxiesTestCase(BaseTestCase):

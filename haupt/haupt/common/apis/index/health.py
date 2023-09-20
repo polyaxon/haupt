@@ -7,9 +7,9 @@ from haupt import pkg
 from haupt.common import conf
 from haupt.common.options.registry.installation import ORGANIZATION_KEY
 from haupt.db.managers.dummy_key import get_dummy_key
-from polyaxon.cli.session import get_compatibility
-from polyaxon.schemas.cli import CliConfig
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._cli.session import get_compatibility
+from polyaxon._schemas.cli import CliConfig
+from polyaxon._services.values import PolyaxonServices
 
 
 class HealthView(APIView):

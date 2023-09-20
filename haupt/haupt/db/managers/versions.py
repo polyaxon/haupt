@@ -8,7 +8,7 @@ from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.projects import Owner
 from haupt.db.defs import Models
 from polyaxon.pkg import SCHEMA_VERSION
-from polyaxon.polyflow import V1Component
+from polyaxon.schemas import V1Component
 
 
 def add_version_contributors(

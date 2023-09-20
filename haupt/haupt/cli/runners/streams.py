@@ -3,8 +3,8 @@ import os
 from typing import Optional
 
 from haupt.cli.runners.base import start_app
-from polyaxon.env_vars.keys import ENV_KEYS_PROXY_STREAMS_TARGET_PORT
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._env_vars.keys import ENV_KEYS_PROXY_STREAMS_TARGET_PORT
+from polyaxon._services.values import PolyaxonServices
 
 
 def start(

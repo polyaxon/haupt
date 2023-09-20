@@ -7,12 +7,19 @@ from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.runs import add_run_contributors
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.orchestration.scheduler.manager import SchedulingManager
-from polyaxon.constants.metadata import (
+from polyaxon._constants.metadata import (
     META_HAS_DOWNSTREAM_EVENTS_TRIGGER,
     META_UPLOAD_ARTIFACTS,
 )
-from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1RunEdgeKind, V1RunKind, V1RunPending
+from polyaxon.schemas import (
+    LifeCycle,
+    ManagedBy,
+    V1RunEdgeKind,
+    V1RunKind,
+    V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
+)
 
 
 class APIHandler:

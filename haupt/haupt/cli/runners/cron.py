@@ -3,10 +3,10 @@ import logging
 import threading
 import time
 
+from polyaxon._constants.globals import DEFAULT, NO_AUTH
+from polyaxon._schemas.client import ClientConfig
 from polyaxon.client import PolyaxonClient
-from polyaxon.constants.globals import DEFAULT, NO_AUTH
 from polyaxon.exceptions import ApiException
-from polyaxon.schemas.client import ClientConfig
 from urllib3.exceptions import HTTPError
 
 _logger = logging.getLogger("haupt.cli.cron")

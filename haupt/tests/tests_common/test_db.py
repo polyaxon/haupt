@@ -14,8 +14,7 @@ from haupt.common.db import RawBulkInserter, RawBulkUpdater
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import ManagedBy
-from polyaxon.polyflow import V1RunKind
+from polyaxon.schemas import ManagedBy, V1RunKind
 
 _RUN_MODEL_FIELDS = (
     "uuid",

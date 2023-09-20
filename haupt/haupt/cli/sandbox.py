@@ -42,7 +42,7 @@ def sandbox(
 ):
     """Start a new sandbox session."""
     from haupt.cli.runners.sandbox import start
-    from polyaxon.env_vars.keys import ENV_KEYS_SANDBOX_ROOT
+    from polyaxon._env_vars.keys import ENV_KEYS_SANDBOX_ROOT
 
     if path:
         os.environ[ENV_KEYS_SANDBOX_ROOT] = path

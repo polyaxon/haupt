@@ -12,8 +12,7 @@ from haupt.common.options.registry.k8s import K8S_NAMESPACE
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1CloningKind
+from polyaxon.schemas import V1CloningKind, V1StatusCondition, V1Statuses
 from tests.base.case import BaseTestRunSerializer
 
 

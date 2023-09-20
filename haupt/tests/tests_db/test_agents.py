@@ -16,12 +16,11 @@ from haupt.db.managers.agents import (
     get_runs_by_pipeline,
 )
 from haupt.db.models.runs import Run
-from polyaxon import operations, settings
-from polyaxon.connections import V1BucketConnection, V1Connection, V1ConnectionKind
-from polyaxon.lifecycle import LiveState, ManagedBy, V1Statuses
-from polyaxon.polyflow import V1Environment, V1RunKind
-from polyaxon.schemas.agent import AgentConfig
-from polyaxon.utils.fqn_utils import get_run_instance
+from polyaxon import _operations, settings
+from polyaxon._connections import V1BucketConnection, V1Connection, V1ConnectionKind
+from polyaxon._schemas.agent import AgentConfig
+from polyaxon._utils.fqn_utils import get_run_instance
+from polyaxon.schemas import LiveState, ManagedBy, V1Environment, V1RunKind, V1Statuses
 
 
 class TestAgentState(TestCase):
@@ -309,7 +308,7 @@ class TestAgentState(TestCase):
                 get_run_instance("default", "agent", "agent"),
                 V1RunKind.JOB,
                 "cleaner",
-                operations.get_batch_cleaner_operation(
+                _operations.get_batch_cleaner_operation(
                     environment=V1Environment(),
                     connection=agent_config.artifacts_store,
                     paths=[run5.uuid.hex, run6.uuid.hex],

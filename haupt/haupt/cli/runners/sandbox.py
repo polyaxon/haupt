@@ -5,9 +5,9 @@ from typing import Optional
 from haupt import settings
 from haupt.cli.runners.base import start_app
 from polyaxon import settings as plx_settings
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.env_vars.keys import ENV_KEYS_SERVICE
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon._env_vars.keys import ENV_KEYS_SERVICE
+from polyaxon._services.values import PolyaxonServices
 
 
 def start(

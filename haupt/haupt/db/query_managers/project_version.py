@@ -1,11 +1,11 @@
 from haupt.db.query_managers.manager import BaseQueryManager
-from polyaxon.pql.builder import (
+from polyaxon._pql.builder import (
     ArrayCondition,
     DateTimeCondition,
     SearchCondition,
     ValueCondition,
 )
-from polyaxon.pql.parser import (
+from polyaxon._pql.parser import (
     parse_datetime_operation,
     parse_search_operation,
     parse_value_operation,

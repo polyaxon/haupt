@@ -5,13 +5,13 @@ from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_path
 
 from asgiref.sync import sync_to_async
-from polyaxon.fs.async_manager import (
+from polyaxon._fs.async_manager import (
     delete_file_or_dir,
     download_dir,
     open_file,
     upload_data,
 )
-from polyaxon.fs.types import FSSystem
+from polyaxon._fs.types import FSSystem
 from traceml.logging import V1Log, V1Logs
 
 

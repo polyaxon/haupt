@@ -2,7 +2,7 @@ import pytest
 
 from haupt.managers.sandbox import SandboxConfigManager
 from haupt.schemas.sandbox_config import SandboxConfig
-from polyaxon.utils.test_utils import BaseTestCase
+from polyaxon._utils.test_utils import BaseTestCase
 
 
 @pytest.mark.managers_mark

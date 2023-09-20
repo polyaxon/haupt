@@ -4,8 +4,8 @@ from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 
 from haupt.db.defs import Models
-from polyaxon.constants.metadata import META_IS_PROMOTED
-from polyaxon.lifecycle import V1StageCondition, V1Stages
+from polyaxon._constants.metadata import META_IS_PROMOTED
+from polyaxon.schemas import V1StageCondition, V1Stages
 
 
 @receiver(

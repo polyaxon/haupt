@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db.models import Q
 
-from polyaxon.pql.manager import PQLManager
+from polyaxon._pql.manager import PQLManager
 
 
 class BaseQueryManager(PQLManager):

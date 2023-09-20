@@ -3,7 +3,7 @@ from typing import Any, Iterable, Optional, Union
 from clipped.utils.bools import to_bool
 from clipped.utils.lists import to_list
 
-from polyaxon.lifecycle import LiveState, ManagedBy
+from polyaxon.schemas import LiveState, ManagedBy
 from traceml.artifacts import V1ArtifactKind
 
 

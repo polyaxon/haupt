@@ -1,7 +1,7 @@
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
-from polyaxon.lifecycle import V1Stages
+from polyaxon.schemas import V1Stages
 
 
 class StageModel(models.Model):

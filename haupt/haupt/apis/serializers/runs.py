@@ -19,10 +19,9 @@ from haupt.apis.serializers.base.user_mixin import UserMixin
 from haupt.db.defs import Models
 from haupt.db.managers.runs import create_run
 from haupt.orchestration import operations
+from polyaxon._polyaxonfile import OperationSpecification
 from polyaxon.exceptions import PolyaxonException
-from polyaxon.lifecycle import ManagedBy
-from polyaxon.polyaxonfile import OperationSpecification
-from polyaxon.polyflow import V1RunEdgeKind, V1RunPending
+from polyaxon.schemas import ManagedBy, V1RunEdgeKind, V1RunPending
 
 
 class BaseRunEdgeSerializer(serializers.ModelSerializer):

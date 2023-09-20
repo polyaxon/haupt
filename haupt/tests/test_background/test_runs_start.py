@@ -5,7 +5,7 @@ from mock import mock
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
 from haupt.orchestration.scheduler.manager import SchedulingManager
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
+from polyaxon.schemas import V1StatusCondition, V1Statuses
 from tests.test_background.case import BaseTest
 
 

@@ -4,9 +4,8 @@ from typing_extensions import Literal
 from clipped.compact.pydantic import Extra, Field, validator
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 
-from polyaxon.api import STATIC_V1
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.env_vars.keys import (
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon._env_vars.keys import (
     ENV_KEYS_ARCHIVES_ROOT,
     ENV_KEYS_DNS_BACKEND,
     ENV_KEYS_DNS_CUSTOM_CLUSTER,
@@ -42,7 +41,8 @@ from polyaxon.env_vars.keys import (
     ENV_KEYS_STATIC_URL,
     ENV_KEYS_UI_ADMIN_ENABLED,
 )
-from polyaxon.schemas.base import BaseSchemaModel
+from polyaxon._schemas.base import BaseSchemaModel
+from polyaxon.api import STATIC_V1
 
 
 class ProxiesConfig(BaseSchemaModel):

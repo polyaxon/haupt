@@ -54,7 +54,7 @@ from haupt.common.events.registry.model_version import (
 from haupt.db.defs import Models
 from haupt.db.managers.versions import add_version_contributors
 from haupt.db.query_managers.project_version import ProjectVersionQueryManager
-from polyaxon.lifecycle import V1ProjectVersionKind
+from polyaxon.schemas import V1ProjectVersionKind
 
 ADDITIONAL_SELECT_RELATED = ["project__owner"] if settings.HAS_ORG_MANAGEMENT else []
 

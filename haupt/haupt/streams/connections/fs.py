@@ -2,12 +2,12 @@ import os
 
 from typing import Optional
 
-from polyaxon.connections import CONNECTION_CONFIG
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.env_vars.getters import get_artifacts_store_name
-from polyaxon.env_vars.keys import ENV_KEYS_SANDBOX_IS_LOCAL
-from polyaxon.fs.fs import close_fs, get_async_fs_from_connection, get_default_fs
-from polyaxon.fs.types import FSSystem
+from polyaxon._connections import CONNECTION_CONFIG
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon._env_vars.getters import get_artifacts_store_name
+from polyaxon._env_vars.keys import ENV_KEYS_SANDBOX_IS_LOCAL
+from polyaxon._fs.fs import close_fs, get_async_fs_from_connection, get_default_fs
+from polyaxon._fs.types import FSSystem
 
 
 class AppFS:

@@ -11,8 +11,7 @@ from haupt.common.options.registry.cleaning import (
 )
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import confirm_delete_runs
-from polyaxon.lifecycle import LifeCycle, LiveState
-from polyaxon.polyflow import V1RunKind
+from polyaxon.schemas import LifeCycle, LiveState, V1RunKind
 
 
 class CronsDeletionManager:

@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 from clipped.utils.enums import PEnum
 
 from haupt.common.options.exceptions import OptionException
-from polyaxon.config.parser import ConfigParser
+from polyaxon._config.parser import ConfigParser
 
 NAMESPACE_DB_OPTION_MARKER = ":"
 NAMESPACE_DB_CONFIG_MARKER = "__"

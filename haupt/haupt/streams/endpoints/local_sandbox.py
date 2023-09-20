@@ -11,8 +11,8 @@ from django.urls import path
 from haupt import settings
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.endpoints.base import ConfigResponse, UJSONResponse
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.lifecycle import V1ProjectFeature
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon.schemas import V1ProjectFeature
 
 
 async def get_run_details(

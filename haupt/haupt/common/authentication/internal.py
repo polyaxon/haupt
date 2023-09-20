@@ -9,8 +9,8 @@ from haupt.common import conf
 from haupt.common.authentication.base import BaseUser, PolyaxonAuthentication
 from haupt.common.headers import get_internal_header
 from haupt.common.options.registry.core import SECRET_INTERNAL_TOKEN
-from polyaxon.services.auth import AuthenticationTypes
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.auth import AuthenticationTypes
+from polyaxon._services.values import PolyaxonServices
 
 
 class InternalUser(BaseUser):

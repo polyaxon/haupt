@@ -17,8 +17,13 @@ from haupt.common.events.registry.run import (
 from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import bookmark_obj
 from haupt.db.managers.statuses import bulk_new_run_status
-from polyaxon.lifecycle import LifeCycle, LiveState, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1RunPending
+from polyaxon.schemas import (
+    LifeCycle,
+    LiveState,
+    V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
+)
 
 
 def create_runs_tags(view, request, *args, **kwargs):

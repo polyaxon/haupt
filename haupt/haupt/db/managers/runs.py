@@ -6,8 +6,15 @@ from django.db.models import Count, Q
 from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
-from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1CompiledOperation, V1RunKind, V1RunPending
+from polyaxon.schemas import (
+    LifeCycle,
+    ManagedBy,
+    V1CompiledOperation,
+    V1RunKind,
+    V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
+)
 
 
 def add_run_contributors(

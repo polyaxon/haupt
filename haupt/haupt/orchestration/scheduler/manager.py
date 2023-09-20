@@ -46,8 +46,8 @@ from haupt.db.queries.runs import (
 )
 from haupt.orchestration import operations
 from haupt.orchestration.scheduler.resolver import SchedulingResolver
-from polyaxon.compiler import resolver
-from polyaxon.constants.metadata import (
+from polyaxon._compiler import resolver
+from polyaxon._constants.metadata import (
     META_BRACKET_ITERATION,
     META_DESTINATION_IMAGE,
     META_HAS_EARLY_STOPPING,
@@ -55,14 +55,15 @@ from polyaxon.constants.metadata import (
     META_IS_HOOK,
     META_ITERATION,
 )
+from polyaxon._operations import get_bo_tuner, get_hyperband_tuner, get_hyperopt_tuner
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
     PolyaxonException,
     PolyaxonSchemaError,
 )
-from polyaxon.lifecycle import LifeCycle, ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.operations import get_bo_tuner, get_hyperband_tuner, get_hyperopt_tuner
-from polyaxon.polyflow import (
+from polyaxon.schemas import (
+    LifeCycle,
+    ManagedBy,
     V1CloningKind,
     V1CompiledOperation,
     V1FailureEarlyStopping,
@@ -73,6 +74,8 @@ from polyaxon.polyflow import (
     V1RunEdgeKind,
     V1RunKind,
     V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
     V1TriggerPolicy,
     dags,
 )

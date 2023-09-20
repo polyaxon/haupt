@@ -1,6 +1,6 @@
 from haupt.common.options import option_namespaces, option_subjects
 from haupt.common.options.option import Option, OptionScope, OptionStores
-from polyaxon.auxiliaries import (
+from polyaxon._auxiliaries import (
     V1PolyaxonInitContainer,
     V1PolyaxonSidecarContainer,
     get_default_init_container,

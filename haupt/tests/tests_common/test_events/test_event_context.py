@@ -5,7 +5,7 @@ from haupt.common import user_system
 from haupt.common.events import event_context
 from haupt.common.events.event import Attribute, Event
 from haupt.common.events.event_context import EventItemContextSpec
-from polyaxon.utils.urls_utils import get_fqn_run_url, get_project_url
+from polyaxon._utils.urls_utils import get_fqn_run_url, get_project_url
 
 
 class TestEventContext(TestCase):

@@ -5,8 +5,7 @@ from django.conf import settings
 from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.db.query_managers import callback_conditions
 from haupt.db.query_managers.manager import BaseQueryManager
-from polyaxon.polyflow import V1Join
-from polyaxon.pql.builder import (
+from polyaxon._pql.builder import (
     ArrayCondition,
     BoolCondition,
     CallbackCondition,
@@ -16,7 +15,7 @@ from polyaxon.pql.builder import (
     SearchCondition,
     ValueCondition,
 )
-from polyaxon.pql.parser import (
+from polyaxon._pql.parser import (
     parse_cpu_operation,
     parse_datetime_operation,
     parse_memory_operation,
@@ -24,6 +23,7 @@ from polyaxon.pql.parser import (
     parse_search_operation,
     parse_value_operation,
 )
+from polyaxon.schemas import V1Join
 
 
 class RunQueryManager(BaseQueryManager):

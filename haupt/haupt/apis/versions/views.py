@@ -10,7 +10,7 @@ from haupt.common.options.registry.installation import (
     PLATFORM_VERSION,
 )
 from haupt.db.managers.dummy_key import get_dummy_key
-from polyaxon.cli.session import get_compatibility
+from polyaxon._cli.session import get_compatibility
 
 
 class VersionsInstalledView(BaseEndpoint, RetrieveEndpoint):

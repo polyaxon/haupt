@@ -4,8 +4,8 @@ from django.db.models import Q
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
-from polyaxon.pql.builder import ValueCondition
+from polyaxon._pql.builder import ValueCondition
+from polyaxon.schemas import V1StatusCondition, V1Statuses
 from tests.tests_db.test_query.base import BaseTestQuery
 
 # pylint:disable=protected-access

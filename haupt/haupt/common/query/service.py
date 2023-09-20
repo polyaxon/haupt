@@ -1,9 +1,9 @@
 from typing import Any, Optional, Tuple
 
 from haupt.common.service_interface import Service
+from polyaxon._pql.manager import PQLManager
+from polyaxon._pql.parser import parse_field
 from polyaxon.exceptions import PQLException
-from polyaxon.pql.manager import PQLManager
-from polyaxon.pql.parser import parse_field
 
 
 class QueryService(Service):

@@ -45,9 +45,8 @@ from haupt.db.managers.live_state import delete_in_progress_run
 from haupt.db.managers.stats import StatsSerializer
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_DEFER
 from haupt.orchestration import operations
-from polyaxon.lifecycle import LifeCycle
-from polyaxon.polyflow import V1CloningKind
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.values import PolyaxonServices
+from polyaxon.schemas import LifeCycle, V1CloningKind
 
 
 class RunDetailView(RunEndpoint, RetrieveEndpoint, DestroyEndpoint, UpdateEndpoint):

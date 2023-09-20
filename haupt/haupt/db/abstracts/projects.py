@@ -1,6 +1,6 @@
 import uuid
 
-from polyaxon.constants.globals import DEFAULT
+from polyaxon._constants.globals import DEFAULT
 
 
 class Owner:

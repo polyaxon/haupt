@@ -7,8 +7,8 @@ from clipped.utils.enums import get_enum_value
 from clipped.utils.paths import create_path
 
 from polyaxon import settings
+from polyaxon._utils.test_utils import set_store
 from polyaxon.api import STREAMS_V1_LOCATION
-from polyaxon.utils.test_utils import set_store
 from tests.base.case import BaseTest
 from traceml.artifacts import V1ArtifactKind
 from traceml.events import LoggedEventListSpec, V1Event, V1Events

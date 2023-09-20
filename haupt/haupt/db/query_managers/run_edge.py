@@ -1,8 +1,8 @@
 from django.conf import settings
 
 from haupt.db.query_managers.manager import BaseQueryManager
-from polyaxon.pql.builder import ArrayCondition, KeysCondition, ValueCondition
-from polyaxon.pql.parser import parse_value_operation
+from polyaxon._pql.builder import ArrayCondition, KeysCondition, ValueCondition
+from polyaxon._pql.parser import parse_value_operation
 
 
 class RunEdgeQueryManager(BaseQueryManager):

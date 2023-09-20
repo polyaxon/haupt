@@ -28,10 +28,10 @@ from haupt.orchestration import operations
 from hypertune.search_managers.grid_search.manager import GridSearchManager
 from hypertune.search_managers.mapping.manager import MappingManager
 from hypertune.search_managers.random_search.manager import RandomSearchManager
-from polyaxon.auxiliaries import V1PolyaxonSidecarContainer
-from polyaxon.compiler import resolver
-from polyaxon.compiler.lineage import collect_lineage_artifacts_path
-from polyaxon.constants.metadata import (
+from polyaxon._auxiliaries import V1PolyaxonSidecarContainer
+from polyaxon._compiler import resolver
+from polyaxon._compiler.lineage import collect_lineage_artifacts_path
+from polyaxon._constants.metadata import (
     META_CONCURRENCY,
     META_COPY_ARTIFACTS,
     META_DESTINATION_IMAGE,
@@ -48,22 +48,26 @@ from polyaxon.constants.metadata import (
     META_REWRITE_PATH,
     META_UPLOAD_ARTIFACTS,
 )
-from polyaxon.contexts import keys as ctx_keys
-from polyaxon.contexts import paths as ctx_paths
-from polyaxon.contexts import refs as ctx_refs
-from polyaxon.contexts import sections as ctx_sections
-from polyaxon.env_vars.getters import get_versioned_entity_info
-from polyaxon.exceptions import PolyaxonCompilerError, PQLException
-from polyaxon.lifecycle import (
-    LifeCycle,
-    V1ProjectVersionKind,
-    V1StatusCondition,
-    V1Statuses,
+from polyaxon._contexts import keys as ctx_keys
+from polyaxon._contexts import paths as ctx_paths
+from polyaxon._contexts import refs as ctx_refs
+from polyaxon._contexts import sections as ctx_sections
+from polyaxon._env_vars.getters import get_versioned_entity_info
+from polyaxon._polyaxonfile import CompiledOperationSpecification
+from polyaxon._polyaxonfile.manager import (
+    get_op_from_schedule,
+    get_ops_from_suggestions,
 )
-from polyaxon.polyaxonfile import CompiledOperationSpecification
-from polyaxon.polyaxonfile.manager import get_op_from_schedule, get_ops_from_suggestions
-from polyaxon.polyflow import (
+from polyaxon._utils.fqn_utils import (
+    get_project_instance,
+    get_run_instance,
+    get_run_lineage_paths,
+)
+from polyaxon.exceptions import PolyaxonCompilerError, PQLException
+from polyaxon.schemas import (
     DagOpSpec,
+    LifeCycle,
+    V1ArtifactsType,
     V1CloningKind,
     V1CompiledOperation,
     V1Init,
@@ -73,15 +77,12 @@ from polyaxon.polyflow import (
     V1OptimizationMetric,
     V1Param,
     V1Plugins,
+    V1ProjectVersionKind,
     V1RunEdgeKind,
     V1RunPending,
-)
-from polyaxon.polyflow.params import ops_params
-from polyaxon.schemas.types import V1ArtifactsType
-from polyaxon.utils.fqn_utils import (
-    get_project_instance,
-    get_run_instance,
-    get_run_lineage_paths,
+    V1StatusCondition,
+    V1Statuses,
+    ops_params,
 )
 
 

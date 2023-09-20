@@ -9,8 +9,7 @@ from haupt.db.models.project_versions import ProjectVersion
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
 from haupt.orchestration.crons.deletion import CronsDeletionManager
-from polyaxon.lifecycle import V1ProjectVersionKind, V1Statuses
-from polyaxon.polyflow import V1RunKind
+from polyaxon.schemas import V1ProjectVersionKind, V1RunKind, V1Statuses
 
 
 @pytest.mark.crons_mark

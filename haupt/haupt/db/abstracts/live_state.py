@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.timezone import now
 
 from haupt.db.managers.deleted import ArchivedManager, LiveManager, RestorableManager
-from polyaxon.lifecycle import LiveState
+from polyaxon.schemas import LiveState
 
 
 class LiveStateModel(models.Model):

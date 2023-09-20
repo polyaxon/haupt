@@ -1,7 +1,7 @@
 import pytest
 
 from haupt import settings
-from polyaxon.contexts import paths as ctx_paths
+from polyaxon._contexts import paths as ctx_paths
 from tests.test_proxies.base import BaseProxiesTestCase
 
 

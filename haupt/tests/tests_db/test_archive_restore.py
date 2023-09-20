@@ -12,7 +12,7 @@ from haupt.db.managers.live_state import (
     restore_run,
 )
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import LiveState, ManagedBy, V1Statuses
+from polyaxon.schemas import LiveState, ManagedBy, V1Statuses
 
 
 class TestArchiveRestoreDelete(TestCase):

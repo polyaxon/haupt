@@ -8,8 +8,7 @@ from haupt.common.test_cases.base import PolyaxonBaseTest
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.orchestration.crons.heartbeats import CronsHeartbeatManager
-from polyaxon.lifecycle import V1Statuses
-from polyaxon.polyflow import V1RunKind
+from polyaxon.schemas import V1RunKind, V1Statuses
 
 
 @pytest.mark.crons_mark

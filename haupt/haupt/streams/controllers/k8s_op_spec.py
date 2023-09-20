@@ -1,5 +1,5 @@
-from polyaxon.k8s.manager.async_manager import AsyncK8sManager
-from polyaxon.polyflow import V1RunKind
+from polyaxon._k8s.manager.async_manager import AsyncK8sManager
+from polyaxon.schemas import V1RunKind
 
 
 async def get_op_spec(

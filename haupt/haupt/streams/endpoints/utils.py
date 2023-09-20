@@ -9,7 +9,7 @@ from django.http import FileResponse, HttpResponse
 
 from aiofiles.os import stat as aio_stat
 from haupt.common.endpoints.files import FilePathResponse
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.values import PolyaxonServices
 
 
 async def _redirect(

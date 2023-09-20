@@ -5,8 +5,8 @@ from rest_framework.authentication import BasicAuthentication
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 
-from polyaxon.services.auth import AuthenticationError, AuthenticationTypes
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.auth import AuthenticationError, AuthenticationTypes
+from polyaxon._services.values import PolyaxonServices
 
 
 class PolyaxonAuthentication(BasicAuthentication):

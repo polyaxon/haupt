@@ -3,7 +3,7 @@ from typing import List, Optional
 from clipped.utils.lists import to_list
 
 from haupt.common import auditor
-from polyaxon.lifecycle import V1StageCondition
+from polyaxon.schemas import V1StageCondition
 
 
 def set_entity_stage(entity: str, condition: V1StageCondition) -> str:

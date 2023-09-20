@@ -25,9 +25,9 @@ from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
 from haupt.streams.tasks.op_spec import upload_op_spec
 from polyaxon import settings
-from polyaxon.k8s.logging.async_monitor import query_k8s_operation_logs
-from polyaxon.k8s.manager.async_manager import AsyncK8sManager
-from polyaxon.utils.fqn_utils import get_resource_name, get_resource_name_for_kind
+from polyaxon._k8s.logging.async_monitor import query_k8s_operation_logs
+from polyaxon._k8s.manager.async_manager import AsyncK8sManager
+from polyaxon._utils.fqn_utils import get_resource_name, get_resource_name_for_kind
 
 logger = logging.getLogger("haupt.streams.logs")
 

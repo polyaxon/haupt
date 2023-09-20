@@ -6,8 +6,8 @@ from rest_framework import status
 from django.http import HttpResponse
 
 from polyaxon import settings
+from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon.api import K8S_V1_LOCATION
-from polyaxon.k8s.manager.async_manager import AsyncK8sManager
 
 
 def _check_exec(uri_path: List[str], query_params: str):

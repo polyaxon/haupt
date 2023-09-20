@@ -8,13 +8,13 @@ from clipped.utils.json import orjson_loads
 import aiofiles
 
 from asgiref.sync import sync_to_async
-from polyaxon.fs.async_manager import (
+from polyaxon._fs.async_manager import (
     download_file,
     download_files,
     list_files,
     tar_files,
 )
-from polyaxon.fs.types import FSSystem
+from polyaxon._fs.types import FSSystem
 from traceml.artifacts import V1ArtifactKind
 from traceml.events import V1Events, get_event_path, get_resource_path
 

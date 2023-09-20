@@ -7,11 +7,13 @@ from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
 from haupt.orchestration import operations
-from polyaxon.constants.metadata import META_COPY_ARTIFACTS, META_UPLOAD_ARTIFACTS
-from polyaxon.lifecycle import V1Statuses
-from polyaxon.polyaxonfile import CompiledOperationSpecification, OperationSpecification
-from polyaxon.polyflow import V1CloningKind, V1CompiledOperation
-from polyaxon.utils.fixtures import get_fxt_job_with_inputs
+from polyaxon._constants.metadata import META_COPY_ARTIFACTS, META_UPLOAD_ARTIFACTS
+from polyaxon._polyaxonfile import (
+    CompiledOperationSpecification,
+    OperationSpecification,
+)
+from polyaxon._utils.fixtures import get_fxt_job_with_inputs
+from polyaxon.schemas import V1CloningKind, V1CompiledOperation, V1Statuses
 
 
 class TestRunManager(TestCase):

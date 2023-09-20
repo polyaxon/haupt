@@ -3,7 +3,7 @@ from typing import Optional
 from clipped.compact.pydantic import Field, StrictInt, StrictStr, root_validator
 from clipped.utils.http import clean_host
 
-from polyaxon.env_vars.keys import (
+from polyaxon._env_vars.keys import (
     ENV_KEYS_K8S_NAMESPACE,
     ENV_KEYS_SANDBOX_DEBUG,
     ENV_KEYS_SANDBOX_HOST,
@@ -13,7 +13,7 @@ from polyaxon.env_vars.keys import (
     ENV_KEYS_SANDBOX_SSL_ENABLED,
     ENV_KEYS_SANDBOX_WORKERS,
 )
-from polyaxon.schemas.agent import AgentConfig
+from polyaxon._schemas.agent import AgentConfig
 
 
 class SandboxConfig(AgentConfig):

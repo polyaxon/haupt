@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from polyaxon.polyflow import V1RunResources
+from polyaxon.schemas import V1RunResources
 
 
 class ResourcesMixin(serializers.Serializer):

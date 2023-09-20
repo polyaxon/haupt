@@ -4,10 +4,10 @@ from clipped.utils.paths import check_or_create_path, delete_path, untar_file
 
 from asgiref.sync import sync_to_async
 from polyaxon import settings
-from polyaxon.fs.async_manager import upload_dir, upload_file
-from polyaxon.fs.types import FSSystem
-from polyaxon.fs.utils import get_store_path
-from polyaxon.lifecycle import V1ProjectFeature
+from polyaxon._fs.async_manager import upload_dir, upload_file
+from polyaxon._fs.types import FSSystem
+from polyaxon._fs.utils import get_store_path
+from polyaxon.schemas import V1ProjectFeature
 
 
 async def handle_posted_data(

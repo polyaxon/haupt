@@ -16,7 +16,7 @@ from haupt.streams.controllers.notebooks import render_notebook
 from haupt.streams.controllers.uploads import handle_posted_data
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.endpoints.utils import redirect_file
-from polyaxon.fs.async_manager import (
+from polyaxon._fs.async_manager import (
     check_is_file,
     delete_file_or_dir,
     download_dir,

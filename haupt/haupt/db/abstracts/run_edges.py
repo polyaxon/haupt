@@ -2,8 +2,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
-from polyaxon.lifecycle import V1Statuses
-from polyaxon.polyflow import V1RunEdgeKind
+from polyaxon.schemas import V1RunEdgeKind, V1Statuses
 
 if settings.DB_ENGINE_NAME == "sqlite":
     ArrayField = None

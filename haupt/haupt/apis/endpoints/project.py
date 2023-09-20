@@ -14,7 +14,7 @@ from haupt.common.apis.regex import (
 from haupt.common.endpoints.base import BaseEndpoint
 from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
-from polyaxon.lifecycle import LiveState
+from polyaxon.schemas import LiveState
 
 
 class ProjectEndpoint(BaseEndpoint):

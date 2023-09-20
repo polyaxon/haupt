@@ -3,7 +3,7 @@ import os
 from unittest import TestCase
 
 from haupt.schemas.platform_config import PlatformConfig
-from polyaxon.config.reader import ConfigReader
+from polyaxon._config.reader import ConfigReader
 
 
 class TestConfigReader(TestCase):

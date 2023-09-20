@@ -6,8 +6,7 @@ from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
 from haupt.orchestration.scheduler.manager import SchedulingManager
-from polyaxon.lifecycle import ManagedBy, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1Cache
+from polyaxon.schemas import ManagedBy, V1Cache, V1StatusCondition, V1Statuses
 from tests.test_background.case import BaseTest
 
 

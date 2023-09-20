@@ -9,9 +9,8 @@ from django.db.models import Q
 from haupt.common import conf
 from haupt.common.options.registry.k8s import K8S_NAMESPACE
 from haupt.db.defs import Models
-from polyaxon.constants.globals import DEFAULT_HUB
-from polyaxon.lifecycle import V1ProjectVersionKind
-from polyaxon.polyflow import V1RunEdgeKind, V1RunKind
+from polyaxon._constants.globals import DEFAULT_HUB
+from polyaxon.schemas import V1ProjectVersionKind, V1RunEdgeKind, V1RunKind
 
 
 class SettingsMixin:

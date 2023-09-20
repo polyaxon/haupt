@@ -9,8 +9,7 @@ from django.db.models import Q
 
 from haupt.db.models.runs import Run
 from haupt.db.query_managers.run import RunQueryManager
-from polyaxon.exceptions import PQLException
-from polyaxon.pql.builder import (
+from polyaxon._pql.builder import (
     ArrayCondition,
     ComparisonCondition,
     DateTimeCondition,
@@ -19,7 +18,8 @@ from polyaxon.pql.builder import (
     SearchCondition,
     ValueCondition,
 )
-from polyaxon.pql.parser import QueryOpSpec
+from polyaxon._pql.parser import QueryOpSpec
+from polyaxon.exceptions import PQLException
 from tests.tests_db.test_query.base import BaseTestQuery
 
 

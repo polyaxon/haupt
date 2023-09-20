@@ -18,7 +18,7 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.models.artifacts import Artifact, ArtifactLineage
 from haupt.db.queries import artifacts as artifacts_queries
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import ManagedBy
+from polyaxon.schemas import ManagedBy
 from tests.base.case import BaseTest
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 

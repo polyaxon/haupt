@@ -8,8 +8,7 @@ from haupt.db.defs import Models
 from haupt.db.managers.projects import update_project_based_on_last_updated_entities
 from haupt.db.managers.runs import get_stopping_pipelines_with_no_runs
 from haupt.db.managers.statuses import bulk_new_run_status
-from polyaxon.lifecycle import LifeCycle, V1StatusCondition, V1Statuses
-from polyaxon.polyflow import V1RunKind
+from polyaxon.schemas import LifeCycle, V1RunKind, V1StatusCondition, V1Statuses
 
 
 class CronsHeartbeatManager:

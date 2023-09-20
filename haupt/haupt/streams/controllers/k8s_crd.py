@@ -1,5 +1,5 @@
-from polyaxon.k8s.custom_resources import operation as op_crd
-from polyaxon.k8s.manager.async_manager import AsyncK8sManager
+from polyaxon._k8s.custom_resources import operation as op_crd
+from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 
 
 async def get_k8s_operation(k8s_manager: AsyncK8sManager, resource_name: str):

@@ -1,7 +1,7 @@
 from corsheaders.defaults import default_headers
 
 from haupt.schemas.platform_config import PlatformConfig
-from polyaxon.services.headers import PolyaxonServiceHeaders
+from polyaxon._services.headers import PolyaxonServiceHeaders
 
 
 def set_cors(context, config: PlatformConfig):

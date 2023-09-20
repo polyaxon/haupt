@@ -10,8 +10,8 @@ from haupt.db.models.project_stats import ProjectStats
 from haupt.db.models.project_versions import ProjectVersion
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
-from polyaxon.lifecycle import V1ProjectVersionKind
-from polyaxon.utils.test_utils import patch_settings
+from polyaxon._utils.test_utils import patch_settings
+from polyaxon.schemas import V1ProjectVersionKind
 
 
 class BaseTest(PolyaxonBaseTest):

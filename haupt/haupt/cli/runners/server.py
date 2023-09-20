@@ -3,7 +3,7 @@ import os
 from typing import Optional
 
 from haupt.cli.runners.base import start_app
-from polyaxon.services.values import PolyaxonServices
+from polyaxon._services.values import PolyaxonServices
 
 
 def start(

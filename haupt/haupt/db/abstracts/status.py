@@ -1,7 +1,7 @@
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
-from polyaxon.lifecycle import V1Statuses
+from polyaxon.schemas import V1Statuses
 
 
 class StatusModel(models.Model):

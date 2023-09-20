@@ -10,7 +10,7 @@ from haupt.db.factories.artifacts import ArtifactFactory
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.artifacts import Artifact, ArtifactLineage
-from polyaxon.lifecycle import ManagedBy
+from polyaxon.schemas import ManagedBy
 
 
 @pytest.mark.serializers_mark

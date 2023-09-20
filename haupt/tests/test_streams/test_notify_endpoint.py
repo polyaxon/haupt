@@ -4,10 +4,10 @@ from asyncio import Future
 from mock import patch
 
 from polyaxon import settings
+from polyaxon._connections import V1Connection, V1ConnectionKind, V1ConnectionResource
+from polyaxon._utils.test_utils import set_store
 from polyaxon.api import STREAMS_V1_LOCATION
-from polyaxon.connections import V1Connection, V1ConnectionKind, V1ConnectionResource
-from polyaxon.lifecycle import V1StatusCondition, V1Statuses
-from polyaxon.utils.test_utils import set_store
+from polyaxon.schemas import V1StatusCondition, V1Statuses
 from tests.base.case import BaseTest
 
 
@@ -77,7 +77,7 @@ class TestNotifyEndpoints(BaseTest):
             "connections": ["test1", "test2"],
         }
         with patch(
-            "polyaxon.k8s.executor.async_executor.AsyncK8sManager"
+            "polyaxon._k8s.executor.async_executor.AsyncK8sManager"
         ) as manager_mock:
             manager_mock.return_value.setup.return_value = Future()
             manager_mock.return_value.setup.return_value.set_result(None)

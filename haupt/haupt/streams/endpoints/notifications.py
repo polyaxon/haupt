@@ -14,7 +14,7 @@ from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.notification import notify_run
 from polyaxon import settings
-from polyaxon.lifecycle import V1StatusCondition
+from polyaxon.schemas import V1StatusCondition
 
 logger = logging.getLogger("haupt.streams.notifications")
 

@@ -2,7 +2,7 @@ import pytest
 
 from haupt.managers.proxies import ProxiesManager
 from haupt.schemas.proxies_config import ProxiesConfig
-from polyaxon.utils.test_utils import BaseTestCase
+from polyaxon._utils.test_utils import BaseTestCase
 
 
 @pytest.mark.managers_mark

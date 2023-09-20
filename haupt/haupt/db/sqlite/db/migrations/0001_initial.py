@@ -11,7 +11,8 @@ from django.conf import settings
 from django.db import migrations, models
 
 import haupt.common.validation.blacklist
-import polyaxon.lifecycle
+
+from polyaxon import schemas
 
 
 class Migration(migrations.Migration):
@@ -256,7 +257,7 @@ class Migration(migrations.Migration):
                             (-1, "deletion_progressing"),
                         ],
                         db_index=True,
-                        default=polyaxon.lifecycle.LiveState["LIVE"],
+                        default=schemas.LiveState["LIVE"],
                         null=True,
                     ),
                 ),
@@ -328,7 +329,7 @@ class Migration(migrations.Migration):
                             (-1, "deletion_progressing"),
                         ],
                         db_index=True,
-                        default=polyaxon.lifecycle.LiveState["LIVE"],
+                        default=schemas.LiveState["LIVE"],
                         null=True,
                     ),
                 ),
@@ -412,7 +413,7 @@ class Migration(migrations.Migration):
                             ("done", "done"),
                         ],
                         db_index=True,
-                        default=polyaxon.lifecycle.V1Statuses["CREATED"],
+                        default=schemas.V1Statuses["CREATED"],
                         max_length=16,
                         null=True,
                     ),
@@ -481,7 +482,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         choices=[("user", "user"), ("cli", "cli"), ("agent", "agent")],
                         db_index=True,
-                        default=polyaxon.lifecycle.ManagedBy["AGENT"],
+                        default=schemas.ManagedBy["AGENT"],
                         max_length=5,
                         null=True,
                     ),
@@ -704,7 +705,7 @@ class Migration(migrations.Migration):
                             ("disabled", "disabled"),
                         ],
                         db_index=True,
-                        default=polyaxon.lifecycle.V1Stages["TESTING"],
+                        default=schemas.V1Stages["TESTING"],
                         max_length=16,
                         null=True,
                     ),

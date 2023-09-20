@@ -7,9 +7,9 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.project_stats import ProjectStats
 from haupt.db.models.runs import Run
+from polyaxon._services.values import PolyaxonServices
 from polyaxon.api import API_V1
-from polyaxon.lifecycle import V1ProjectVersionKind
-from polyaxon.services.values import PolyaxonServices
+from polyaxon.schemas import V1ProjectVersionKind
 from tests.base.case import BaseTest
 
 
