@@ -28,7 +28,3 @@ cli.add_command(sandbox)
 cli.add_command(server)
 cli.add_command(streams)
 cli.add_command(viewer)
-
-
-def main():
-    cli(auto_envvar_prefix="HAUPT_CLI")

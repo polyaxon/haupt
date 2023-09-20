@@ -1,3 +1,3 @@
-from polyaxon.main import main
+from haupt.main import cli
 
-main()
+cli(auto_envvar_prefix="HAUPT_CLI")
