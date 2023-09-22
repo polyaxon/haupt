@@ -3,6 +3,7 @@ from rest_framework.response import Response
 
 from haupt.common.endpoints.base import BaseEndpoint, PostEndpoint, RetrieveEndpoint
 from haupt.db.managers.agents import get_agent_state, trigger_cron
+from polyaxon.schemas import LiveState, V1Statuses
 
 
 class AgentStateViewV1(BaseEndpoint, RetrieveEndpoint):
@@ -11,7 +12,11 @@ class AgentStateViewV1(BaseEndpoint, RetrieveEndpoint):
     def get(self, request, *args, **kwargs):
         state = get_agent_state()
         return Response(
-            data={"state": state},
+            data={
+                "state": state,
+                "status": V1Statuses.RUNNING,
+                "live_state": LiveState.LIVE,
+            },
             status=status.HTTP_200_OK,
         )
 

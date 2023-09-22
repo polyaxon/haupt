@@ -42,6 +42,8 @@ class TestAgentStateViewV1(BaseTest):
         resp = self.client.get(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data == {
+            "status": V1Statuses.RUNNING,
+            "live_state": LiveState.LIVE,
             "state": {
                 V1Statuses.QUEUED: [],
                 V1Statuses.STOPPING: [],
@@ -81,6 +83,8 @@ class TestAgentStateViewV1(BaseTest):
         resp = self.client.get(self.url)
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data == {
+            "status": V1Statuses.RUNNING,
+            "live_state": LiveState.LIVE,
             "state": {
                 V1Statuses.QUEUED: [],
                 V1Statuses.STOPPING: [],
