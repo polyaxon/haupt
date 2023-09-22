@@ -10,6 +10,8 @@ from haupt.common.settings.secrets import set_secrets
 
 context = locals()
 MAX_CONCURRENCY = PLATFORM_CONFIG.max_concurrency or 1
+MIN_ARTIFACTS_DELETION_TIMEDELTA = PLATFORM_CONFIG.min_artifacts_deletion_timedelta
+TTL_HEARTBEAT = PLATFORM_CONFIG.ttl_heartbeat
 set_logging(context=context, config=PLATFORM_CONFIG)
 set_admin(context=context, config=PLATFORM_CONFIG)
 set_secrets(context=context, config=PLATFORM_CONFIG)

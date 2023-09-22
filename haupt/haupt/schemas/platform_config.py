@@ -149,6 +149,9 @@ class PlatformConfig(BaseSchemaModel):
     ttl_heartbeat: Optional[int] = Field(
         alias="POLYAXON_TTL_HEARTBEAT", default=60 * 30
     )
+    min_artifacts_deletion_timedelta: Optional[int] = Field(
+        alias="POLYAXON_MIN_ARTIFACTS_DELETION_TIMEDELTA", default=80
+    )
     db_engine_name: Optional[Literal["sqlite", "pgsql"]] = Field(
         alias="POLYAXON_DB_ENGINE", default="sqlite"
     )
