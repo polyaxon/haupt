@@ -8,6 +8,7 @@ from rest_framework import status
 from django.test import override_settings
 from django.utils.timezone import now
 
+from haupt.apis.serializers.runs import RunDetailSerializer
 from haupt.background.celeryp.tasks import CronsCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
@@ -334,3 +335,29 @@ class TestAgentCronViewV1(BaseTest):
             CronsCeleryTasks.DELETE_ARCHIVED_RUNS,
             CronsCeleryTasks.DELETE_IN_PROGRESS_RUNS,
         }
+
+
+@pytest.mark.agent_mark
+class TestAgentRunDetailViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+    serializer_class = RunDetailSerializer
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.object = self.factory_class(
+            user=self.user,
+            project=self.project,
+            content="test",
+            raw_content="test",
+            managed_by=ManagedBy.AGENT,
+        )
+        self.url = "/{}/orgs/default/runs/{}".format(API_V1, self.object.uuid.hex)
+
+    def test_get(self):
+        resp = self.client.get(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        self.object.refresh_from_db()
+        expected = self.serializer_class(self.object).data
+        assert resp.data == expected

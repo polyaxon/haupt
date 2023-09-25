@@ -1,7 +1,12 @@
 from rest_framework import status
 from rest_framework.response import Response
 
+from django.http import HttpRequest
+
+from haupt.apis.serializers.runs import RunDetailSerializer
+from haupt.common.apis.regex import OWNER_NAME_KEY, RUN_UUID_KEY, UUID_KEY
 from haupt.common.endpoints.base import BaseEndpoint, PostEndpoint, RetrieveEndpoint
+from haupt.db.defs import Models
 from haupt.db.managers.agents import get_agent_state, trigger_cron
 from polyaxon.schemas import LiveState, V1Statuses
 
@@ -27,3 +32,21 @@ class AgentCronViewV1(BaseEndpoint, PostEndpoint):
     def post(self, request, *args, **kwargs):
         trigger_cron()
         return Response(status=status.HTTP_200_OK)
+
+
+class AgentRunDetailView(BaseEndpoint, RetrieveEndpoint):
+    serializer_class = RunDetailSerializer
+    queryset = Models.Run.all.select_related(
+        "original",
+        "pipeline",
+        "project",
+    ).prefetch_related("contributors")
+    ALLOWED_METHODS = ["GET"]
+    lookup_field = UUID_KEY
+    lookup_url_kwarg = RUN_UUID_KEY
+    CONTEXT_KEYS = (OWNER_NAME_KEY, RUN_UUID_KEY)
+    CONTEXT_OBJECTS = ("run",)
+
+    def initialize_object_context(self, request: HttpRequest, *args, **kwargs) -> None:
+        #  pylint:disable=attribute-defined-outside-init
+        self.run = self.get_object()
