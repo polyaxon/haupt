@@ -10,6 +10,8 @@ def set_core(context, config: PlatformConfig, use_db: bool = True):
     context["K8S_NAMESPACE"] = config.namespace
 
     context["FILE_UPLOAD_PERMISSIONS"] = 0o644
+    context["MIN_ARTIFACTS_DELETION_TIMEDELTA"] = config.min_artifacts_deletion_timedelta
+    context["TTL_HEARTBEAT"] = config.ttl_heartbeat
 
     context["WSGI_APPLICATION"] = "{}.wsgi.application".format(config.config_module)
     context["TIME_ZONE"] = config.timezone
