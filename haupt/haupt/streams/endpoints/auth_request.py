@@ -10,6 +10,7 @@ from clipped.utils.paths import check_or_create_path
 from clipped.utils.tz import now
 from rest_framework import status
 
+from django.conf import settings as dj_settings
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
 from django.http import HttpResponse
@@ -119,14 +120,15 @@ async def auth_request(
     if cached:
         return HttpResponse(status=status.HTTP_200_OK)
 
-    # Contact auth service
-    response = await _check_auth_service(headers=request.headers)
-    if response.status != 200:
-        await _persist_auth_cache(request_cache=request_cache, response=False)
-        return HttpResponse(
-            content="Auth request failed",
-            status=status.HTTP_403_FORBIDDEN,
-        )
+    if dj_settings.POLYAXON_SERVICE == "streams":
+        # Contact auth service
+        response = await _check_auth_service(headers=request.headers)
+        if response.status != 200:
+            await _persist_auth_cache(request_cache=request_cache, response=False)
+            return HttpResponse(
+                content="Auth request failed",
+                status=status.HTTP_403_FORBIDDEN,
+            )
     try:
         path, params = k8s_check(uri)
     except ValueError:
