@@ -92,7 +92,7 @@ def transfer_run(view, request, *args, **kwargs):
         )
 
     view.run.project_id = dest_project.id
-    view.run.save(update_fields=["project_id"])
+    view.run.save(update_fields=["project_id", "updated_at"])
     if view.run.has_pipeline:
         Models.Run.all.filter(Q(pipeline=view.run) | Q(controller=view.run)).update(
             project_id=dest_project.id

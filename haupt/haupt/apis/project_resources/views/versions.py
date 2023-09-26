@@ -318,7 +318,7 @@ class ProjectVersionTransferView(VersionEndpoint, CreateEndpoint):
             )
 
         self.version.project_id = dest_project.id
-        self.version.save(update_fields=["project_id"])
+        self.version.save(update_fields=["project_id", "updated_at"])
         add_version_contributors(self.version, users=[request.user])
         self.audit(request, *args, **kwargs)
         return Response(status=status.HTTP_200_OK, data={})
