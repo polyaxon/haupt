@@ -72,8 +72,11 @@ class TestEventsEndpoints(BaseTest):
         event_kind_path = "{}/{}".format(self.run_events, get_enum_value(kind))
         create_path(event_kind_path)
         with open("{}/{}.plx".format(event_kind_path, name), "+w") as f:
-            f.write(events.get_csv_header())
-            f.write(events.get_csv_events())
+            if V1ArtifactKind.is_jsonl_file_event(kind):
+                f.write(events.get_jsonl_events())
+            else:
+                f.write(events.get_csv_header())
+                f.write(events.get_csv_events())
 
     def test_download_events_cached(self):
         filepath1 = os.path.join(
@@ -403,8 +406,11 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         event_kind_path = "{}/{}".format(run_events, get_enum_value(kind))
         create_path(event_kind_path)
         with open("{}/{}.plx".format(event_kind_path, name), "+w") as f:
-            f.write(events.get_csv_header())
-            f.write(events.get_csv_events())
+            if V1ArtifactKind.is_jsonl_file_event(kind):
+                f.write(events.get_jsonl_events())
+            else:
+                f.write(events.get_csv_header())
+                f.write(events.get_csv_events())
 
     def test_download_multi_metric_events_cached(self):
         filepath11 = os.path.join(
