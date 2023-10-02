@@ -38,4 +38,4 @@ def check_related_run_to_artifact(sender, instance=None, created=False, **kwargs
             and run.versions.exclude(id=instance.id).count() == 0
         ):
             run.meta_info.pop(META_IS_PROMOTED, None)
-            run.save(update_fields=["meta_info", "update_at"])
+            run.save(update_fields=["meta_info", "updated_at"])
