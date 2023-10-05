@@ -274,7 +274,7 @@ class SchedulingResolver(resolver.BaseResolver):
         schedule_at: datetime,
         started_at: datetime,
         finished_at: datetime,
-        duration: int,
+        duration: float,
         cloning_kind: V1CloningKind,
     ):
         artifacts_path = ctx_paths.CONTEXT_MOUNT_ARTIFACTS_FORMAT.format(uuid)

@@ -5,6 +5,7 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.core.serializers.json
 import django.core.validators
+import django.db.models.deletion
 import django.utils.timezone
 
 from django.conf import settings
@@ -350,8 +351,8 @@ class Migration(migrations.Migration):
                 ("readme", models.TextField(blank=True, null=True)),
                 ("started_at", models.DateTimeField(blank=True, null=True)),
                 ("finished_at", models.DateTimeField(blank=True, null=True)),
-                ("wait_time", models.IntegerField(blank=True, null=True)),
-                ("duration", models.IntegerField(blank=True, null=True)),
+                ("wait_time", models.FloatField(blank=True, null=True)),
+                ("duration", models.FloatField(blank=True, null=True)),
                 (
                     "schedule_at",
                     models.DateTimeField(blank=True, db_index=True, null=True),
@@ -609,6 +610,7 @@ class Migration(migrations.Migration):
                             ("run", "run"),
                             ("tb", "tb"),
                             ("build", "build"),
+                            ("manual", "manual"),
                         ],
                         db_index=True,
                         max_length=6,

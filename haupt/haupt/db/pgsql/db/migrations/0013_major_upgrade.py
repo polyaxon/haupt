@@ -252,6 +252,7 @@ class Migration(migrations.Migration):
                             ("run", "run"),
                             ("tb", "tb"),
                             ("build", "build"),
+                            ("manual", "manual"),
                         ],
                         db_index=True,
                         max_length=6,

@@ -140,4 +140,14 @@ class Migration(migrations.Migration):
                 to="db.projectstats",
             ),
         ),
+        migrations.AlterField(
+            model_name="run",
+            name="duration",
+            field=models.FloatField(blank=True, null=True),
+        ),
+        migrations.AlterField(
+            model_name="run",
+            name="wait_time",
+            field=models.FloatField(blank=True, null=True),
+        ),
     ]
