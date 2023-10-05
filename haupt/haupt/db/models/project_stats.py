@@ -9,5 +9,4 @@ class ProjectStats(StatsModel):
     )
 
     class Meta(StatsModel.Meta):
-        app_label = "db"
         db_table = "db_projectstats"

@@ -15,6 +15,8 @@ class BaseBookmark(DiffModel):
 
     class Meta:
         abstract = True
+        app_label = "db"
+        db_table = "db_bookmark"
         verbose_name = "bookmark"
         verbose_name_plural = "bookmarks"
 

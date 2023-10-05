@@ -110,6 +110,8 @@ class BaseRun(
 
     class Meta:
         abstract = True
+        app_label = "db"
+        db_table = "db_run"
         indexes = [models.Index(fields=["name"])]
 
     @property

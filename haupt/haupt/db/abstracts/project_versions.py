@@ -41,4 +41,6 @@ class BaseProjectVersion(
 
     class Meta(BaseCatalog.Meta):
         abstract = True
+        app_label = "db"
+        db_table = "db_projectversion"
         unique_together = (("project", "name", "kind"),)

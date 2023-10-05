@@ -18,6 +18,8 @@ class BaseArtifact(DiffModel, StateModel):
 
     class Meta:
         abstract = True
+        app_label = "db"
+        db_table = "db_artifact"
 
 
 class BaseArtifactLineage(DiffModel):
@@ -35,3 +37,6 @@ class BaseArtifactLineage(DiffModel):
 
     class Meta:
         abstract = True
+        app_label = "db"
+        db_table = "db_artifactlineage"
+        unique_together = (("run", "artifact", "is_input"),)

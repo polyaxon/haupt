@@ -43,4 +43,6 @@ class BaseRunEdge(models.Model):
     )
 
     class Meta:
+        app_label = "db"
+        db_table = "db_runedge"
         abstract = True
