@@ -67,6 +67,9 @@ URLS_RUNS_DOWNSTREAM_LINEAGE_LIST = r"^{}/{}/runs/{}/lineage/downstream/?$".form
 URLS_RUNS_CLONES_LINEAGE_LIST = r"^{}/{}/runs/{}/lineage/clones/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
 )
+URLS_RUNS_EDGES_LINEAGE_CREATE = r"^{}/{}/runs/{}/lineage/edges/?$".format(
+    OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
+)
 
 URLS_RUNS_TRANSFER = r"^{}/{}/runs/{}/transfer/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN

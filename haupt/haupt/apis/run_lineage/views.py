@@ -16,9 +16,10 @@ from haupt.common.endpoints.base import (
     CreateEndpoint,
     DestroyEndpoint,
     ListEndpoint,
+    PostEndpoint,
     RetrieveEndpoint,
 )
-from haupt.common.events.registry.run import RUN_NEW_ARTIFACTS
+from haupt.common.events.registry.run import RUN_LINEAGE_ACTOR, RUN_NEW_ARTIFACTS
 from haupt.db.defs import Models
 from haupt.db.queries import artifacts as artifacts_queries
 from haupt.db.query_managers.artifact import ArtifactQueryManager
@@ -50,7 +51,7 @@ class RunArtifactListView(RunResourceListEndpoint, ListEndpoint, CreateEndpoint)
     ordering_proxy_fields = ArtifactQueryManager.FIELDS_ORDERING_PROXY
 
     def create(self, request, *args, **kwargs):
-        return methods.create(view=self, request=request, *args, **kwargs)
+        return methods.set_artifacts(view=self, request=request, *args, **kwargs)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -107,6 +108,19 @@ class RunDownstreamListView(RunEdgeListView):
 
     def enrich_queryset(self, queryset):
         return queryset.filter(upstream=self.run)
+
+
+class SetRunEdgesLineageView(RunResourceListEndpoint, PostEndpoint):
+    ALLOWED_METHODS = ["POST"]
+    AUDITOR_EVENT_TYPES = {"POST": RUN_LINEAGE_ACTOR}
+    PROJECT_RESOURCE_KEY = RUN_UUID_KEY
+    AUDIT_OWNER = True
+    AUDIT_PROJECT = True
+    AUDIT_PROJECT_RESOURCES = True
+    AUDIT_INSTANCE = True
+
+    def create(self, request, *args, **kwargs):
+        return methods.set_edges(view=self, request=request, *args, **kwargs)
 
 
 class RunClonesListView(RunEdgeListView):

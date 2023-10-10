@@ -22,6 +22,9 @@ run_lineages_urlpatterns = [
     re_path(
         runs.URLS_RUNS_DOWNSTREAM_LINEAGE_LIST, views.RunDownstreamListView.as_view()
     ),
+    re_path(
+        runs.URLS_RUNS_EDGES_LINEAGE_CREATE, views.SetRunEdgesLineageView.as_view()
+    ),
     re_path(runs.URLS_RUNS_ARTIFACTS_LINEAGE_LIST, views.RunArtifactListView.as_view()),
     re_path(
         runs.URLS_RUNS_ARTIFACTS_LINEAGE_NAMES, views.RunArtifactNameListView.as_view()

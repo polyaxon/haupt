@@ -17,6 +17,133 @@ from tests.base.case import BaseTest
 
 
 @pytest.mark.lineages_mark
+class TestSetRunEdgesLineageViewV1(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.run = RunFactory(
+            user=self.user,
+            project=self.project,
+            content="test",
+            raw_content="test",
+            managed_by=ManagedBy.AGENT,
+        )
+        self.runs = []
+        obj = RunFactory(
+            user=self.user,
+            project=self.project,
+            name="job",
+            kind=V1RunKind.JOB,
+            runtime=V1RunKind.JOB,
+        )
+        self.runs.append(obj)
+        obj = RunFactory(
+            user=self.user,
+            project=self.project,
+            name="service",
+            kind=V1RunKind.SERVICE,
+            runtime=V1RunKind.SERVICE,
+        )
+        self.runs.append(obj)
+        obj = RunFactory(
+            user=self.user,
+            project=self.project,
+            name="tfjob",
+            kind=V1RunKind.JOB,
+            runtime=V1RunKind.TFJOB,
+        )
+        self.runs.append(obj)
+        self.url = "/{}/{}/{}/runs/{}/lineage/edges/".format(
+            API_V1, self.user.username, self.project.name, self.run.uuid.hex
+        )
+
+    def test_set_edges(self):
+        assert RunEdge.objects.count() == 0
+        data = {
+            "edges": [
+                {
+                    "run": self.runs[0].uuid.hex,
+                    "is_upstream": True,
+                    "values": {"foo": "bar"},
+                },
+                {
+                    "run": self.runs[1].uuid.hex,
+                    "is_upstream": False,
+                    "values": {"foo": "bar"},
+                },
+                {
+                    "run": self.runs[2].uuid.hex,
+                    "is_upstream": True,
+                    "values": {"foo": "bar"},
+                },
+            ]
+        }
+        resp = self.client.post(self.url, data=data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert RunEdge.objects.count() == 3
+        assert RunEdge.objects.filter(downstream=self.run).count() == 2
+        assert RunEdge.objects.filter(upstream=self.run).count() == 1
+        assert set(self.run.upstream_edges.values_list("upstream_id", flat=True)) == {
+            self.runs[0].id,
+            self.runs[2].id,
+        }
+        assert set(
+            self.run.downstream_edges.values_list("downstream_id", flat=True)
+        ) == {self.runs[1].id}
+
+        data = {
+            "edges": [
+                {
+                    "run": self.runs[0].uuid.hex,
+                    "is_upstream": False,
+                    "values": {"foo": "bar"},
+                },
+                {
+                    "run": self.runs[1].uuid.hex,
+                    "is_upstream": True,
+                    "values": {"foo": "bar"},
+                },
+                {
+                    "run": self.runs[2].uuid.hex,
+                    "is_upstream": False,
+                    "values": {"foo": "bar"},
+                },
+            ]
+        }
+        resp = self.client.post(self.url, data=data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert RunEdge.objects.count() == 3
+        assert RunEdge.objects.filter(downstream=self.run).count() == 1
+        assert RunEdge.objects.filter(upstream=self.run).count() == 2
+        assert set(self.run.upstream_edges.values_list("upstream_id", flat=True)) == {
+            self.runs[1].id
+        }
+        assert set(
+            self.run.downstream_edges.values_list("downstream_id", flat=True)
+        ) == {self.runs[0].id, self.runs[2].id}
+
+        data = {}
+        resp = self.client.post(self.url, data=data)
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+        assert RunEdge.objects.count() == 3
+        assert RunEdge.objects.filter(downstream=self.run).count() == 1
+        assert RunEdge.objects.filter(upstream=self.run).count() == 2
+        assert set(self.run.upstream_edges.values_list("upstream_id", flat=True)) == {
+            self.runs[1].id
+        }
+        assert set(
+            self.run.downstream_edges.values_list("downstream_id", flat=True)
+        ) == {self.runs[0].id, self.runs[2].id}
+
+        data = {"edges": []}
+        resp = self.client.post(self.url, data=data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert RunEdge.objects.count() == 0
+        assert RunEdge.objects.filter(upstream=self.run).count() == 0
+        assert RunEdge.objects.filter(downstream=self.run).count() == 0
+
+
+@pytest.mark.lineages_mark
 class BaseRunEdgeListViewV1(BaseTest):
     serializer_class = None
     model_class = RunEdge
