@@ -11,7 +11,11 @@ from haupt.db.defs import Models
 from haupt.db.managers.live_state import archive_run as base_archive_run
 from haupt.db.managers.live_state import restore_run as base_restore_run
 from haupt.db.managers.runs import add_run_contributors, base_approve_run
-from haupt.db.managers.statuses import new_run_status, new_run_stopping_status
+from haupt.db.managers.statuses import (
+    new_run_skipped_status,
+    new_run_status,
+    new_run_stopping_status,
+)
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.schemas import V1StatusCondition
 
@@ -61,6 +65,13 @@ def create_status(view, serializer):
 
 def stop_run(view, request, *args, **kwargs):
     if new_run_stopping_status(run=view.run, message="User requested to stop the run."):
+        add_run_contributors(view.run, users=[request.user])
+        view.audit(request, *args, **kwargs)
+    return Response(status=status.HTTP_200_OK, data={})
+
+
+def skip_run(view, request, *args, **kwargs):
+    if new_run_skipped_status(run=view.run, message="User requested to skip the run."):
         add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})

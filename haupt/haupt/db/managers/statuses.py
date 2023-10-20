@@ -193,3 +193,25 @@ def new_run_stopping_status(run, message) -> bool:
     )
     new_run_status(run=run, condition=condition)
     return True
+
+
+def new_run_skip_status(run, message):
+    # Update run status to show that its stopped
+    message = f"Run is skipped; {message}" if message else "Run is skipped"
+    condition = V1StatusCondition.get_condition(
+        type=V1Statuses.SKIPPED,
+        status="True",
+        reason="StateManager",
+        message=message,
+    )
+    new_run_status(run=run, condition=condition)
+
+
+def new_run_skipped_status(run, message) -> bool:
+    if LifeCycle.is_done(run.status, progressing=True):
+        return False
+
+    if not LifeCycle.is_safe_stoppable(run.status):
+        return False
+    new_run_skip_status(run, message)
+    return True

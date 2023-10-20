@@ -37,6 +37,7 @@ from haupt.db.managers.stats import (
 )
 from haupt.db.managers.statuses import (
     bulk_new_run_status,
+    new_run_skip_status,
     new_run_status,
     new_run_stop_status,
 )
@@ -1026,6 +1027,77 @@ class SchedulingManager:
                     return
             return
         new_run_stop_status(run=run, message=message)
+
+    @classmethod
+    def runs_skip(
+        cls,
+        run_id: int,
+        run: Optional[Models.Run] = None,
+        reason: str = "PipelineSKipped",
+        message: Optional[str] = None,
+    ):
+        run = cls.get_run(run_id=run_id, run=run)
+        if not run:
+            return
+
+        if run.is_managed:
+            if run.is_matrix or run.is_dag or run.is_schedule:
+                dependent_runs = Models.Run.objects.filter(
+                    Q(pipeline_id=run.id) | Q(controller_id=run.id)
+                )
+                if not dependent_runs.exclude(
+                    status__in=LifeCycle.DONE_VALUES
+                ).exists():
+                    new_run_skip_status(run=run, message=None)
+                    return
+                # Set the active ops to stopping
+                active_pipeline_runs = dependent_runs.filter(
+                    status__in=LifeCycle.ON_K8S_VALUES
+                )
+                if active_pipeline_runs:
+                    condition = V1StatusCondition.get_condition(
+                        type=V1Statuses.STOPPING,
+                        status="True",
+                        reason=reason,
+                        message="Pipeline controller requested to stop the run.",
+                    )
+                    bulk_new_run_status(active_pipeline_runs, condition)
+                # Set any dependent pipeline with no pipeline
+                pipeline_pipeline_runs = get_stopping_pipelines_with_no_runs(
+                    dependent_runs
+                )
+                if pipeline_pipeline_runs:
+                    condition = V1StatusCondition.get_condition(
+                        type=V1Statuses.SKIPPED,
+                        status="True",
+                        reason=reason,
+                        message="Pipeline controller requested to skip the run.",
+                    )
+                    bulk_new_run_status(pipeline_pipeline_runs, condition)
+                # Set the non active / non done ops to stopped
+                pipeline_runs = dependent_runs.exclude(
+                    status__in=LifeCycle.ON_K8S_VALUES
+                    | LifeCycle.DONE_VALUES
+                    | {
+                        V1Statuses.STOPPING,
+                    }
+                )
+                if pipeline_runs:
+                    condition = V1StatusCondition.get_condition(
+                        type=V1Statuses.SKIPPED,
+                        status="True",
+                        reason=reason,
+                        message="Pipeline controller requested to skip the run.",
+                    )
+                    bulk_new_run_status(pipeline_runs, condition)
+                # If none of the ops is in the stopping mode we mark the operation as stopped
+                if not dependent_runs.exclude(
+                    status__in=LifeCycle.DONE_VALUES
+                ).exists():
+                    new_run_skip_status(run=run, message=None)
+                    return
+            return
+        new_run_skip_status(run=run, message=message)
 
     @classmethod
     def runs_hooks(cls, run_id: int, run: Optional[Models.Run] = None):

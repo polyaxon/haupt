@@ -28,6 +28,7 @@ class ExecutorService(EventService):
             run.RUN_RESUMED_ACTOR: handlers.handle_run_created,
             run.RUN_APPROVED_ACTOR: handlers.handle_run_approved_triggered,
             run.RUN_STOPPED_ACTOR: handlers.handle_run_stopped_triggered,
+            run.RUN_SKIPPED_ACTOR: handlers.handle_run_skipped_triggered,
             run.RUN_NEW_ARTIFACTS: handlers.handle_new_artifacts,
             run.RUN_DELETED_ACTOR: handlers.handle_run_deleted,
             run.RUN_NEW_STATUS: handlers.handle_run_new_status,

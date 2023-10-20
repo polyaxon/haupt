@@ -775,6 +775,374 @@ class TestStopRunViewV1(BaseTestRunApi):
         assert self.queryset.count() == 1
         assert self.queryset.last().status == V1Statuses.STOPPED
 
+    def test_stop_pipeline_dag_safe_stop(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.DAG
+        last_run.status = V1Statuses.COMPILED
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.COMPILED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.COMPILED
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 4
+        assert self.queryset.last().status == V1Statuses.STOPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPED,
+        }
+
+    def test_stop_pipeline_dag(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.DAG
+        last_run.status = V1Statuses.QUEUED
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.QUEUED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.RUNNING
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 0
+        assert self.queryset.count() == 4
+        assert self.queryset.last().status == V1Statuses.STOPPING
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPING,
+            V1Statuses.STOPPED,
+        }
+
+    def test_stop_pipeline_matrix_safe_stop(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.MATRIX
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.CREATED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.COMPILED
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 4
+        last_run.refresh_from_db()
+        assert last_run.status == V1Statuses.STOPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPED,
+        }
+
+    def test_stop_pipeline_matrix(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.MATRIX
+        last_run.status = V1Statuses.RUNNING
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.RUNNING
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.RUNNING
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 0
+        assert self.queryset.count() == 4
+        last_run.refresh_from_db()
+        assert last_run.status == V1Statuses.STOPPING
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPING,
+            V1Statuses.STOPPED,
+        }
+
+    def test_stop_pipeline_with_matrix_and_no_runs(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.DAG
+        last_run.status = V1Statuses.RUNNING
+        last_run.save()
+        matrix = RunFactory(project=self.project, user=self.user, controller=last_run)
+        matrix.kind = V1RunKind.MATRIX
+        matrix.status = V1Statuses.RUNNING
+        matrix.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 2
+        assert self.queryset.last().status == V1Statuses.STOPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPED,
+        }
+
+
+@pytest.mark.run_mark
+class TestSkipRunViewV1(BaseTestRunApi):
+    def setUp(self):
+        super().setUp()
+        self.url = self.url + "skip/"
+
+    def test_skip_safe_stop(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.save()
+        assert self.queryset.last().status == V1Statuses.CREATED
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert self.queryset.count() == 1
+        assert self.queryset.last().status == V1Statuses.SKIPPED
+
+    def test_skip(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.status = V1Statuses.COMPILED
+        last_run.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert self.queryset.count() == 1
+        assert self.queryset.last().status == V1Statuses.SKIPPED
+
+    def test_skip_unsafe(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.status = V1Statuses.QUEUED
+        last_run.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 0
+        assert self.queryset.count() == 1
+        assert self.queryset.last().status == V1Statuses.QUEUED
+
+    def test_skip_non_managed(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.USER
+        last_run.save()
+        assert self.queryset.last().status == V1Statuses.CREATED
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert self.queryset.count() == 1
+        assert self.queryset.last().status == V1Statuses.SKIPPED
+
+    def test_skip_pipeline_dag_safe_stop(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.DAG
+        last_run.status = V1Statuses.COMPILED
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.COMPILED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.COMPILED
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 4
+        assert self.queryset.last().status == V1Statuses.SKIPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.SKIPPED,
+        }
+
+    def test_skip_pipeline_dag(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.DAG
+        last_run.status = V1Statuses.COMPILED
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.COMPILED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.RUNNING
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert self.queryset.count() == 4
+        assert self.queryset.last().status == V1Statuses.STOPPING
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPING,
+            V1Statuses.SKIPPED,
+        }
+
+    def test_skip_pipeline_matrix_safe_stop(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.MATRIX
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.CREATED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.COMPILED
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 4
+        last_run.refresh_from_db()
+        assert last_run.status == V1Statuses.SKIPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.SKIPPED,
+        }
+
+    def test_skip_pipeline_matrix(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.MATRIX
+        last_run.status = V1Statuses.CREATED
+        last_run.save()
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        RunFactory(
+            project=self.project, user=self.user, pipeline=last_run, controller=last_run
+        )
+        run3 = RunFactory(project=self.project, user=self.user, controller=last_run)
+        assert last_run.status == V1Statuses.CREATED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.CREATED,
+        }
+        run3.status = V1Statuses.RUNNING
+        run3.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 4
+        last_run.refresh_from_db()
+        assert last_run.status == V1Statuses.SKIPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.STOPPING,
+            V1Statuses.SKIPPED,
+        }
+
+    def test_skip_pipeline_with_matrix_and_no_runs(self):
+        assert self.queryset.count() == 1
+        last_run = self.queryset.last()
+        last_run.managed_by = ManagedBy.AGENT
+        last_run.kind = V1RunKind.DAG
+        last_run.status = V1Statuses.COMPILED
+        last_run.save()
+        matrix = RunFactory(project=self.project, user=self.user, controller=last_run)
+        matrix.kind = V1RunKind.MATRIX
+        matrix.status = V1Statuses.COMPILED
+        matrix.save()
+        with patch("haupt.common.workers.send") as workers_send:
+            resp = self.client.post(self.url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert workers_send.call_count == 1
+        assert {c[0][0] for c in workers_send.call_args_list} == {
+            SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
+        }
+        assert self.queryset.count() == 2
+        assert self.queryset.last().status == V1Statuses.SKIPPED
+        assert set(last_run.controller_runs.values_list("status", flat=True)) == {
+            V1Statuses.SKIPPED,
+        }
+
 
 @pytest.mark.run_mark
 class TestApproveRunViewV1(BaseTestRunApi):

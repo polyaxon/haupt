@@ -151,3 +151,12 @@ class TestExecutorHandlers(TestCase):
         )
         APIHandler.handle_run_stopped_triggered(DummyWorkers, event=event)
         assert States.workers is None
+
+    def test_skip_run_handler_managed_run(self):
+        States.workers = None
+        event = MagicMock(
+            data={"id": 1, "managed_by": ManagedBy.AGENT},
+            instance=MagicMock(is_matrix=False, is_dag=False, is_schedule=False),
+        )
+        APIHandler.handle_run_skipped_triggered(DummyWorkers, event=event)
+        assert States.workers is None

@@ -24,6 +24,9 @@ URLS_RUNS_COPY = r"^{}/{}/runs/{}/copy/?$".format(
 URLS_RUNS_STOP = r"^{}/{}/runs/{}/stop/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
 )
+URLS_RUNS_SKIP = r"^{}/{}/runs/{}/skip/?$".format(
+    OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
+)
 URLS_RUNS_APPROVE = r"^{}/{}/runs/{}/approve/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
 )

@@ -24,6 +24,7 @@ class TestExecutorsSubscriptions(TestCase):
             run.RUN_CREATED,
             run.RUN_RESUMED_ACTOR,
             run.RUN_STOPPED_ACTOR,
+            run.RUN_SKIPPED_ACTOR,
             run.RUN_APPROVED_ACTOR,
             run.RUN_DELETED_ACTOR,
             run.RUN_DONE,

@@ -35,6 +35,7 @@ from haupt.common.events.registry.run import (
     RUN_INVALIDATED_ACTOR,
     RUN_RESTARTED_ACTOR,
     RUN_RESUMED_ACTOR,
+    RUN_SKIPPED_ACTOR,
     RUN_STATS_ACTOR,
     RUN_STOPPED_ACTOR,
     RUN_TRANSFERRED_ACTOR,
@@ -195,6 +196,19 @@ class RunStopView(RunEndpoint, CreateEndpoint):
 
     def post(self, request, *args, **kwargs):
         return methods.stop_run(view=self, request=request, *args, **kwargs)
+
+
+class RunSkipView(RunEndpoint, CreateEndpoint):
+    ALLOWED_METHODS = ["POST"]
+    AUDITOR_EVENT_TYPES = {"POST": RUN_SKIPPED_ACTOR}
+    PROJECT_RESOURCE_KEY = RUN_UUID_KEY
+    AUDIT_INSTANCE = True
+    AUDIT_PROJECT_RESOURCES = True
+    AUDIT_PROJECT = True
+    AUDIT_OWNER = True
+
+    def post(self, request, *args, **kwargs):
+        return methods.skip_run(view=self, request=request, *args, **kwargs)
 
 
 class RunApproveView(RunEndpoint, CreateEndpoint):

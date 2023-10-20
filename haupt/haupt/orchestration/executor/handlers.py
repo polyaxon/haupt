@@ -107,6 +107,12 @@ class APIHandler:
         cls.MANAGER.runs_stop(run_id=event.instance_id, run=event.instance)
 
     @classmethod
+    def handle_run_skipped_triggered(
+        cls, workers_backend, event: "Event"
+    ) -> None:  # noqa: F821
+        cls.MANAGER.runs_skip(run_id=event.instance_id, run=event.instance)
+
+    @classmethod
     def handle_run_done(
         cls, workers_backend, event: "Event" = None
     ) -> None:  # noqa: F821
