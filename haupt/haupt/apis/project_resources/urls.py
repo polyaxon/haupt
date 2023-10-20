@@ -24,6 +24,10 @@ projects_urlpatterns = [
         runs_views.ProjectRunsStopView.as_view(),
     ),
     re_path(
+        projects.URLS_PROJECTS_RUNS_SKIP,
+        runs_views.ProjectRunsSkipView.as_view(),
+    ),
+    re_path(
         projects.URLS_PROJECTS_RUNS_APPROVE,
         runs_views.ProjectRunsApproveView.as_view(),
     ),

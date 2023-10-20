@@ -17,6 +17,9 @@ URLS_PROJECTS_RUNS_TAG = r"^{}/{}/runs/tag/?$".format(
 URLS_PROJECTS_RUNS_STOP = r"^{}/{}/runs/stop/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 )
+URLS_PROJECTS_RUNS_SKIP = r"^{}/{}/runs/skip/?$".format(
+    OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
+)
 URLS_PROJECTS_RUNS_APPROVE = r"^{}/{}/runs/approve/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 )

@@ -11,6 +11,8 @@ from haupt.common.events.registry.archive import RUN_ARCHIVED_ACTOR, RUN_RESTORE
 from haupt.common.events.registry.run import (
     RUN_APPROVED_ACTOR,
     RUN_DELETED_ACTOR,
+    RUN_DONE,
+    RUN_SKIPPED_ACTOR,
     RUN_STOPPED_ACTOR,
     RUN_TRANSFERRED_ACTOR,
 )
@@ -46,11 +48,15 @@ def create_runs_tags(view, request, *args, **kwargs):
 
 
 def stop_runs(view, request, actor, *args, **kwargs):
+    # For Audit
+    view.set_owner()
+
     uuids = request.data.get("uuids", [])
     # Immediate stop
     queryset = view.enrich_queryset(Models.Run.restorable)
     queryset = queryset.filter(uuid__in=uuids)
     queryset = queryset.filter(status__in=LifeCycle.SAFE_STOP_VALUES)
+    runs = [r for r in queryset]
     condition = V1StatusCondition.get_condition(
         type=V1Statuses.STOPPED,
         status="True",
@@ -58,6 +64,18 @@ def stop_runs(view, request, actor, *args, **kwargs):
         message="User requested to stop the run.",
     )
     bulk_new_run_status(queryset, condition)
+    # For Audit
+    for run in runs:
+        auditor.record(
+            event_type=RUN_STOPPED_ACTOR,
+            instance=run,
+            actor_id=actor.id,
+            actor_name=actor.username,
+            owner_id=view._owner_id,
+            owner_name=view.owner_name,
+            project_name=view.project_name,
+        )
+        auditor.record(event_type=RUN_DONE, instance=run, previous_status=run.status)
 
     queryset = view.enrich_queryset(Models.Run.restorable)
     queryset = queryset.filter(uuid__in=uuids)
@@ -71,7 +89,6 @@ def stop_runs(view, request, actor, *args, **kwargs):
     )
     bulk_new_run_status(runs, condition)
     # For Audit
-    view.set_owner()
     for run in runs:
         auditor.record(
             event_type=RUN_STOPPED_ACTOR,
@@ -82,6 +99,40 @@ def stop_runs(view, request, actor, *args, **kwargs):
             owner_name=view.owner_name,
             project_name=view.project_name,
         )
+        auditor.record(event_type=RUN_DONE, instance=run, previous_status=run.status)
+
+    return Response(status=status.HTTP_200_OK, data={})
+
+
+def skip_runs(view, request, actor, *args, **kwargs):
+    # For Audit
+    view.set_owner()
+
+    uuids = request.data.get("uuids", [])
+    # Immediate stop
+    queryset = view.enrich_queryset(Models.Run.restorable)
+    queryset = queryset.filter(uuid__in=uuids)
+    queryset = queryset.filter(status__in=LifeCycle.SAFE_STOP_VALUES)
+    runs = [r for r in queryset]
+    condition = V1StatusCondition.get_condition(
+        type=V1Statuses.SKIPPED,
+        status="True",
+        reason="EventHandler",
+        message="User requested to skip the run.",
+    )
+    bulk_new_run_status(queryset, condition)
+    # For Audit
+    for run in runs:
+        auditor.record(
+            event_type=RUN_SKIPPED_ACTOR,
+            instance=run,
+            actor_id=actor.id,
+            actor_name=actor.username,
+            owner_id=view._owner_id,
+            owner_name=view.owner_name,
+            project_name=view.project_name,
+        )
+        auditor.record(event_type=RUN_DONE, instance=run, previous_status=run.status)
 
     return Response(status=status.HTTP_200_OK, data={})
 

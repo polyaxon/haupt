@@ -47,6 +47,15 @@ class ProjectRunsStopView(ProjectResourceListEndpoint, PostEndpoint):
         )
 
 
+class ProjectRunsSkipView(ProjectResourceListEndpoint, PostEndpoint):
+    ALLOWED_METHODS = ["POST"]
+
+    def post(self, request, *args, **kwargs):
+        return methods.skip_runs(
+            view=self, request=request, actor=request.user, *args, **kwargs
+        )
+
+
 class ProjectRunsApproveView(ProjectResourceListEndpoint, PostEndpoint):
     ALLOWED_METHODS = ["POST"]
 

@@ -215,7 +215,7 @@ class TestProjectRunsStopViewV1(BaseTest):
             V1Statuses.RUNNING,
         }
 
-        assert auditor_record.call_count == 2
+        assert auditor_record.call_count == 4
 
     @patch("haupt.common.workers.send")
     def test_safe_stop(self, _):
@@ -238,7 +238,64 @@ class TestProjectRunsStopViewV1(BaseTest):
             V1Statuses.CREATED,
         }
 
-        assert auditor_record.call_count == 1
+        assert auditor_record.call_count == 4
+
+
+@pytest.mark.projects_resources_mark
+class TestProjectRunsSkipViewV1(BaseTest):
+    model_class = Run
+    factory_class = RunFactory
+
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.objects = [
+            self.factory_class(project=self.project, user=self.user) for _ in range(4)
+        ]
+        self.url = "/{}/{}/{}/runs/skip/".format(
+            API_V1, self.user.username, self.project.name
+        )
+
+    @patch("haupt.common.workers.send")
+    def test_skip(self, _):
+        for obj in self.objects:
+            obj.status = V1Statuses.COMPILED
+            obj.save()
+        data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
+        assert set(Run.objects.only("status").values_list("status", flat=True)) == {
+            V1Statuses.COMPILED
+        }
+        with patch("haupt.common.auditor.record") as auditor_record:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert set(Run.objects.only("status").values_list("status", flat=True)) == {
+            V1Statuses.SKIPPED,
+            V1Statuses.COMPILED,
+        }
+
+        assert auditor_record.call_count == 4
+
+    @patch("haupt.common.workers.send")
+    def test_safe_skip(self, _):
+        self.objects[0].status = V1Statuses.ON_SCHEDULE
+        self.objects[0].save()
+        self.objects[1].status = V1Statuses.COMPILED
+        self.objects[1].save()
+        data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
+        assert set(Run.objects.only("status").values_list("status", flat=True)) == {
+            V1Statuses.ON_SCHEDULE,
+            V1Statuses.COMPILED,
+            V1Statuses.CREATED,
+        }
+        with patch("haupt.common.auditor.record") as auditor_record:
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        assert set(Run.objects.only("status").values_list("status", flat=True)) == {
+            V1Statuses.SKIPPED,
+            V1Statuses.CREATED,
+        }
+
+        assert auditor_record.call_count == 4
 
 
 @pytest.mark.projects_resources_mark
