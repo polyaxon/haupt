@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from django.db.models import Q
 
+from haupt.common.authentication.base import is_normal_user
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import archive_run as base_archive_run
 from haupt.db.managers.live_state import restore_run as base_restore_run
@@ -57,21 +58,54 @@ def create_status(view, serializer):
     condition = None
     if validated_data.get("condition"):
         condition = V1StatusCondition.get_condition(**validated_data.get("condition"))
-    if condition:
-        new_run_status(
-            run=view.run, condition=condition, force=validated_data.get("force", False)
-        )
+    if not condition:
+        return
+    if settings.HAS_ORG_MANAGEMENT and is_normal_user(view.request.user):
+        status_meta_info = {
+            "user": {
+                "username": view.request.user.username,
+                "email": view.request.user.email,
+            },
+        }
+        condition.meta_info = status_meta_info
+    new_run_status(
+        run=view.run, condition=condition, force=validated_data.get("force", False)
+    )
 
 
 def stop_run(view, request, *args, **kwargs):
-    if new_run_stopping_status(run=view.run, message="User requested to stop the run."):
+    status_meta_info = None
+    if settings.HAS_ORG_MANAGEMENT and is_normal_user(request.user):
+        status_meta_info = {
+            "user": {
+                "username": view.request.user.username,
+                "email": view.request.user.email,
+            },
+        }
+    if new_run_stopping_status(
+        run=view.run,
+        message="User requested to stop the run.",
+        meta_info=status_meta_info,
+    ):
         add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def skip_run(view, request, *args, **kwargs):
-    if new_run_skipped_status(run=view.run, message="User requested to skip the run."):
+    status_meta_info = None
+    if settings.HAS_ORG_MANAGEMENT and is_normal_user(request.user):
+        status_meta_info = {
+            "user": {
+                "username": view.request.user.username,
+                "email": view.request.user.email,
+            },
+        }
+    if new_run_skipped_status(
+        run=view.run,
+        message="User requested to skip the run.",
+        meta_info=status_meta_info,
+    ):
         add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})

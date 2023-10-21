@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from clipped.utils.lists import to_list
 
@@ -165,7 +165,9 @@ def new_run_status(
         )
 
 
-def new_run_stop_status(run, message):
+def new_run_stop_status(
+    run: Models.Run, message: str, meta_info: Optional[Dict] = None
+):
     # Update run status to show that its stopped
     message = f"Run is stopped; {message}" if message else "Run is stopped"
     condition = V1StatusCondition.get_condition(
@@ -173,16 +175,19 @@ def new_run_stop_status(run, message):
         status="True",
         reason="StateManager",
         message=message,
+        meta_info=meta_info,
     )
     new_run_status(run=run, condition=condition)
 
 
-def new_run_stopping_status(run, message) -> bool:
+def new_run_stopping_status(
+    run: Models.Run, message: str, meta_info: Optional[Dict] = None
+) -> bool:
     if LifeCycle.is_done(run.status, progressing=True):
         return False
 
     if LifeCycle.is_safe_stoppable(run.status):
-        new_run_stop_status(run, message)
+        new_run_stop_status(run, message, meta_info=meta_info)
         return True
     message = f"Run is stopping; {message}" if message else "Run is stopping"
     condition = V1StatusCondition.get_condition(
@@ -190,12 +195,15 @@ def new_run_stopping_status(run, message) -> bool:
         status="True",
         reason="StateManager",
         message=message,
+        meta_info=meta_info,
     )
     new_run_status(run=run, condition=condition)
     return True
 
 
-def new_run_skip_status(run, message):
+def new_run_skip_status(
+    run: Models.Run, message: str, meta_info: Optional[Dict] = None
+):
     # Update run status to show that its stopped
     message = f"Run is skipped; {message}" if message else "Run is skipped"
     condition = V1StatusCondition.get_condition(
@@ -203,15 +211,18 @@ def new_run_skip_status(run, message):
         status="True",
         reason="StateManager",
         message=message,
+        meta_info=meta_info,
     )
     new_run_status(run=run, condition=condition)
 
 
-def new_run_skipped_status(run, message) -> bool:
+def new_run_skipped_status(
+    run: Models.Run, message: str, meta_info: Optional[Dict] = None
+) -> bool:
     if LifeCycle.is_done(run.status, progressing=True):
         return False
 
     if not LifeCycle.is_safe_stoppable(run.status):
         return False
-    new_run_skip_status(run, message)
+    new_run_skip_status(run, message, meta_info)
     return True

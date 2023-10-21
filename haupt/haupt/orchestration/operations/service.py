@@ -376,6 +376,7 @@ class OperationsService(Service):
         **kwargs,
     ):
         meta_info = kwargs.pop("meta_info", {}) or {}
+        status_meta_info = kwargs.pop("status_meta_info", None)
         recompile = meta_info.pop(META_RECOMPILE, False)
         if recompile:
             op_spec = V1Operation.read(content)
@@ -406,14 +407,17 @@ class OperationsService(Service):
         run.tags = instance.tags
         run.params = instance.params
         run.save()
+        status_condition = V1StatusCondition.get_condition(
+            type=V1Statuses.RESUMING,
+            status=True,
+            reason="ResumeManager",
+            message=message,
+        )
+        if status_meta_info:
+            status_condition.meta_info = status_meta_info
         new_run_status(
             run,
-            condition=V1StatusCondition.get_condition(
-                type=V1Statuses.RESUMING,
-                status=True,
-                reason="ResumeManager",
-                message=message,
-            ),
+            condition=status_condition,
             force=True,
         )
         return run

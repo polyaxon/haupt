@@ -6,6 +6,7 @@ from django.conf import settings
 
 from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.common import auditor
+from haupt.common.authentication.base import is_normal_user
 from haupt.common.content_types import ContentTypes
 from haupt.common.events.registry.archive import RUN_ARCHIVED_ACTOR, RUN_RESTORED_ACTOR
 from haupt.common.events.registry.run import (
@@ -63,6 +64,11 @@ def stop_runs(view, request, actor, *args, **kwargs):
         reason="EventHandler",
         message="User requested to stop the run.",
     )
+    if settings.HAS_ORG_MANAGEMENT and is_normal_user(actor):
+        status_meta_info = {
+            "user": {"username": actor.username, "email": actor.email},
+        }
+        condition.meta_info = status_meta_info
     bulk_new_run_status(queryset, condition)
     # For Audit
     for run in runs:
@@ -87,6 +93,11 @@ def stop_runs(view, request, actor, *args, **kwargs):
         reason="EventHandler",
         message="User requested to stop the run.",
     )
+    if settings.HAS_ORG_MANAGEMENT and is_normal_user(actor):
+        status_meta_info = {
+            "user": {"username": actor.username, "email": actor.email},
+        }
+        condition.meta_info = status_meta_info
     bulk_new_run_status(runs, condition)
     # For Audit
     for run in runs:
@@ -120,6 +131,11 @@ def skip_runs(view, request, actor, *args, **kwargs):
         reason="EventHandler",
         message="User requested to skip the run.",
     )
+    if settings.HAS_ORG_MANAGEMENT and is_normal_user(actor):
+        status_meta_info = {
+            "user": {"username": actor.username, "email": actor.email},
+        }
+        condition.meta_info = status_meta_info
     bulk_new_run_status(queryset, condition)
     # For Audit
     for run in runs:
