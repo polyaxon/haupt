@@ -1,6 +1,7 @@
 from typing import Dict, Optional, Set, Union
 
 from clipped.utils.bools import to_bool
+from clipped.utils.json import orjson_loads
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -164,7 +165,7 @@ async def get_run_importance_correlation(
     methods: Optional[Dict] = None,
 ) -> UJSONResponse:
     validate_methods(request, methods)
-    body = await request.json()
+    body = orjson_loads(request.body)
     data = body.get("data")
     data = data or {}
     params = data.get("params")
