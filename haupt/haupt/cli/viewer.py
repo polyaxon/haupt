@@ -72,7 +72,7 @@ def sanitize_server_config(server_config: Optional[Dict] = None) -> Dict:
 )
 @click.option(
     "--path",
-    help="The service host.",
+    help="The sandbox root path.",
 )
 @click.option(
     "--uds",

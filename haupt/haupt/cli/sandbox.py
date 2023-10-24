@@ -26,7 +26,7 @@ import click
 )
 @click.option(
     "--path",
-    help="The service host.",
+    help="The sandbox root path.",
 )
 @click.option(
     "--uds",

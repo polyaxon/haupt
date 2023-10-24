@@ -21,17 +21,16 @@ def set_proxies_config():
 
 def set_sandbox_config(path: Optional[str] = None):
     from haupt.managers.sandbox import SandboxConfigManager
-    from polyaxon._contexts.paths import mount_sandbox
     from polyaxon.settings import HOME_CONFIG, set_agent_config
 
     SandboxConfigManager.set_config_path(HOME_CONFIG.path)
-    mount_sandbox(path=path)
     PolyaxonServices.set_service_name(PolyaxonServices.SANDBOX)
 
     global SANDBOX_CONFIG
 
     try:
         SANDBOX_CONFIG = SandboxConfigManager.get_config_or_default()
+        SANDBOX_CONFIG.mount_sandbox(path=path)
         set_agent_config(SANDBOX_CONFIG)
     except (TypeError, ValidationError):
         SandboxConfigManager.purge()

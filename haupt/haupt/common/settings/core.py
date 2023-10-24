@@ -1,3 +1,4 @@
+from haupt import settings
 from haupt.schemas.platform_config import PlatformConfig
 
 
@@ -39,7 +40,11 @@ def set_core(context, config: PlatformConfig, use_db: bool = True):
         context["DEFAULT_DB_ENGINE"] = db_engine
         db_name = config.db_name
         if not db_name:
-            db_name = "/tmp/plxdb" if config.is_sqlite_db_engine else "polyaxon"
+            db_name = (
+                f"{settings.SANDBOX_CONFIG.root_path}/plxdb"
+                if config.is_sqlite_db_engine
+                else "polyaxon"
+            )
         db_definition = {
             "ENGINE": db_engine,
             "NAME": db_name,
