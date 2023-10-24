@@ -17,7 +17,6 @@ class SandboxConfigManager(ConfigManager):
 
         config = cls._CONFIG_READER.read_configs(config_paths)
         config = cls.CONFIG.from_dict(config.data)
-        config.set_default_artifacts_store()
         return config
 
     @classmethod

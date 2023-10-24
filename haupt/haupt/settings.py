@@ -31,6 +31,7 @@ def set_sandbox_config(path: Optional[str] = None):
     try:
         SANDBOX_CONFIG = SandboxConfigManager.get_config_or_default()
         SANDBOX_CONFIG.mount_sandbox(path=path)
+        SANDBOX_CONFIG.set_default_artifacts_store()
         set_agent_config(SANDBOX_CONFIG)
     except (TypeError, ValidationError):
         SandboxConfigManager.purge()

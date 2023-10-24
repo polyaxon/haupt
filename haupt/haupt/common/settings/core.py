@@ -41,7 +41,7 @@ def set_core(context, config: PlatformConfig, use_db: bool = True):
         db_name = config.db_name
         if not db_name:
             db_name = (
-                f"{settings.SANDBOX_CONFIG.root_path}/plxdb"
+                f"{settings.SANDBOX_CONFIG.path}/plxdb"
                 if config.is_sqlite_db_engine
                 else "polyaxon"
             )

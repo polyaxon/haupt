@@ -30,7 +30,7 @@ class SandboxConfig(AgentConfig):
     workers: Optional[StrictInt] = Field(alias=ENV_KEYS_SANDBOX_WORKERS)
     per_core: Optional[bool] = Field(alias=ENV_KEYS_SANDBOX_PER_CORE)
     is_local: Optional[bool] = Field(alias=ENV_KEYS_SANDBOX_IS_LOCAL)
-    root_path: Optional[StrictStr] = Field(alias=ENV_KEYS_SANDBOX_ROOT)
+    path: Optional[StrictStr] = Field(alias=ENV_KEYS_SANDBOX_ROOT)
 
     def __init__(
         self,
@@ -67,4 +67,4 @@ class SandboxConfig(AgentConfig):
     def mount_sandbox(self, path: Optional[str] = None):
         from polyaxon._contexts.paths import mount_sandbox
 
-        self.root_path = mount_sandbox(path=self.root_path or path)
+        self.path = mount_sandbox(path=self.path or path)
