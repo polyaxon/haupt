@@ -1,4 +1,5 @@
 from clipped.decorators.signals import ignore_raw, ignore_updates_pre
+from clipped.utils.enums import get_enum_value
 
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
@@ -19,7 +20,7 @@ def artifact_version_created(sender, instance=None, created=False, **kwargs):
             type=V1Stages.TESTING,
             status="True",
             reason="{}VersionCreated".format(instance.kind.capitalize()),
-            message="A new {} version is created".format(instance.kind),
+            message="A new {} version is created".format(get_enum_value(instance.kind)),
         ).to_dict()
     ]
 
