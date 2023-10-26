@@ -169,6 +169,7 @@ class Migration(migrations.Migration):
                             ("markdown", "markdown"),
                             ("system", "system"),
                             ("artifact", "artifact"),
+                            ("span", "span"),
                         ],
                         db_index=True,
                         max_length=12,
