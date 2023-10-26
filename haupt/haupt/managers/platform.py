@@ -14,6 +14,7 @@ class PlatformManager(ConfigManager):
     VISIBILITY = ConfigManager.Visibility.GLOBAL
     CONFIG_FILE_NAME = ".platform"
     CONFIG = PlatformConfig
+    PERSIST_FORMAT = "yaml"
 
     @classmethod
     def get_config_from_env(cls, **kwargs) -> PlatformConfig:

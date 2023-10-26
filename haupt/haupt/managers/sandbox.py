@@ -10,6 +10,7 @@ class SandboxConfigManager(ConfigManager):
     VISIBILITY = ConfigManager.Visibility.ALL
     CONFIG_FILE_NAME = ".sandbox"
     CONFIG = SandboxConfig
+    PERSIST_FORMAT = "yaml"
 
     @classmethod
     def get_config_from_env(cls):
