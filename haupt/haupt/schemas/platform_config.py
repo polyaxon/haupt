@@ -53,7 +53,7 @@ class PlatformConfig(BaseSchemaModel):
     logs_root: Optional[str] = Field(
         alias=ENV_KEYS_LOGS_ROOT, default=DEFAULT_LOGS_ROOT
     )
-    log_level: Optional[str] = Field(alias=ENV_KEYS_LOG_LEVEL, default="WARNING")
+    log_level: Optional[str] = Field(alias=ENV_KEYS_LOG_LEVEL, default="INFO")
     timezone: Optional[str] = Field(alias=ENV_KEYS_TIME_ZONE, default="UTC")
     scheduler_enabled: Optional[bool] = Field(
         alias="POLYAXON_SCHEDULER_ENABLED", default=False

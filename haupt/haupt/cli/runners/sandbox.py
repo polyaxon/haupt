@@ -19,7 +19,7 @@ def start(
     uds: Optional[str] = None,
 ):
     os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.API
-    settings.set_sandbox_config(path=ctx_paths.CONTEXT_ARTIFACTS_ROOT)
+    settings.set_sandbox_config(path=ctx_paths.CONTEXT_ARTIFACTS_ROOT, persist=True)
     host = host or settings.SANDBOX_CONFIG.host
     port = port or settings.SANDBOX_CONFIG.port
     start_app(

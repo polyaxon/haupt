@@ -19,7 +19,7 @@ def set_proxies_config():
     PROXIES_CONFIG = ProxiesManager.get_config_from_env()
 
 
-def set_sandbox_config(path: Optional[str] = None):
+def set_sandbox_config(path: Optional[str] = None, persist: bool = False):
     from haupt.managers.sandbox import SandboxConfigManager
     from polyaxon.settings import HOME_CONFIG, set_agent_config
 
@@ -32,7 +32,10 @@ def set_sandbox_config(path: Optional[str] = None):
         SANDBOX_CONFIG = SandboxConfigManager.get_config_or_default()
         SANDBOX_CONFIG.mount_sandbox(path=path)
         SANDBOX_CONFIG.set_default_artifacts_store()
-        set_agent_config(SANDBOX_CONFIG)
+        if persist:
+            SandboxConfigManager.set_config(SANDBOX_CONFIG)
+            set_agent_config(SANDBOX_CONFIG, persist=True)
+
     except (TypeError, ValidationError):
         SandboxConfigManager.purge()
         Printer.warning("Your sandbox configuration was purged!")

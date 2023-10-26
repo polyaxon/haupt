@@ -1,7 +1,10 @@
+import logging
+
 from typing import Optional
 
 from clipped.compact.pydantic import Field, StrictInt, StrictStr, root_validator
 from clipped.utils.http import clean_host
+from clipped.utils.paths import check_or_create_path
 
 from polyaxon._env_vars.keys import (
     ENV_KEYS_K8S_NAMESPACE,
@@ -15,6 +18,8 @@ from polyaxon._env_vars.keys import (
     ENV_KEYS_SANDBOX_WORKERS,
 )
 from polyaxon._schemas.agent import AgentConfig
+
+_logger = logging.getLogger("sandbox.config")
 
 
 class SandboxConfig(AgentConfig):
@@ -68,3 +73,8 @@ class SandboxConfig(AgentConfig):
         from polyaxon._contexts.paths import mount_sandbox
 
         self.path = mount_sandbox(path=self.path or path)
+        try:
+            check_or_create_path(self.path, is_dir=True)
+        except Exception as e:
+            _logger.error("Could not create sandbox path `%s`.", self.path)
+            raise e
