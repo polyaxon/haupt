@@ -26,3 +26,8 @@ class SandboxConfigManager(ConfigManager):
             return cls.get_config_from_env()
 
         return cls.get_config()
+
+    @classmethod
+    def get_db_filepath(cls):
+        path = cls.get_config_filepath()
+        return os.path.dirname(path)

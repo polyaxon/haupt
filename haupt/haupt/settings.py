@@ -3,6 +3,7 @@ from typing import Optional
 from clipped.compact.pydantic import ValidationError
 from clipped.formatting import Printer
 
+from haupt.schemas.sandbox_config import SandboxConfig
 from polyaxon._services.values import PolyaxonServices
 
 PROXIES_CONFIG = None
@@ -19,7 +20,11 @@ def set_proxies_config():
     PROXIES_CONFIG = ProxiesManager.get_config_from_env()
 
 
-def set_sandbox_config(path: Optional[str] = None, persist: bool = False):
+def set_sandbox_config(
+    config: Optional[SandboxConfig] = None,
+    path: Optional[str] = None,
+    persist: bool = False,
+):
     from haupt.managers.sandbox import SandboxConfigManager
     from polyaxon.settings import HOME_CONFIG, set_agent_config
 
@@ -29,8 +34,8 @@ def set_sandbox_config(path: Optional[str] = None, persist: bool = False):
     global SANDBOX_CONFIG
 
     try:
-        SANDBOX_CONFIG = SandboxConfigManager.get_config_or_default()
-        SANDBOX_CONFIG.mount_sandbox(path=path)
+        SANDBOX_CONFIG = config or SandboxConfigManager.get_config_or_default()
+        SANDBOX_CONFIG.mount_sandbox(path=path or HOME_CONFIG.path)
         SANDBOX_CONFIG.set_default_artifacts_store()
         if persist:
             SandboxConfigManager.set_config(SANDBOX_CONFIG)

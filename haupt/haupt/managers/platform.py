@@ -38,9 +38,9 @@ class PlatformManager(ConfigManager):
                 "POLYAXON_CONFIG_ROOT_DIR": root_dir,
             },
             ConfigSpec(
-                platform_config_path, config_type=".json", check_if_exists=False
+                platform_config_path, config_type=".yaml", check_if_exists=False
             ),
-            ConfigSpec(glob_path, config_type=".json", check_if_exists=False),
+            ConfigSpec(glob_path, config_type=".yaml", check_if_exists=False),
         ]
 
         platform_config = cls._CONFIG_READER.read_configs(config_paths)

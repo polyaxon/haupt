@@ -5,7 +5,6 @@ from typing import Optional
 from haupt import settings
 from haupt.cli.runners.base import start_app
 from polyaxon import settings as plx_settings
-from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.keys import ENV_KEYS_SERVICE
 from polyaxon._services.values import PolyaxonServices
 
@@ -19,7 +18,7 @@ def start(
     uds: Optional[str] = None,
 ):
     os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.API
-    settings.set_sandbox_config(path=ctx_paths.CONTEXT_ARTIFACTS_ROOT, persist=True)
+    settings.set_sandbox_config(persist=True)
     host = host or settings.SANDBOX_CONFIG.host
     port = port or settings.SANDBOX_CONFIG.port
     start_app(

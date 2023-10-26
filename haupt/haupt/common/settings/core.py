@@ -1,4 +1,7 @@
+import logging
+
 from haupt import settings
+from haupt.managers.sandbox import SandboxConfigManager
 from haupt.schemas.platform_config import PlatformConfig
 
 
@@ -42,8 +45,8 @@ def set_core(context, config: PlatformConfig, use_db: bool = True):
         if not db_name:
             if config.is_sqlite_db_engine:
                 db_path = (
-                    settings.SANDBOX_CONFIG.path
-                    if settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.path
+                    SandboxConfigManager.get_db_filepath()
+                    if settings.SANDBOX_CONFIG
                     else "/tmp"
                 )
                 db_name = f"{db_path}/plx.db"

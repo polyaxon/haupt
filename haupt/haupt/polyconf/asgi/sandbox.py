@@ -12,7 +12,6 @@ import os
 from django.core.asgi import get_asgi_application
 
 from haupt import settings
-from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
 from polyaxon._services.values import PolyaxonServices
 
@@ -20,5 +19,5 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
 os.environ.setdefault("ASGI_APPLICATION", "haupt.polyconf.asgi.sandbox.application")
 os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.API
 os.environ[ENV_KEYS_UI_IN_SANDBOX] = "true"
-settings.set_sandbox_config(path=ctx_paths.CONTEXT_ARTIFACTS_ROOT)
+settings.set_sandbox_config()
 application = get_asgi_application()

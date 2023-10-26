@@ -5,6 +5,8 @@ from typing import List
 from clipped.formatting import Printer
 
 from haupt.managers.sandbox import SandboxConfigManager
+from haupt.settings import set_sandbox_config
+from polyaxon._cli.config import set_home_path
 from polyaxon._cli.errors import handle_cli_error
 from polyaxon._managers.home import HomeConfigManager
 
@@ -49,12 +51,13 @@ def set(**kwargs):  # pylint:disable=redefined-builtin
         sys.exit(1)
 
     for key, value in kwargs.items():
-        if key == "host" and value is not None:
-            should_purge = True
         if value is not None:
-            setattr(_config, key, value)
+            if key == "path":
+                set_home_path(home_path=value)
+            else:
+                setattr(_config, key, value)
 
-    SandboxConfigManager.set_config(_config)
+    set_sandbox_config(_config, persist=True)
     Printer.success("Config was updated.")
 
 

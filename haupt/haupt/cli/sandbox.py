@@ -50,10 +50,10 @@ def start(
 ):
     """Start a new sandbox session."""
     from haupt.cli.runners.sandbox import start
-    from polyaxon._env_vars.keys import ENV_KEYS_SANDBOX_ROOT
+    from polyaxon._cli.config import set_home_path
 
-    if path:
-        os.environ[ENV_KEYS_SANDBOX_ROOT] = path
+    path = path or "."
+    set_home_path(home_path=path)
 
     return start(host=host, port=port, workers=workers, per_core=per_core, uds=uds)
 
