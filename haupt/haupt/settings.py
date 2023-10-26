@@ -34,7 +34,7 @@ def set_sandbox_config(path: Optional[str] = None, persist: bool = False):
         SANDBOX_CONFIG.set_default_artifacts_store()
         if persist:
             SandboxConfigManager.set_config(SANDBOX_CONFIG)
-            set_agent_config(SANDBOX_CONFIG, persist=True)
+        set_agent_config(SANDBOX_CONFIG, persist=persist)
 
     except (TypeError, ValidationError):
         SandboxConfigManager.purge()
