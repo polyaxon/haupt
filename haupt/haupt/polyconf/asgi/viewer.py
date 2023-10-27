@@ -6,7 +6,7 @@ It exposes the ASGI callable as a module-level variable named ``application``.
 For more information on this file, see
 https://docs.djangoproject.com/en/4.1/howto/deployment/asgi/
 """
-
+import logging
 import os
 
 from django.core.asgi import get_asgi_application
@@ -26,7 +26,9 @@ os.environ.setdefault("ASGI_APPLICATION", "haupt.polyconf.asgi.viewer.applicatio
 os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.STREAMS
 os.environ[ENV_KEYS_SERVICE_MODE] = PolyaxonServices.VIEWER
 os.environ[ENV_KEYS_UI_IN_SANDBOX] = "true"
+logging.warning(os.environ.get(ENV_KEYS_SANDBOX_ROOT, ctx_paths.CONTEXT_OFFLINE_ROOT))
 settings.set_sandbox_config(
-    path=os.environ.get(ENV_KEYS_SANDBOX_ROOT, ctx_paths.CONTEXT_OFFLINE_ROOT)
+    path=os.environ.get(ENV_KEYS_SANDBOX_ROOT, ctx_paths.CONTEXT_OFFLINE_ROOT),
+    env_only_config=True,
 )
 application = get_asgi_application()

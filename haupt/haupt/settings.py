@@ -24,6 +24,7 @@ def set_sandbox_config(
     config: Optional[SandboxConfig] = None,
     path: Optional[str] = None,
     persist: bool = False,
+    env_only_config: bool = True,
 ):
     from haupt.managers.sandbox import SandboxConfigManager
     from polyaxon.settings import HOME_CONFIG, set_agent_config
@@ -34,7 +35,11 @@ def set_sandbox_config(
     global SANDBOX_CONFIG
 
     try:
-        SANDBOX_CONFIG = config or SandboxConfigManager.get_config_or_default()
+        SANDBOX_CONFIG = (
+            config or SandboxConfigManager.get_config_from_env()
+            if env_only_config
+            else SandboxConfigManager.get_config_or_default()
+        )
         SANDBOX_CONFIG.mount_sandbox(path=path or HOME_CONFIG.path)
         SANDBOX_CONFIG.set_default_artifacts_store()
         if persist:
