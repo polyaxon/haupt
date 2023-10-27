@@ -8,12 +8,12 @@ from haupt.streams.endpoints.auth_request import auth_request_routes
 from haupt.streams.endpoints.base import base_health_route
 from haupt.streams.endpoints.events import events_routes
 from haupt.streams.endpoints.k8s import k8s_routes
-from haupt.streams.endpoints.local_sandbox import local_sandbox_routes
 from haupt.streams.endpoints.logs import internal_logs_routes, logs_routes
 from haupt.streams.endpoints.notifications import notifications_routes
+from haupt.streams.endpoints.viewer import viewer_routes
 from polyaxon.api import API_V1, AUTH_REQUEST_V1, INTERNAL_V1, STREAMS_V1
 
-sandbox_is_local = settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.is_local
+is_viewer = settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.is_viewer
 
 streams_routes = (
     logs_routes + k8s_routes + notifications_routes + artifacts_routes + events_routes
@@ -21,11 +21,11 @@ streams_routes = (
 
 app_urlpatterns = []
 
-if sandbox_is_local:
+if is_viewer:
     app_urlpatterns += [
         re_path(
             r"^{}/".format(API_V1),
-            include((local_sandbox_routes, "local-v1"), namespace="local-v1"),
+            include((viewer_routes, "local-v1"), namespace="local-v1"),
         ),
     ]
 
@@ -46,7 +46,7 @@ app_urlpatterns += [
 ]
 
 # UI
-if sandbox_is_local:
+if is_viewer:
     projects_urls = "{}/{}".format(OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN)
     orgs_urls = "orgs/{}".format(OWNER_NAME_PATTERN)
     ui_urlpatterns = [

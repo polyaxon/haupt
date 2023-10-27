@@ -136,7 +136,7 @@ URLS_PROJECTS_LIST = "<str:owner>/projects/list"
 URLS_PROJECTS_DETAILS = "<str:owner>/<str:project>/"
 
 # fmt: off
-local_sandbox_routes = [
+viewer_routes = [
     path(
         URLS_RUNS_DETAILS,
         get_run_details,

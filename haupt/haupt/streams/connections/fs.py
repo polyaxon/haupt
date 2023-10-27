@@ -5,9 +5,10 @@ from typing import Optional
 from polyaxon._connections import CONNECTION_CONFIG
 from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.getters import get_artifacts_store_name
-from polyaxon._env_vars.keys import ENV_KEYS_SANDBOX_IS_LOCAL
+from polyaxon._env_vars.keys import ENV_KEYS_SERVICE_MODE
 from polyaxon._fs.fs import close_fs, get_async_fs_from_connection, get_default_fs
 from polyaxon._fs.types import FSSystem
+from polyaxon._services import PolyaxonServices
 
 
 class AppFS:
@@ -36,7 +37,10 @@ class AppFS:
 
     @classmethod
     async def get_fs(cls, connection: Optional[str] = None) -> FSSystem:
-        if not connection or os.environ.get(ENV_KEYS_SANDBOX_IS_LOCAL):
+        if (
+            not connection
+            or os.environ.get(ENV_KEYS_SERVICE_MODE) == PolyaxonServices.VIEWER
+        ):
             connection = get_artifacts_store_name()
         fs = cls._connections.get(connection)
         if not fs:

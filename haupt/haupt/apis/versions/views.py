@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 
+from haupt import settings
 from haupt.common import conf
 from haupt.common.apis.regex import INSTALLATION_KEY, NAME_KEY, VERSION_KEY
 from haupt.common.endpoints.base import BaseEndpoint, RetrieveEndpoint
@@ -22,6 +23,8 @@ class VersionsInstalledView(BaseEndpoint, RetrieveEndpoint):
             "version": conf.get(PLATFORM_VERSION),
             "dist": conf.get(PLATFORM_DIST),
         }
+        if settings.SANDBOX_CONFIG:
+            data["mode"] = settings.SANDBOX_CONFIG.mode
         return Response(data)
 
 
