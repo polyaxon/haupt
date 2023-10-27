@@ -38,9 +38,13 @@ def start_app(
     else:
         workers = workers or get_core_workers(per_core=2, max_workers=max_workers)
 
+    dashboard_url = os.environ.get("POLYAXON_DASHBOARD_URL", f"http://{host}:{port}")
     _logger.info(
-        "{app_name} is running on http://{host}:{port} in process {pid} with {workers} workers".format(
-            app_name=app_name, host=host, port=port, pid=os.getpid(), workers=workers
+        "{app_name} is running on {dashboard_url} in process {pid} with {workers} workers".format(
+            app_name=app_name,
+            dashboard_url=dashboard_url,
+            pid=os.getpid(),
+            workers=workers,
         )
     )
     if use_cron:

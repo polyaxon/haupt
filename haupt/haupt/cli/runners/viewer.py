@@ -22,7 +22,7 @@ def start(
     path: Optional[str] = None,
 ):
     port = port or os.environ.get(ENV_KEYS_PROXY_STREAMS_TARGET_PORT)
-    path = path or ctx_paths.CONTEXT_ARTIFACTS_ROOT
+    path = path or ctx_paths.CONTEXT_OFFLINE_ROOT
     settings.set_sandbox_config(path=path)
     os.environ[ENV_KEYS_SANDBOX_ROOT] = path
     start_app(
