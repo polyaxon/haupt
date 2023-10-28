@@ -1,15 +1,9 @@
 from rest_framework import status
 from rest_framework.response import Response
 
-from haupt import settings
-from haupt.common import conf
 from haupt.common.apis.regex import INSTALLATION_KEY, NAME_KEY, VERSION_KEY
+from haupt.common.apis.version import get_version
 from haupt.common.endpoints.base import BaseEndpoint, RetrieveEndpoint
-from haupt.common.options.registry.installation import (
-    ORGANIZATION_KEY,
-    PLATFORM_DIST,
-    PLATFORM_VERSION,
-)
 from haupt.db.managers.dummy_key import get_dummy_key
 from polyaxon._cli.session import get_compatibility
 
@@ -18,14 +12,10 @@ class VersionsInstalledView(BaseEndpoint, RetrieveEndpoint):
     ALLOWED_METHODS = ["GET"]
 
     def retrieve(self, request, *args, **kwargs):
-        data = {
-            "key": conf.get(ORGANIZATION_KEY) or get_dummy_key(),
-            "version": conf.get(PLATFORM_VERSION),
-            "dist": conf.get(PLATFORM_DIST),
-        }
-        if settings.SANDBOX_CONFIG:
-            data["mode"] = settings.SANDBOX_CONFIG.mode
-        return Response(data)
+        data = get_version()
+        if not data["key"]:
+            data["key"] = get_dummy_key()
+        return Response(get_version())
 
 
 class VersionsCompatibilityView(BaseEndpoint, RetrieveEndpoint):

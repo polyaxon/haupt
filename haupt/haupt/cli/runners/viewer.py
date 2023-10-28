@@ -25,6 +25,8 @@ def start(
     path = path or ctx_paths.CONTEXT_OFFLINE_ROOT
     os.environ[ENV_KEYS_SANDBOX_ROOT] = path
     settings.set_sandbox_config(path=path, env_only_config=True)
+    host = host or settings.SANDBOX_CONFIG.host
+    port = port or settings.SANDBOX_CONFIG.port
     start_app(
         app="haupt.polyconf.asgi.viewer:application",
         app_name=PolyaxonServices.STREAMS,

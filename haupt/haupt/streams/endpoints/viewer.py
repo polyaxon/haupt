@@ -6,13 +6,17 @@ from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.http import HttpResponse
-from django.urls import path
+from django.urls import path, re_path
 
 from haupt import settings
+from haupt.common.apis.urls import versions
+from haupt.common.apis.version import get_version
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.endpoints.base import ConfigResponse, UJSONResponse
 from polyaxon._contexts import paths as ctx_paths
 from polyaxon.schemas import V1ProjectFeature
+
+VIEWER_KEY = "b4242c3566df410dacec2299660d1f47"
 
 
 async def get_run_details(
@@ -126,6 +130,16 @@ async def list_projects(
     return ConfigResponse(config_str)
 
 
+async def get_installation_version(
+    request: ASGIRequest, methods: Optional[Dict] = None
+) -> HttpResponse:
+    validate_methods(request, methods)
+    data = get_version()
+    if not data["key"]:
+        data["key"] = VIEWER_KEY
+    return UJSONResponse(get_version())
+
+
 URLS_RUNS_DETAILS = "<str:owner>/<str:project>/runs/<str:run_uuid>/"
 URLS_RUNS_STATUSES = "<str:owner>/<str:project>/runs/<str:run_uuid>/statuses"
 URLS_RUNS_LINEAGE_ARTIFACTS = (
@@ -137,6 +151,12 @@ URLS_PROJECTS_DETAILS = "<str:owner>/<str:project>/"
 
 # fmt: off
 viewer_routes = [
+    re_path(
+        versions.URLS_VERSIONS_INSTALLED,
+        get_installation_version,
+        name="installation_version",
+        kwargs=dict(methods=["GET"]),
+    ),
     path(
         URLS_RUNS_DETAILS,
         get_run_details,
