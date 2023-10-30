@@ -956,6 +956,7 @@ class SchedulingResolver(resolver.BaseResolver):
                 run_config.set_op_component(op_name)
                 op_spec = run_config.get_op_spec_by_name(op_name)
                 update_pipeline_params()
+                meta_info = cls._pass_down_uploaded_artifacts(run=run)
                 runs_by_names[op_name] = operations.init_run(
                     project_id=run.project_id,
                     user_id=run.user_id,
@@ -965,6 +966,7 @@ class SchedulingResolver(resolver.BaseResolver):
                     override=pipeline_override,
                     supported_owners={run.project.owner.name},
                     component_state=component_state,
+                    meta_info=meta_info,
                 )
 
                 # Add events trigger flags
@@ -1160,6 +1162,7 @@ class SchedulingResolver(resolver.BaseResolver):
             content=run.raw_content,
             compiled_operation=compiled_operation,
         )
+        meta_info = cls._pass_down_uploaded_artifacts(run=run)
         schedule_run = operations.init_run(
             project_id=run.project_id,
             user_id=run.user_id,
@@ -1172,13 +1175,26 @@ class SchedulingResolver(resolver.BaseResolver):
             schedule_at=start_at,
             supported_owners={run.project.owner.name},
             component_state=run.component_state,
+            meta_info=meta_info,
         ).instance
         # Create batch runs to avoid sending any signal yet
         Models.Run.objects.bulk_create([schedule_run])
         return True
 
     @staticmethod
+    def _pass_down_uploaded_artifacts(run: BaseRun):
+        run = run.controller if run.controller_id else run
+        meta_info = {}
+        if META_UPLOAD_ARTIFACTS in run.meta_info:
+            meta_info[META_COPY_ARTIFACTS] = V1ArtifactsType(
+                dirs=[run.uuid.hex]
+            ).to_dict()
+            meta_info[META_UPLOAD_ARTIFACTS] = run.meta_info[META_UPLOAD_ARTIFACTS]
+        return meta_info
+
+    @classmethod
     def _get_runs_from_ops(
+        cls,
         run: BaseRun,
         compiled_operation: V1CompiledOperation,
         suggestions: List[Dict],
@@ -1191,12 +1207,7 @@ class SchedulingResolver(resolver.BaseResolver):
         )
 
         date_now = now()
-        meta_info = {}
-        if META_UPLOAD_ARTIFACTS in run.meta_info:
-            meta_info[META_COPY_ARTIFACTS] = V1ArtifactsType(
-                dirs=[run.uuid.hex]
-            ).to_dict()
-            meta_info[META_UPLOAD_ARTIFACTS] = run.meta_info[META_UPLOAD_ARTIFACTS]
+        meta_info = cls._pass_down_uploaded_artifacts(run=run)
         component_state = None
         for op_spec in ops:
             # We make sure that the component state resolves to the correct runs' state

@@ -800,7 +800,9 @@ class SchedulingManager:
         start: bool = True,
         extra_message: Optional[str] = None,
     ):
-        run = cls.get_run(run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH)
+        run = cls.get_run(
+            run_id=run_id, run=run, prefetch=cls.DEFAULT_PREFETCH + ["controller"]
+        )
         if not run:
             return
 
