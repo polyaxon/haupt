@@ -62,6 +62,9 @@ def _process_field(run: BaseRun, field: str):
 
 
 def bulk_create_runs(runs: List[BaseRun], fetch_ids: bool = False):
+    if settings.DB_ENGINE_NAME == "sqlite":
+        Models.Run.objects.bulk_create(runs)
+        return
     inserter = RawBulkInserter(Models.Run, _RUN_FIELDS, fetch_ids=fetch_ids)
     for run in runs:
         inserter.queue_row(*[_process_field(run, i) for i in _RUN_FIELDS])
