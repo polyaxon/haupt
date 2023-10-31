@@ -58,6 +58,7 @@ from polyaxon._polyaxonfile.manager import (
     get_op_from_schedule,
     get_ops_from_suggestions,
 )
+from polyaxon._schemas.lifecycle import ManagedBy
 from polyaxon._utils.fqn_utils import (
     get_project_instance,
     get_run_instance,
@@ -963,10 +964,14 @@ class SchedulingResolver(resolver.BaseResolver):
                     pipeline_id=run.id,
                     op_spec=op_spec,
                     controller_id=run.controller_id or run.id,
+                    managed_by=run.managed_by,
                     override=pipeline_override,
                     supported_owners={run.project.owner.name},
                     component_state=component_state,
                     meta_info=meta_info,
+                )
+                cls._set_pipeline_run_pending_logic(
+                    current_run=runs_by_names[op_name].instance, parent_run=run
                 )
 
                 # Add events trigger flags
@@ -1171,12 +1176,14 @@ class SchedulingResolver(resolver.BaseResolver):
             description=run.description,
             tags=run.tags,
             readme=run.readme,
+            managed_by=run.managed_by,
             op_spec=op_spec,
             schedule_at=start_at,
             supported_owners={run.project.owner.name},
             component_state=run.component_state,
             meta_info=meta_info,
         ).instance
+        cls._set_pipeline_run_pending_logic(current_run=schedule_run, parent_run=run)
         # Create batch runs to avoid sending any signal yet
         Models.Run.objects.bulk_create([schedule_run])
         return True
@@ -1191,6 +1198,12 @@ class SchedulingResolver(resolver.BaseResolver):
             ).to_dict()
             meta_info[META_UPLOAD_ARTIFACTS] = run.meta_info[META_UPLOAD_ARTIFACTS]
         return meta_info
+
+    @staticmethod
+    def _set_pipeline_run_pending_logic(current_run: BaseRun, parent_run: BaseRun):
+        # Add approval for manually managed runs in pipelines
+        if current_run.pending is None and parent_run.managed_by == ManagedBy.CLI:
+            current_run.pending = V1RunPending.APPROVAL
 
     @classmethod
     def _get_runs_from_ops(
@@ -1222,6 +1235,7 @@ class SchedulingResolver(resolver.BaseResolver):
                 description=run.description,
                 tags=run.tags,
                 readme=run.readme,
+                managed_by=run.managed_by,
                 op_spec=op_spec,
                 controller_id=run.controller_id or run.id,
                 iteration=iteration,
@@ -1232,6 +1246,7 @@ class SchedulingResolver(resolver.BaseResolver):
             op_run.uuid = uuid.uuid4().hex
             op_run.created_at = date_now
             op_run.updated_at = date_now
+            cls._set_pipeline_run_pending_logic(current_run=op_run, parent_run=run)
             yield op_run
 
     @classmethod
