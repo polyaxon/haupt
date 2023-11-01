@@ -82,14 +82,12 @@ class FullSettingsMixin:
         artifacts_store = None
         if hasattr(obj, "artifacts_store") and obj.artifacts_store:
             artifacts_store = {"name": obj.artifacts_store.name}
-        tensorboard = None
         if tensorboard:
             tensorboard = {
                 "name": tensorboard.name,
                 "status": tensorboard.status,
                 "uuid": tensorboard.uuid.hex,
             }
-        build = None
         if build:
             build = {
                 "name": build.name,
