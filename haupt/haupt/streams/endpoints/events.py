@@ -161,13 +161,10 @@ async def get_run_importance_correlation(
     namespace: str,
     owner: str,
     project: str,
-    run_uuid: str,
     methods: Optional[Dict] = None,
 ) -> UJSONResponse:
     validate_methods(request, methods)
-    body = orjson_loads(request.body)
-    data = body.get("data")
-    data = data or {}
+    data = orjson_loads(request.body) if request.body else {}
     params = data.get("params")
     metrics = data.get("metrics")
     return UJSONResponse(
@@ -178,15 +175,12 @@ async def get_run_importance_correlation(
 URLS_RUNS_MULTI_EVENTS = (
     "<str:namespace>/<str:owner>/<str:project>/runs/multi/events/<str:event_kind>"
 )
-URLS_RUNS_EVENTS = (
-    "<str:namespace>/<str:owner>/<str:project>/runs/"
-    "<str:run_uuid>/events/<str:event_kind>"
-)
+URLS_RUNS_EVENTS = "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/events/<str:event_kind>"
 URLS_RUNS_RESOURCES = (
-    "<str:namespace>/<str:owner>/<str:project>/runs/" "<str:run_uuid>/resources"
+    "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/resources"
 )
 URLS_RUNS_IMPORTANCE_CORRELATION = (
-    "<str:namespace>/<str:owner>/<str:project>/runs/" "<str:run_uuid>/importance"
+    "<str:namespace>/<str:owner>/<str:project>/runs/multi/importance"
 )
 
 # fmt: off
