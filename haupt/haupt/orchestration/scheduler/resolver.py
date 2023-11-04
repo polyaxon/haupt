@@ -567,12 +567,26 @@ class SchedulingResolver(resolver.BaseResolver):
             ]
             self.params.update(self._resolve_joins())
 
+    def _resolve_matrix_params(self):
+        if self.compiled_operation.matrix:
+            self.apply_params(should_be_resolved=False)
+            self.compiled_operation.matrix = (
+                self.compiled_operation.matrix.__class__.read(
+                    CompiledOperationSpecification.apply_section_contexts(
+                        config=self.compiled_operation,
+                        section=self.compiled_operation.matrix.to_dict(),
+                        param_spec=self.param_spec,
+                    )
+                )
+            )
+
     def resolve_edges(self):
         self._resolve_edges(run=self.run)
 
     def resolve_params(self):
         self.params = self._resolve_params(run=self.run)
         self._resolve_joins_params()
+        self._resolve_matrix_params()
 
     def resolve_io(self):
         if self.compiled_operation.inputs:
