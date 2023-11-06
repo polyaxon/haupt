@@ -13,8 +13,15 @@ from polyaxon._pql.parser import (
 
 
 class ProjectVersionQueryManager(BaseQueryManager):
-    NAME = "artifact_version"
-    FIELDS_PROXY = {"id": "uuid", "uid": "uuid", "teams": "project__teams__name"}
+    NAME = "project_version"
+    FIELDS_USE_NAME = {
+        "project",
+    }
+    FIELDS_PROXY = {
+        "id": "uuid",
+        "uid": "uuid",
+        "teams": "project__teams__name",
+    }
     FIELDS_ORDERING = (
         "created_at",
         "updated_at",
@@ -52,6 +59,8 @@ class ProjectVersionQueryManager(BaseQueryManager):
         "run": parse_value_operation,
         # Teams
         "teams": parse_value_operation,
+        # Projects
+        "project": parse_value_operation,
     }
     CONDITIONS_BY_FIELD = {
         # Uuid
@@ -77,4 +86,6 @@ class ProjectVersionQueryManager(BaseQueryManager):
         "run": ValueCondition,
         # Teams
         "teams": ValueCondition,
+        # Projects
+        "project": ValueCondition,
     }
