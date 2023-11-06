@@ -136,6 +136,12 @@ class TestEventsRegistry(TestCase):
             "run",
             events,
         )
+        self._asser_event(
+            run.RunAlertActorEvent,
+            run.RunLineageActorEvent.get_event_subject(),
+            "run",
+            events,
+        )
         assert events == run.EVENTS
 
     def test_events_actions_runs(self):
@@ -264,6 +270,12 @@ class TestEventsRegistry(TestCase):
             run.RunLineageActorEvent,
             run.RunLineageActorEvent.get_event_action(),
             "lineage",
+            events,
+        )
+        self._asser_event(
+            run.RunAlertActorEvent,
+            run.RunAlertActorEvent.get_event_action(),
+            "alert",
             events,
         )
         assert events == run.EVENTS

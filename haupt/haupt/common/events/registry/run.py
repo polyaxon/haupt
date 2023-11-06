@@ -61,6 +61,9 @@ RUN_STATS_ACTOR = "{}.{}.{}".format(
 RUN_LINEAGE_ACTOR = "{}.{}.{}".format(
     event_subjects.RUN, event_actions.LINEAGE, event_subjects.ACTOR
 )
+RUN_ALERT_ACTOR = "{}.{}.{}".format(
+    event_subjects.RUN, event_actions.ALERT, event_subjects.ACTOR
+)
 
 EVENTS = {
     RUN_CREATED,
@@ -87,6 +90,7 @@ EVENTS = {
     RUN_SKIPPED_ACTOR,
     RUN_STATS_ACTOR,
     RUN_LINEAGE_ACTOR,
+    RUN_ALERT_ACTOR,
 }
 
 
@@ -222,4 +226,9 @@ class RunStatsActorEvent(RunActorEvent):
 
 class RunLineageActorEvent(RunActorEvent):
     event_type = RUN_LINEAGE_ACTOR
+    attributes = PROJECT_RESOURCE_OWNER_ATTRIBUTES
+
+
+class RunAlertActorEvent(RunActorEvent):
+    event_type = RUN_ALERT_ACTOR
     attributes = PROJECT_RESOURCE_OWNER_ATTRIBUTES
