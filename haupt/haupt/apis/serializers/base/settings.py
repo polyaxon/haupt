@@ -28,6 +28,10 @@ class SettingsMixin:
 
 
 class FullSettingsMixin:
+    @staticmethod
+    def _get_artifacts_store(obj):
+        return None
+
     def get_settings(self, obj):
         tensorboard = None
         if obj.kind == V1RunKind.JOB:
@@ -80,8 +84,8 @@ class FullSettingsMixin:
         if hasattr(obj, "queue") and obj.queue:
             queue = {"name": obj.queue.name}
         artifacts_store = None
-        if hasattr(obj, "artifacts_store") and obj.artifacts_store:
-            artifacts_store = {"name": obj.artifacts_store.name}
+        if hasattr(obj, "artifacts_store_id") and obj.artifacts_store_id:
+            artifacts_store = self._get_artifacts_store(obj)
         if tensorboard:
             tensorboard = {
                 "name": tensorboard.name,
