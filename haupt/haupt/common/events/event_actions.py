@@ -51,6 +51,7 @@ GITHUB = "github"
 GITLAB = "gitlab"
 BITBUCKET = "bitbucket"
 GOOGLE = "google"
+SAML = "saml"
 
 
 WRITE_ACTIONS = [

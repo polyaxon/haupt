@@ -278,11 +278,14 @@ class PlatformConfig(BaseSchemaModel):
     auth_google_options: Optional[Dict] = Field(
         alias="POLYAXON_AUTH_GOOGLE_OPTIONS", default={}
     )
-    auth_azure_options: Optional[Dict] = Field(
-        alias="POLYAXON_AUTH_AZURE_OPTIONS", default={}
+    auth_okta_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_OKTA_OPTIONS", default={}
     )
-    auth_saml_options: Optional[Dict] = Field(
-        alias="POLYAXON_AUTH_SAML_OPTIONS", default={}
+    auth_onelogin_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_ONELOGIN_OPTIONS", default={}
+    )
+    auth_azuread_options: Optional[Dict] = Field(
+        alias="POLYAXON_AUTH_AZUREAD_OPTIONS", default={}
     )
     ui_in_sandbox: Optional[bool] = Field(alias=ENV_KEYS_UI_IN_SANDBOX, default=False)
     ui_admin_enabled: Optional[bool] = Field(
@@ -327,8 +330,9 @@ class PlatformConfig(BaseSchemaModel):
         "auth_gitlab_options",
         "auth_bitbucket_options",
         "auth_google_options",
-        "auth_azure_options",
-        "auth_saml_options",
+        "auth_okta_options",
+        "auth_onelogin_options",
+        "auth_azuread_options",
         pre=True,
     )
     def validate_json_fields(cls, v, field: "ModelField"):
