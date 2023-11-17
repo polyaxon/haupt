@@ -54,7 +54,7 @@ def stop_runs(view, request, actor, *args, **kwargs):
 
     uuids = request.data.get("uuids", [])
     # Immediate stop
-    queryset = view.enrich_queryset(Models.Run.restorable)
+    queryset = view.enrich_queryset(Models.Run.all)
     queryset = queryset.filter(uuid__in=uuids)
     queryset = queryset.filter(status__in=LifeCycle.SAFE_STOP_VALUES)
     runs = [r for r in queryset]
@@ -83,7 +83,7 @@ def stop_runs(view, request, actor, *args, **kwargs):
         )
         auditor.record(event_type=RUN_DONE, instance=run, previous_status=run.status)
 
-    queryset = view.enrich_queryset(Models.Run.restorable)
+    queryset = view.enrich_queryset(Models.Run.all)
     queryset = queryset.filter(uuid__in=uuids)
     queryset = queryset.exclude(status__in=LifeCycle.DONE_OR_IN_PROGRESS_VALUES)
     runs = [r for r in queryset]

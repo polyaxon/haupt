@@ -99,7 +99,7 @@ def bulk_new_entity_status(
     for entity in entities:
         set_entity_status(entity=entity, condition=condition)
     additional_fields = additional_fields or []
-    model_class.objects.bulk_update(
+    model_class.all.bulk_update(
         entities, additional_fields + ["status_conditions", "status"]
     )
 
