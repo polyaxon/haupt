@@ -82,7 +82,12 @@ def confirm_delete_run(run: BaseRun):
 
 def confirm_delete_runs(runs: QuerySet, run_ids: List[int] = None):
     run_ids = run_ids or list(runs.values_list("id", flat=True))
+    if not run_ids:
+        return
     runs.update(live_state=LiveState.DELETION_PROGRESSING, deleted_at=now())
+    Models.Run.all.filter(id__in=run_ids).exclude(
+        status__in=LifeCycle.DONE_VALUES
+    ).update(status=V1Statuses.STOPPED)
     queryset = Models.Run.all.filter(
         Q(pipeline_id__in=run_ids) | Q(controller_id__in=run_ids)
     ).exclude(live_state=LiveState.DELETION_PROGRESSING, deleted_at__isnull=False)

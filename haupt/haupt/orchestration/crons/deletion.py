@@ -11,7 +11,7 @@ from haupt.common.options.registry.cleaning import (
 )
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import confirm_delete_runs
-from polyaxon.schemas import LifeCycle, LiveState, V1RunKind
+from polyaxon.schemas import LifeCycle, LiveState, V1RunKind, V1Statuses
 
 
 class CronsDeletionManager:
@@ -75,6 +75,12 @@ class CronsDeletionManager:
         Models.Run.all.filter(
             live_state=LiveState.DELETION_PROGRESSING, deleted_at__lte=last_date
         ).delete()
+
+        # Stop all pipelines in deletion progress
+        Models.Run.all.filter(
+            kind__in={V1RunKind.DAG, V1RunKind.MATRIX, V1RunKind.SCHEDULE},
+            live_state=LiveState.DELETION_PROGRESSING,
+        ).exclude(status__in=LifeCycle.DONE_VALUES).update(status=V1Statuses.STOPPED)
 
     @staticmethod
     def delete_archived_runs():

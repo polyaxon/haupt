@@ -158,7 +158,9 @@ class APIHandler:
 
     @classmethod
     def handle_run_deleted(cls, workers_backend, event: "Event") -> None:  # noqa: F821
-        run = cls.MANAGER.get_run(run_id=event.instance_id, run=event.instance)
+        run = cls.MANAGER.get_run(
+            run_id=event.instance_id, run=event.instance, use_all=True
+        )
         if not run:
             return
 
