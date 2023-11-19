@@ -3,7 +3,6 @@ global-exclude __pycache__
 prune tests
 prune __pycache__
 recursive-include haupt/common/apis/templates *
-recursive-include haupt/background/queues *
 recursive-include haupt/static *
 include haupt/py.typed
 include ../README.md

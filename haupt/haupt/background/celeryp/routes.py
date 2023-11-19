@@ -1,19 +1,19 @@
-from haupt.background.celeryp.queues import CeleryCoreQueues
+from haupt.background.celeryp.queues import CeleryQueues
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 
 SCHEDULER_CORE_ROUTES = {
     # Scheduler health
-    SchedulerCeleryTasks.SCHEDULER_HEALTH: {"queue": CeleryCoreQueues.SCHEDULER_HEALTH},
+    SchedulerCeleryTasks.SCHEDULER_HEALTH: {"queue": CeleryQueues.SCHEDULER_HEALTH},
     # compiler
-    SchedulerCeleryTasks.RUNS_PREPARE: {"queue": CeleryCoreQueues.SCHEDULER_COMPILER},
-    SchedulerCeleryTasks.RUNS_START: {"queue": CeleryCoreQueues.SCHEDULER_COMPILER},
-    SchedulerCeleryTasks.RUNS_BUILT: {"queue": CeleryCoreQueues.SCHEDULER_COMPILER},
+    SchedulerCeleryTasks.RUNS_PREPARE: {"queue": CeleryQueues.SCHEDULER_COMPILER},
+    SchedulerCeleryTasks.RUNS_START: {"queue": CeleryQueues.SCHEDULER_COMPILER},
+    SchedulerCeleryTasks.RUNS_BUILT: {"queue": CeleryQueues.SCHEDULER_COMPILER},
     # Scheduler runs
-    SchedulerCeleryTasks.RUNS_STOP: {"queue": CeleryCoreQueues.SCHEDULER_RUNS},
-    SchedulerCeleryTasks.RUNS_HOOKS: {"queue": CeleryCoreQueues.SCHEDULER_RUNS},
+    SchedulerCeleryTasks.RUNS_STOP: {"queue": CeleryQueues.SCHEDULER_RUNS},
+    SchedulerCeleryTasks.RUNS_HOOKS: {"queue": CeleryQueues.SCHEDULER_RUNS},
     # Scheduler artifacts
     SchedulerCeleryTasks.RUNS_SET_ARTIFACTS: {
-        "queue": CeleryCoreQueues.SCHEDULER_ARTIFACTS,
+        "queue": CeleryQueues.SCHEDULER_ARTIFACTS,
         "priority": 0,
     },
 }

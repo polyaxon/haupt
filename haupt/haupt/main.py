@@ -2,6 +2,7 @@ import click
 
 from haupt.cli.manage import manage
 from haupt.cli.proxies import proxy
+from haupt.cli.queues import queues
 from haupt.cli.sandbox import sandbox
 from haupt.cli.server import server
 from haupt.cli.streams import streams
@@ -28,3 +29,4 @@ cli.add_command(sandbox)
 cli.add_command(server)
 cli.add_command(streams)
 cli.add_command(viewer)
+cli.add_command(queues)
