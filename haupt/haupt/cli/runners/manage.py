@@ -6,18 +6,21 @@ from typing import List, Optional
 from clipped.utils.lists import to_list
 
 from haupt import settings
-from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
 from polyaxon._services.values import PolyaxonServices
 
 _logger = logging.getLogger("haupt.cli.manage")
 
 
-def manage(command: str, args: Optional[List[str]] = None):
+def manage(
+    command: Optional[str], args: Optional[List[str]] = None, app: Optional[str] = None
+):
     from django.core.management import execute_from_command_line
 
+    app = app or "haupt"
+
     # Required env var to trigger a management command
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"{app}.polyconf.settings")
 
     argv = ["manage.py"]
     if command:
@@ -30,9 +33,6 @@ def migrate(
     migrate_tables: bool = False,
     migrate_db: bool = False,
 ):
-    # Required env var to trigger a management command
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
-
     if migrate_tables:
         _logger.info("Starting tables migration ...")
         manage("tables")
