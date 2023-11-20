@@ -4,8 +4,8 @@ from django.core.management import BaseCommand
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
-            "--app",
-            dest="app",
+            "--dbapp",
+            dest="dbapp",
             default="coredb",
         )
 
@@ -39,4 +39,4 @@ class Command(BaseCommand):
             return
 
         with connection.cursor() as cursor:
-            self.update_migrations(cursor, options["app"])
+            self.update_migrations(cursor, options["dbapp"])
