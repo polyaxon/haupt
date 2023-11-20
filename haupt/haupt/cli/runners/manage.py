@@ -5,10 +5,6 @@ from typing import List, Optional
 
 from clipped.utils.lists import to_list
 
-from haupt import settings
-from polyaxon._env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
-from polyaxon._services.values import PolyaxonServices
-
 _logger = logging.getLogger("haupt.cli.manage")
 
 
@@ -44,6 +40,10 @@ def migrate(
 
 
 def run_manage(command: str, args: Optional[List[str]] = None):
+    from haupt import settings
+    from polyaxon._env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
+    from polyaxon._services.values import PolyaxonServices
+
     os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.API
     os.environ[ENV_KEYS_UI_IN_SANDBOX] = "true"
     settings.set_sandbox_config()
