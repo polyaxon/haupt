@@ -3,7 +3,7 @@ import uuid
 from django.contrib.auth import get_user_model
 
 from haupt.common import conf
-from haupt.common.options.registry.installation import ORGANIZATION_KEY
+from haupt.common.options.registry.installation import ORGANIZATION_ID
 from haupt.db.abstracts.projects import Owner
 
 
@@ -13,5 +13,5 @@ def get_dummy_key():
         key = uuid.uuid5(Owner.uuid, str(first_joined.date_joined.timestamp())).hex
     else:
         key = uuid.uuid4().hex
-    conf.set(ORGANIZATION_KEY, key)
+    conf.set(ORGANIZATION_ID, key)
     return key

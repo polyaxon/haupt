@@ -16,7 +16,7 @@ _logger = logging.getLogger("haupt.commands")
 class Command(BaseCommand):
     """Management utility to create users/superusers.
 
-    This is command is different than the django one, because:
+    This is command is different from the django one, because:
         1. does not prompt the user to enter a password, i.e. can be used inline.
         2. validates and requires an email.
     """

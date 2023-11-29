@@ -1,7 +1,7 @@
 from haupt import settings
 from haupt.common import conf
 from haupt.common.options.registry.installation import (
-    ORGANIZATION_KEY,
+    ORGANIZATION_ID,
     PLATFORM_DIST,
     PLATFORM_VERSION,
 )
@@ -9,7 +9,7 @@ from haupt.common.options.registry.installation import (
 
 def get_version():
     data = {
-        "key": conf.get(ORGANIZATION_KEY),
+        "key": conf.get(ORGANIZATION_ID),
         "version": conf.get(PLATFORM_VERSION),
         "dist": conf.get(PLATFORM_DIST),
     }

@@ -5,6 +5,10 @@ PLATFORM_VERSION = "PLATFORM_VERSION"
 PLATFORM_DIST = "PLATFORM_DIST"
 PLATFORM_HOST = "PLATFORM_HOST"
 CHART_VERSION = "CHART_VERSION"
+ORGANIZATION_ID = "POLYAXON_ORGANIZATION_ID"
+ORGANIZATION_NAME = "POLYAXON_ORGANIZATION_NAME"
+ORGANIZATION_PLAN = "POLYAXON_ORGANIZATION_PLAN"
+ORGANIZATION_LICENSE = "POLYAXON_ORGANIZATION_LICENSE"
 ORGANIZATION_KEY = "POLYAXON_ORGANIZATION_KEY"
 
 OPTIONS = {
@@ -13,6 +17,10 @@ OPTIONS = {
     PLATFORM_DIST,
     PLATFORM_HOST,
     CHART_VERSION,
+    ORGANIZATION_ID,
+    ORGANIZATION_NAME,
+    ORGANIZATION_PLAN,
+    ORGANIZATION_LICENSE,
     ORGANIZATION_KEY,
 }
 
@@ -73,6 +81,54 @@ class ChartVersion(Option):
     is_list = False
     typing = "str"
     store = OptionStores.SETTINGS
+    default = None
+    options = None
+
+
+class OrganizationId(Option):
+    key = ORGANIZATION_ID
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    typing = "str"
+    store = OptionStores.ENV
+    default = None
+    options = None
+
+
+class OrganizationName(Option):
+    key = ORGANIZATION_NAME
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    typing = "str"
+    store = OptionStores.ENV
+    default = None
+    options = None
+
+
+class OrganizationPlan(Option):
+    key = ORGANIZATION_PLAN
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    typing = "dict"
+    store = OptionStores.ENV
+    default = None
+    options = None
+
+
+class OrganizationLicense(Option):
+    key = ORGANIZATION_LICENSE
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    typing = "str"
+    store = OptionStores.ENV
     default = None
     options = None
 

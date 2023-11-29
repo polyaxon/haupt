@@ -195,9 +195,6 @@ class PlatformConfig(BaseSchemaModel):
     )
     pod_ip: Optional[str] = Field(alias="POLYAXON_POD_IP")
     host_ip: Optional[str] = Field(alias="POLYAXON_HOST_IP")
-    allow_user_organization: Optional[bool] = Field(
-        alias="POLYAXON_ALLOW_USER_ORGANIZATION", default=False
-    )
     frontend_debug: Optional[bool] = Field(
         alias="POLYAXON_FRONTEND_DEBUG", default=False
     )

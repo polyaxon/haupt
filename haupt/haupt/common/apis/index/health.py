@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from haupt import pkg
 from haupt.common import conf
-from haupt.common.options.registry.installation import ORGANIZATION_KEY
+from haupt.common.options.registry.installation import ORGANIZATION_ID
 from haupt.db.managers.dummy_key import get_dummy_key
 from polyaxon._cli.session import get_compatibility
 from polyaxon._schemas.cli import CliConfig
@@ -28,7 +28,7 @@ class HealthView(APIView):
         config = self.get_config()
         if config and config.should_check():
             config.current_version = pkg.VERSION
-            key = conf.get(ORGANIZATION_KEY) or get_dummy_key()
+            key = conf.get(ORGANIZATION_ID) or get_dummy_key()
             compatibility = get_compatibility(
                 key=key,
                 service=PolyaxonServices.PLATFORM,
