@@ -187,12 +187,6 @@ class PlatformConfig(BaseSchemaModel):
     allowed_versions: Optional[List[str]] = Field(
         alias="POLYAXON_ALLOWED_VERSIONS", default=[]
     )
-    acc_password_length: Optional[int] = Field(
-        alias="POLYAXON_PASSWORD_LENGTH", default=6
-    )
-    acc_activation_days: Optional[int] = Field(
-        alias="POLYAXON_ACCOUNT_ACTIVATION_DAYS", default=4
-    )
     pod_ip: Optional[str] = Field(alias="POLYAXON_POD_IP")
     host_ip: Optional[str] = Field(alias="POLYAXON_HOST_IP")
     frontend_debug: Optional[bool] = Field(
@@ -262,6 +256,15 @@ class PlatformConfig(BaseSchemaModel):
     services_errors_backend: Optional[str] = Field(alias="POLYAXON_ERRORS_BACKEND")
     services_errors_options: Optional[Dict] = Field(
         alias="POLYAXON_ERRORS_OPTIONS", default={}
+    )
+    auth_password_length: Optional[int] = Field(
+        alias="POLYAXON_AUTH_PASSWORD_LENGTH", default=6
+    )
+    auth_activation_days: Optional[int] = Field(
+        alias="POLYAXON_AUTH_ACTIVATION_DAYS", default=4
+    )
+    auth_password_enabled: Optional[bool] = Field(
+        alias="POLYAXON_AUTH_PASSWORD_ENABLED", default=True
     )
     auth_github_options: Optional[Dict] = Field(
         alias="POLYAXON_AUTH_GITHUB_OPTIONS", default={}

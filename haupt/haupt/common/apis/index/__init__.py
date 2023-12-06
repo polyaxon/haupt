@@ -52,6 +52,9 @@ def get_urlpatterns(
     app_patterns: List, no_healthz: bool = False, ui_urlpatterns: Optional[List] = None
 ):
     if conf.get(UI_ADMIN_ENABLED):
+        admin.site.site_header = "Admin site"
+        admin.site.index_title = "-"
+        admin.site.site_title = "Admin site"
         app_patterns += [re_path(r"^{}/".format(ADMIN_V1), admin.site.urls)]
 
     urlpatterns = app_patterns
