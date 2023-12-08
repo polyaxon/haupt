@@ -19,4 +19,5 @@ class TestInstallationVersionViewsV1(BaseTest):
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["version"] == conf.get(PLATFORM_VERSION)
         assert resp.data["dist"] == conf.get(PLATFORM_DIST)
-        assert set(resp.data.keys()) == {"dist", "key", "version"}
+        assert resp.data["mode"] is None
+        assert set(resp.data.keys()) == {"dist", "key", "version", "mode"}

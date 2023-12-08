@@ -3,24 +3,28 @@ from haupt.common.options.option import Option, OptionScope, OptionStores
 POLYAXON_ENVIRONMENT = "POLYAXON_ENVIRONMENT"
 PLATFORM_VERSION = "PLATFORM_VERSION"
 PLATFORM_DIST = "PLATFORM_DIST"
+PLATFORM_MODE = "PLATFORM_MODE"
 PLATFORM_HOST = "PLATFORM_HOST"
 CHART_VERSION = "CHART_VERSION"
 ORGANIZATION_ID = "POLYAXON_ORGANIZATION_ID"
 ORGANIZATION_NAME = "POLYAXON_ORGANIZATION_NAME"
 ORGANIZATION_PLAN = "POLYAXON_ORGANIZATION_PLAN"
 ORGANIZATION_LICENSE = "POLYAXON_ORGANIZATION_LICENSE"
+ORGANIZATION_HMAC = "ORGANIZATION_HMAC"
 ORGANIZATION_KEY = "POLYAXON_ORGANIZATION_KEY"
 
 OPTIONS = {
     POLYAXON_ENVIRONMENT,
     PLATFORM_VERSION,
     PLATFORM_DIST,
+    PLATFORM_MODE,
     PLATFORM_HOST,
     CHART_VERSION,
     ORGANIZATION_ID,
     ORGANIZATION_NAME,
     ORGANIZATION_PLAN,
     ORGANIZATION_LICENSE,
+    ORGANIZATION_HMAC,
     ORGANIZATION_KEY,
 }
 
@@ -51,6 +55,18 @@ class PlatformVersion(Option):
 
 class PlatformDist(Option):
     key = PLATFORM_DIST
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    typing = "str"
+    store = OptionStores.SETTINGS
+    default = None
+    options = None
+
+
+class PlatformMode(Option):
+    key = PLATFORM_MODE
     scope = OptionScope.GLOBAL
     is_secret = False
     is_optional = True
@@ -130,6 +146,18 @@ class OrganizationLicense(Option):
     typing = "str"
     store = OptionStores.ENV
     default = None
+    options = None
+
+
+class OrganizationHmac(Option):
+    key = ORGANIZATION_HMAC
+    scope = OptionScope.GLOBAL
+    is_secret = True
+    is_optional = True
+    is_list = False
+    typing = "str"
+    store = OptionStores.ENV
+    default = "49c6dd3a78ad481b8f77145dc26685a0"
     options = None
 
 
