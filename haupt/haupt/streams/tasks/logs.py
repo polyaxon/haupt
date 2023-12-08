@@ -42,7 +42,8 @@ async def content_to_logs(content, logs_path):
         if ".plx" in logs_path:
             return V1Logs.read_csv(content).logs
         # Chunked logs
-        return orjson_loads(content).get("logs", [])
+        data = orjson_loads(content)
+        return V1Logs.from_dict(data).logs
 
     return await convert()
 
