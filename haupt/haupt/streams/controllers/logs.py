@@ -46,13 +46,13 @@ async def get_next_file(
     return files[i]
 
 
-async def read_logs_file(logs_path) -> List[V1Log]:
+async def read_tmp_logs_file(logs_path) -> List[V1Log]:
     if not logs_path or not os.path.exists(logs_path):
         return []
 
     async with aiofiles.open(logs_path, mode="r") as f:
         content = await f.read()
-        return await content_to_logs(content, logs_path)
+        return await content_to_logs(content, logs_path, to_structured=True)
 
 
 async def get_archived_operation_logs(
@@ -95,7 +95,7 @@ async def get_tmp_operation_logs(
 
     for tmp_file in tmp_log_files:
         logs_path = os.path.join(tmp_logs, tmp_file)
-        logs += await read_logs_file(logs_path)
+        logs += await read_tmp_logs_file(logs_path)
 
     if last_time:
         logs = [l for l in logs if l.timestamp > last_time]

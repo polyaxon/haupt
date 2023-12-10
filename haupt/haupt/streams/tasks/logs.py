@@ -32,7 +32,7 @@ async def upload_logs(fs: FSSystem, store_path: str, run_uuid: str, logs: List[V
         )
 
 
-async def content_to_logs(content, logs_path):
+async def content_to_logs(content, logs_path, to_structured: bool = False):
     if not content:
         return []
 
@@ -40,10 +40,15 @@ async def content_to_logs(content, logs_path):
     def convert():
         # Version handling
         if ".plx" in logs_path:
-            return V1Logs.read_csv(content).logs
+            logs_data = V1Logs.read_csv(content)
+            if to_structured:
+                return logs_data.logs
+            return logs_data.to_dict().get("logs", [])
         # Chunked logs
         data = orjson_loads(content)
-        return V1Logs.from_dict(data).logs
+        if to_structured:
+            return V1Logs.from_dict(data).logs
+        return data.get("logs", [])
 
     return await convert()
 

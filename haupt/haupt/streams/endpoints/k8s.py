@@ -9,10 +9,10 @@ from haupt.common.endpoints.files import FilePathResponse
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
-from haupt.streams.controllers.k8s_op_spec import get_op_spec
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.op_spec import download_op_spec
 from polyaxon import settings
+from polyaxon._k8s.logging.async_monitor import get_op_spec
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._utils.fqn_utils import get_resource_name_for_kind
 from polyaxon.schemas import LifeCycle
@@ -31,7 +31,8 @@ async def k8s_inspect(
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)
     connection = request.GET.get("connection")
     status = request.GET.get("status")
-    if LifeCycle.is_done(status):
+
+    async def get_archived_spec() -> Optional[FilePathResponse]:
         spec_path = await download_op_spec(
             fs=await AppFS.get_fs(connection=connection),
             store_path=AppFS.get_fs_root_path(connection=connection),
@@ -39,6 +40,11 @@ async def k8s_inspect(
         )
         if spec_path:
             return FilePathResponse(filepath=spec_path)
+
+    if LifeCycle.is_done(status):
+        response = await get_archived_spec()
+        if response:
+            return response
 
     k8s_manager = AsyncK8sManager(
         namespace=namespace,
@@ -58,6 +64,12 @@ async def k8s_inspect(
         )
     if k8s_manager:
         await k8s_manager.close()
+
+    if not data:
+        # Check if archived spec that could be archived on a different cluster
+        response = await get_archived_spec()
+        if response:
+            return response
     return UJSONResponse(data or {})
 
 

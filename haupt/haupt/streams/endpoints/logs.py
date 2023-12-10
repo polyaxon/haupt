@@ -15,7 +15,6 @@ from django.urls import path
 from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
-from haupt.streams.controllers.k8s_op_spec import get_op_spec
 from haupt.streams.controllers.logs import (
     get_archived_operation_logs,
     get_operation_logs,
@@ -25,7 +24,7 @@ from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
 from haupt.streams.tasks.op_spec import upload_op_spec
 from polyaxon import settings
-from polyaxon._k8s.logging.async_monitor import query_k8s_operation_logs
+from polyaxon._k8s.logging.async_monitor import get_op_spec, query_k8s_operation_logs
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._utils.fqn_utils import get_resource_name, get_resource_name_for_kind
 
@@ -165,12 +164,12 @@ async def collect_logs(
             data={"errors": errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if settings.AGENT_CONFIG.is_replica:
-        try:
-            await clean_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
-        except Exception as e:
-            errors = "Failed removing temp logs, an error was raised. " "Error %s." % e
-            logger.warning(errors)
+
+    try:
+        await clean_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
+    except Exception as e:
+        errors = "Did not remove temp logs, an error was raised. " "Error %s." % e
+        logger.debug(errors)
 
     if op_spec:
         try:
