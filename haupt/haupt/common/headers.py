@@ -65,7 +65,7 @@ def get_user_agent_header(request: HttpRequest) -> str:
     return get_header(request=request, header_key="USER_AGENT", as_bytestring=False)
 
 
-def get_referer_header(request: HttpRequest) -> str:
+def get_referrer_header(request: HttpRequest) -> str:
     """
     Return request's 'REFERER:' header, as a str.
     """
