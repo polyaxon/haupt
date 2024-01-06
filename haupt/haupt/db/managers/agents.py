@@ -111,7 +111,7 @@ def get_deleting_runs(
     max_budget: int,
     managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
-) -> Tuple[List[Tuple[str, str, str, str]], bool]:
+) -> Tuple[List[str], List[Tuple[str, str, str, str]], bool]:
     agent_filters = agent_filters or {}
     values = []
 
@@ -198,7 +198,7 @@ def get_deleting_runs(
             )
         )
 
-    return values, len(values) >= max_budget
+    return paths, values, len(values) >= max_budget
 
 
 def get_checks_runs(
@@ -494,7 +494,7 @@ def get_agent_state() -> Dict:
         full = True
     # We collect all jobs/services to delete
     if agent_config:
-        deleting_runs, deleting_full = get_deleting_runs(
+        _, deleting_runs, deleting_full = get_deleting_runs(
             owner_name="default",
             agent_id="agent",
             agent_config=agent_config,
@@ -522,7 +522,7 @@ def get_agent_state() -> Dict:
     }
 
 
-def trigger_cron():
+def trigger_cron() -> Dict:
     workers.send(CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC_SCHEDULES)
     workers.send(CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS)
     workers.send(CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED)
@@ -531,3 +531,13 @@ def trigger_cron():
     workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_PROJECTS)
     workers.send(CronsCeleryTasks.DELETE_ARCHIVED_RUNS)
     workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_RUNS)
+    # Return paths to be deleted not ops since the sandbox can manage the artifacts store
+    deleting_paths, _, _ = get_deleting_runs(
+        owner_name="default",
+        agent_id="agent",
+        agent_config=settings.AGENT_CONFIG,
+        max_budget=dj_settings.MAX_CONCURRENCY,
+    )
+    return {
+        "deleting": deleting_paths,
+    }

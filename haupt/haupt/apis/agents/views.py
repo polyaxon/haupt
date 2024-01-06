@@ -30,8 +30,15 @@ class AgentCronViewV1(BaseEndpoint, PostEndpoint):
     ALLOWED_METHODS = ["POST"]
 
     def post(self, request, *args, **kwargs):
-        trigger_cron()
-        return Response(status=status.HTTP_200_OK)
+        state = trigger_cron()
+        return Response(
+            data={
+                "state": state,
+                "status": V1Statuses.RUNNING,
+                "live_state": LiveState.LIVE,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AgentRunDetailView(BaseEndpoint, RetrieveEndpoint):
