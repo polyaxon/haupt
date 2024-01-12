@@ -10,11 +10,11 @@ from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon.api import K8S_V1_LOCATION
 
 
-def _check_exec(uri_path: List[str], query_params: str):
+def _check_exec(namespace: str, uri_path: List[str], query_params: str):
     pod, container = uri_path
     query_params += "&container={}".format(container)
     path = "api/v1/namespaces/{namespace}/pods/{pod}/exec".format(
-        namespace=settings.CLIENT_CONFIG.namespace,
+        namespace=namespace,
         pod=pod,
     )
     return path, query_params
@@ -35,7 +35,9 @@ def k8s_check(uri: str) -> Tuple[str, str]:
     if not path_to_check:
         raise ValueError("A valid k8s path param is required")
     start = uri_path.index(path_to_check) + 1
-    return VALIDATION_PATHS[path_to_check](uri_path[start:], parsed_uri.query)
+    data = uri_path[start:]
+    namespace = uri_path[0]
+    return VALIDATION_PATHS[path_to_check](namespace, data, parsed_uri.query)
 
 
 async def reverse_k8s(path) -> HttpResponse:
