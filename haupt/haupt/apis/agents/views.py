@@ -1,3 +1,4 @@
+from clipped.utils.bools import to_bool
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -30,7 +31,8 @@ class AgentCronViewV1(BaseEndpoint, PostEndpoint):
     ALLOWED_METHODS = ["POST"]
 
     def post(self, request, *args, **kwargs):
-        state = trigger_cron()
+        _state = to_bool(request.data.get("state", False), handle_none=True)
+        state = trigger_cron(state=_state)
         return Response(
             data={
                 "state": state,

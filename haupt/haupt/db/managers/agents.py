@@ -593,7 +593,7 @@ def get_agent_state() -> Dict:
     }
 
 
-def trigger_cron() -> Dict:
+def trigger_cron(state: bool = False) -> Dict:
     workers.send(CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC_SCHEDULES)
     workers.send(CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS)
     workers.send(CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED)
@@ -602,6 +602,9 @@ def trigger_cron() -> Dict:
     workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_PROJECTS)
     workers.send(CronsCeleryTasks.DELETE_ARCHIVED_RUNS)
     workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_RUNS)
+    if not state:
+        return {}
+
     # Return paths to be deleted not ops since the sandbox can manage the artifacts store
     deleting_paths, _, _ = get_deleting_runs(
         owner_name="default",

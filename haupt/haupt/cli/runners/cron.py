@@ -25,7 +25,7 @@ def agent_cron(host, stop_event: threading.Event):
     while not stop_event.is_set():
         try:
             agent_state = polyaxon_client.agents_v1.cron_agent(
-                owner=DEFAULT, _request_timeout=10
+                owner=DEFAULT, _request_timeout=10, body={"state": True}
             )
             if agent_state and agent_state.state:
                 deleting = agent_state.state.deleting or []
