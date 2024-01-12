@@ -112,18 +112,21 @@ class TestAgentStateViewV1(BaseTest):
                 run1.kind,
                 run1.name,
                 run1.content,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run2.uuid.hex),
                 run2.kind,
                 run2.name,
                 run2.content,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run3.uuid.hex),
                 run3.kind,
                 run3.name,
                 run3.content,
+                None,
             ),
         }
         assert resp.data["state"][V1Statuses.STOPPING] == []
@@ -153,22 +156,26 @@ class TestAgentStateViewV1(BaseTest):
                 run1.kind,
                 run1.name,
                 run1.content,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run2.uuid.hex),
                 run2.kind,
                 run2.name,
                 run2.content,
+                None,
             ),
         }
         assert set(resp.data["state"][V1Statuses.STOPPING]) == {
             (
                 get_run_instance(project.owner.name, project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
         run1.refresh_from_db()
@@ -194,18 +201,22 @@ class TestAgentStateViewV1(BaseTest):
             (
                 get_run_instance(project.owner.name, project.name, run1.uuid.hex),
                 run1.kind,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run2.uuid.hex),
                 run2.kind,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
 
@@ -227,16 +238,19 @@ class TestAgentStateViewV1(BaseTest):
             (
                 get_run_instance(project.owner.name, project.name, run1.uuid.hex),
                 run1.kind,
+                None,
             ),
         ]
         assert set(resp.data["state"][V1Statuses.STOPPING]) == {
             (
                 get_run_instance(project.owner.name, project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
 
@@ -283,11 +297,13 @@ class TestAgentStateViewV1(BaseTest):
                     connection=settings.AGENT_CONFIG.artifacts_store,
                     paths=[run5.uuid.hex, run6.uuid.hex],
                 ).to_json(include_version=True),
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run1.uuid.hex),
                 run1.kind,
                 run1.name,
+                None,
                 None,
             ),
             (
@@ -295,16 +311,19 @@ class TestAgentStateViewV1(BaseTest):
                 run2.kind,
                 run2.name,
                 None,
+                None,
             ),
         }
         assert set(resp.data["state"][V1Statuses.STOPPING]) == {
             (
                 get_run_instance(project.owner.name, project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance(project.owner.name, project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
 

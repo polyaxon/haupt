@@ -98,6 +98,7 @@ class TestAgentState(TestCase):
                 run1.kind,
                 run1.name,
                 run1.content,
+                None,
             )
         }
         assert state[V1Statuses.STOPPING] == []
@@ -125,18 +126,21 @@ class TestAgentState(TestCase):
                 run1.kind,
                 run1.name,
                 run1.content,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
                 run2.kind,
                 run2.name,
                 run2.content,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
                 run3.kind,
                 run3.name,
                 run3.content,
+                None,
             ),
         }
         assert state[V1Statuses.STOPPING] == []
@@ -169,22 +173,26 @@ class TestAgentState(TestCase):
                 run1.kind,
                 run1.name,
                 run1.content,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
                 run2.kind,
                 run2.name,
                 run2.content,
+                None,
             ),
         }
         assert set(state[V1Statuses.STOPPING]) == {
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
         assert state["deleting"] == []
@@ -208,18 +216,22 @@ class TestAgentState(TestCase):
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
                 run1.kind,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
                 run2.kind,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
         assert state["deleting"] == []
@@ -243,10 +255,12 @@ class TestAgentState(TestCase):
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
         assert state["deleting"] == []
@@ -254,6 +268,7 @@ class TestAgentState(TestCase):
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
                 run1.kind,
+                None,
             ),
         ]
         run1.refresh_from_db()
@@ -297,10 +312,12 @@ class TestAgentState(TestCase):
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
                 run3.kind,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
                 run4.kind,
+                None,
             ),
         }
         assert set(state["deleting"]) == {
@@ -313,17 +330,20 @@ class TestAgentState(TestCase):
                     connection=agent_config.artifacts_store,
                     paths=[run5.uuid.hex, run6.uuid.hex],
                 ).to_json(include_version=True),
+                None,
             ),
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
                 run1.kind,
                 run1.name,
                 None,
+                None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
                 run2.kind,
                 run2.name,
+                None,
                 None,
             ),
         }
