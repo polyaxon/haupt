@@ -141,6 +141,7 @@ async def collect_logs(
     if k8s_manager:
         await k8s_manager.close()
     if not operation_logs:
+        # TODO: Add logic to handle job without logs
         errors = "Operation logs could not be fetched for run %s" % run_uuid
         logger.warning(errors)
         return HttpResponse(
