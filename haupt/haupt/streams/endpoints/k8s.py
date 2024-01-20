@@ -19,7 +19,7 @@ from polyaxon.schemas import LifeCycle
 
 
 @transaction.non_atomic_requests
-async def k8s_inspect(
+async def k8s_inspect_run(
     request: ASGIRequest,
     namespace: str,
     owner: str,
@@ -59,7 +59,7 @@ async def k8s_inspect(
         run_kind = k8s_operation["metadata"]["annotations"][
             "operation.polyaxon.com/kind"
         ]
-        data = await get_op_spec(
+        data, _, _ = await get_op_spec(
             k8s_manager=k8s_manager, run_uuid=run_uuid, run_kind=run_kind
         )
     if k8s_manager:
@@ -81,8 +81,8 @@ URLS_RUNS_K8S_INSPECT = (
 k8s_routes = [
     path(
         URLS_RUNS_K8S_INSPECT,
-        k8s_inspect,
-        name="k8s_inspect",
+        k8s_inspect_run,
+        name="k8s_inspect_run",
         kwargs=dict(methods=["GET"]),
     ),
 ]

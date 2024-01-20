@@ -7,7 +7,8 @@ import aiofiles
 
 from haupt.streams.tasks.logs import (
     content_to_logs,
-    download_logs_file,
+    download_agent_logs_file,
+    download_run_logs_file,
     download_tmp_logs,
 )
 from polyaxon._fs.async_manager import list_files
@@ -17,7 +18,20 @@ from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from traceml.logging import V1Log
 
 
-async def get_logs_files(fs: FSSystem, store_path: str, run_uuid: str) -> List[str]:
+async def get_agent_logs_files(
+    fs: FSSystem, store_path: str, agent_uuid: str, service: str
+) -> List[str]:
+    files = await list_files(
+        fs=fs,
+        store_path=store_path,
+        subpath=".agents/{}/logs/{}".format(agent_uuid, service),
+    )
+    if not files["files"]:
+        return []
+    return sorted([f for f in files["files"].keys()])
+
+
+async def get_run_logs_files(fs: FSSystem, store_path: str, run_uuid: str) -> List[str]:
     files = await list_files(
         fs=fs, store_path=store_path, subpath="{}/plxlogs".format(run_uuid)
     )
@@ -55,6 +69,34 @@ async def read_tmp_logs_file(logs_path) -> List[V1Log]:
         return await content_to_logs(content, logs_path, to_structured=True)
 
 
+async def get_archived_agent_logs(
+    fs: FSSystem,
+    store_path: str,
+    agent_uuid: str,
+    service: str,
+    last_file: Optional[str],
+    check_cache: bool = True,
+) -> Tuple[List[V1Log], Optional[str], List[str]]:
+    files = await get_agent_logs_files(
+        fs=fs, store_path=store_path, agent_uuid=agent_uuid, service=service
+    )
+    logs = []
+    last_file = await get_next_file(files=files, last_file=last_file)
+    if not last_file:
+        return logs, last_file, files
+
+    logs = await download_agent_logs_file(
+        fs=fs,
+        store_path=store_path,
+        agent_uuid=agent_uuid,
+        service=service,
+        last_file=last_file,
+        check_cache=check_cache,
+    )
+
+    return logs, last_file, files
+
+
 async def get_archived_operation_logs(
     fs: FSSystem,
     store_path: str,
@@ -62,13 +104,13 @@ async def get_archived_operation_logs(
     last_file: Optional[str],
     check_cache: bool = True,
 ) -> Tuple[List[V1Log], Optional[str], List[str]]:
-    files = await get_logs_files(fs=fs, store_path=store_path, run_uuid=run_uuid)
+    files = await get_run_logs_files(fs=fs, store_path=store_path, run_uuid=run_uuid)
     logs = []
     last_file = await get_next_file(files=files, last_file=last_file)
     if not last_file:
         return logs, last_file, files
 
-    logs = await download_logs_file(
+    logs = await download_run_logs_file(
         fs=fs,
         store_path=store_path,
         run_uuid=run_uuid,

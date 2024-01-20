@@ -32,7 +32,7 @@ logger = logging.getLogger("haupt.streams.logs")
 
 
 @transaction.non_atomic_requests
-async def get_logs(
+async def get_run_logs(
     request: ASGIRequest,
     namespace: str,
     owner: str,
@@ -95,7 +95,7 @@ async def get_logs(
 
 
 @transaction.non_atomic_requests
-async def collect_logs(
+async def collect_run_logs(
     request: ASGIRequest,
     namespace: str,
     owner: str,
@@ -135,7 +135,7 @@ async def collect_logs(
     operation_logs, _ = await query_k8s_operation_logs(
         instance=run_uuid, k8s_manager=k8s_manager, last_time=None
     )
-    op_spec = await get_op_spec(
+    op_spec, _, _ = await get_op_spec(
         k8s_manager=k8s_manager, run_uuid=run_uuid, run_kind=run_kind
     )
     if k8s_manager:
@@ -200,16 +200,16 @@ URLS_RUNS_LOGS = "<str:namespace>/<str:owner>/<str:project>/runs/<str:run_uuid>/
 logs_routes = [
     path(
         URLS_RUNS_LOGS,
-        get_logs,
-        name="logs",
+        get_run_logs,
+        name="get_run_logs",
         kwargs=dict(methods=["GET"]),
     ),
 ]
 internal_logs_routes = [
     path(
         URLS_RUNS_COLLECT_LOGS,
-        collect_logs,
-        name="collect_logs",
+        collect_run_logs,
+        name="collect_run_logs",
         kwargs=dict(methods=["POST"]),
     ),
 ]

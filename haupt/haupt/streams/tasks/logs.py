@@ -53,7 +53,23 @@ async def content_to_logs(content, logs_path, to_structured: bool = False):
     return await convert()
 
 
-async def download_logs_file(
+async def download_agent_logs_file(
+    fs: FSSystem,
+    store_path: str,
+    agent_uuid: str,
+    service: str,
+    last_file: str,
+    check_cache: bool = True,
+) -> (str, str):
+    subpath = ".agents/{}/logs/{}/{}".format(agent_uuid, service, last_file)
+    content = await open_file(
+        fs=fs, store_path=store_path, subpath=subpath, check_cache=check_cache
+    )
+
+    return await content_to_logs(content, subpath)
+
+
+async def download_run_logs_file(
     fs: FSSystem,
     store_path: str,
     run_uuid: str,

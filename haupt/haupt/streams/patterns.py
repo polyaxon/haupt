@@ -3,6 +3,7 @@ from django.urls import include, re_path
 from haupt import settings
 from haupt.common.apis.index import get_urlpatterns, handler403, handler404, handler500
 from haupt.common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
+from haupt.streams.endpoints.agents import agent_routes
 from haupt.streams.endpoints.artifacts import artifacts_routes
 from haupt.streams.endpoints.auth_request import auth_request_routes
 from haupt.streams.endpoints.base import base_health_route
@@ -16,7 +17,12 @@ from polyaxon.api import API_V1, AUTH_REQUEST_V1, INTERNAL_V1, STREAMS_V1
 is_viewer = settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.is_viewer
 
 streams_routes = (
-    logs_routes + k8s_routes + notifications_routes + artifacts_routes + events_routes
+    agent_routes
+    + logs_routes
+    + k8s_routes
+    + notifications_routes
+    + artifacts_routes
+    + events_routes
 )
 
 app_urlpatterns = []
