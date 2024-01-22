@@ -23,11 +23,11 @@ async def download_op_spec(fs: FSSystem, store_path: str, run_uuid: str):
 
 
 async def upload_agent_spec(
-    fs: FSSystem, store_path: str, agent_uuid: str, pods: Dict
+    fs: FSSystem, store_path: str, agent_uuid: str, agent_spec: Dict
 ):
     subpath = ".agents/{}/outputs/spec.json".format(agent_uuid)
     await upload_data(
-        fs=fs, store_path=store_path, subpath=subpath, data=orjson_dumps(pods)
+        fs=fs, store_path=store_path, subpath=subpath, data=orjson_dumps(agent_spec)
     )
 
 

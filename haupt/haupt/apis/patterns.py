@@ -2,7 +2,7 @@ from django.urls import include, re_path
 
 from haupt.common.apis.index import get_urlpatterns, handler403, handler404, handler500
 from haupt.common.apis.regex import OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
-from haupt.streams.endpoints.agents import agent_routes
+from haupt.streams.endpoints.agents import agent_routes, internal_agent_routes
 from haupt.streams.endpoints.artifacts import artifacts_routes
 from haupt.streams.endpoints.auth_request import auth_request_routes
 from haupt.streams.endpoints.events import events_routes
@@ -70,7 +70,10 @@ streams_routes = (
 app_urlpatterns = [
     re_path(
         r"^{}/".format(INTERNAL_V1),
-        include((internal_logs_routes, "internal-v1"), namespace="internal-v1"),
+        include(
+            (internal_agent_routes + internal_logs_routes, "internal-v1"),
+            namespace="internal-v1",
+        ),
     ),
     re_path(
         r"^{}/".format(AUTH_REQUEST_V1),

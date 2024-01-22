@@ -1,7 +1,9 @@
-from datetime import datetime
+import logging
+
 from typing import Dict, List, Optional, Union
 
 from clipped.utils.bools import to_bool
+from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
@@ -9,7 +11,7 @@ from django.http import HttpResponse
 from django.urls import path
 
 from haupt.common.endpoints.files import FilePathResponse
-from haupt.common.endpoints.validation import validate_methods
+from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.logs import get_archived_agent_logs
 from haupt.streams.endpoints.base import UJSONResponse
@@ -25,15 +27,27 @@ from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._services import PolyaxonServices
 from traceml.logging import V1Logs
 
+logger = logging.getLogger("haupt.streams.agents")
+
 
 @transaction.non_atomic_requests
 async def collect_agent_data(
     request: ASGIRequest,
     namespace: str,
+    owner: str,
     agent_uuid: str,
     methods: Optional[Dict] = None,
 ) -> Union[HttpResponse, FilePathResponse]:
     validate_methods(request, methods)
+    try:
+        validate_internal_auth(request)
+    except Exception as e:
+        errors = "Request requires an authenticated internal service %s" % e
+        logger.warning(errors)
+        return UJSONResponse(
+            data={"errors": errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     fs = await AppFS.get_fs()
     store_path = AppFS.get_fs_root_path()
 
@@ -42,16 +56,18 @@ async def collect_agent_data(
             logs = await collect_agent_service_logs(k8s_manager=k8s_manager, pod=pod)
 
             for service in [
-                PolyaxonServices.STREAMS,
-                PolyaxonServices.OPERATOR,
-                PolyaxonServices.AGENT,
+                PolyaxonServices.STREAMS.value,
+                PolyaxonServices.OPERATOR.value,
+                PolyaxonServices.AGENT.value,
             ]:
                 if service in pod.metadata.name:
                     break
             if not service:
                 continue
+
+            last_file = 0
             for c_logs in V1Logs.chunk_logs(logs):
-                last_file = datetime.timestamp(c_logs.logs[-1].timestamp)
+                last_file += 1
                 subpath = ".agents/{}/{}/logs/{}".format(agent_uuid, service, last_file)
                 await upload_data(
                     fs=fs, store_path=store_path, subpath=subpath, data=c_logs.to_json()
@@ -81,6 +97,7 @@ async def collect_agent_data(
 async def k8s_inspect_agent(
     request: ASGIRequest,
     namespace: str,
+    owner: str,
     agent_uuid: str,
     methods: Optional[Dict] = None,
 ) -> Union[HttpResponse, FilePathResponse]:
@@ -101,6 +118,7 @@ async def k8s_inspect_agent(
 async def get_agent_logs(
     request: ASGIRequest,
     namespace: str,
+    owner: str,
     agent_uuid: str,
     methods: Optional[Dict] = None,
 ) -> UJSONResponse:
@@ -135,13 +153,15 @@ URLS_AGENTS_LOGS = "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/logs"
 
 
 # fmt: off
-agent_routes = [
+internal_agent_routes = [
     path(
         URLS_AGENTS_COLLECT,
         collect_agent_data,
         name="collect_agent_data",
         kwargs=dict(methods=["POST"]),
     ),
+]
+agent_routes = [
     path(
         URLS_AGENTS_K8S_INSPECT,
         k8s_inspect_agent,
