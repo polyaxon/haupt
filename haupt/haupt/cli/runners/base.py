@@ -55,7 +55,7 @@ def start_app(
         port=port,
         access_log=False,
         log_level=log_level.lower(),
-        workers=workers,
+        workers=int(workers),
         uds=uds,
         timeout_keep_alive=120,
     )
