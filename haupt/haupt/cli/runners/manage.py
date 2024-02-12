@@ -44,7 +44,7 @@ def run_manage(command: str, args: Optional[List[str]] = None):
     from polyaxon._env_vars.keys import ENV_KEYS_SERVICE, ENV_KEYS_UI_IN_SANDBOX
     from polyaxon._services.values import PolyaxonServices
 
-    os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.API
-    os.environ[ENV_KEYS_UI_IN_SANDBOX] = "true"
-    settings.set_sandbox_config()
+    if os.environ[ENV_KEYS_SERVICE] == PolyaxonServices.API:
+        os.environ[ENV_KEYS_UI_IN_SANDBOX] = "true"
+        settings.set_sandbox_config()
     manage(command, args)
