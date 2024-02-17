@@ -375,7 +375,7 @@ class PlatformConfig(BaseSchemaModel):
 
     @property
     def is_scheduler_service(self) -> bool:
-        return self.service == "scheduler" or self.is_monolith_service
+        return self.service == "scheduler"
 
     @property
     def is_test_env(self) -> bool:
