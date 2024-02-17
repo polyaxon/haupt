@@ -59,5 +59,16 @@ class TestArtifactsTreeEndpoints(BaseTest):
         response = self.client.get(self.base_url + "?path=foo/file1.txt")
         assert response.status_code == 200
         results = response.json()
+        assert results == {"dirs": [], "files": {"file1.txt": 0}}
+
+        response = self.client.get(self.base_url + "?path=foo/file4.txt")
+        assert response.status_code == 200
+        results = response.json()
+        assert results.pop("error") is not None
+        assert results == {"dirs": [], "files": {}}
+
+        response = self.client.get(self.base_url + "?path=boo")
+        assert response.status_code == 200
+        results = response.json()
         assert results.pop("error") is not None
         assert results == {"dirs": [], "files": {}}
