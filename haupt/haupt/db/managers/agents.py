@@ -204,7 +204,6 @@ def get_deleting_runs(
                 V1RunKind.NOTIFIER,
             },
             live_state=LiveState.DELETION_PROGRESSING,
-            pending__isnull=True,
         )
         .exclude(status__in=LifeCycle.DONE_VALUES)
         .prefetch_related("project")
