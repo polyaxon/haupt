@@ -90,6 +90,8 @@ async def collect_agent_data(
     if pods:
         await collect_and_archive_agent_services_logs(pods=pods)
 
+    if k8s_manager:
+        await k8s_manager.close()
     return UJSONResponse({})
 
 
