@@ -1884,7 +1884,7 @@ class SchedulingResolver(resolver.BaseResolver):
         )
 
     def resolve_hooks(self) -> List[V1Operation]:
-        self.resolve_connections()
+        self.resolve_agent_environment()
         hooks = self.apply_hooks_contexts()
         ops = []
         contexts = dict(
