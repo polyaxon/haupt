@@ -1,5 +1,5 @@
 NAME = "haupt"
-VERSION = "2.1.3-rc0"
+VERSION = "2.1.3-rc1"
 DESC = (
     "Lineage metadata API, artifacts streams, sandbox, ML-API, and spaces for Polyaxon."
 )
