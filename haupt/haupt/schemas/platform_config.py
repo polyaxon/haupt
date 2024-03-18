@@ -243,6 +243,7 @@ class PlatformConfig(BaseSchemaModel):
     services_analytics_options: Optional[Dict] = Field(
         alias="POLYAXON_ANALYTICS_OPTIONS", default={}
     )
+    services_analytics_url: Optional[str] = Field(alias="POLYAXON_ANALYTICS_URL")
     services_transactions_backend: Optional[str] = Field(
         alias="POLYAXON_TRANSACTIONS_BACKEND"
     )
