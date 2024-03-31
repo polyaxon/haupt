@@ -1,4 +1,5 @@
 from django.contrib.admin import ModelAdmin
+from django.db import models
 
 
 class ReadOnlyAdmin(ModelAdmin):
@@ -9,11 +10,21 @@ class ReadOnlyAdmin(ModelAdmin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # pylint:disable=protected-access
-        readonly_fields = [field.name for field in self.model._meta.get_fields()]
-        if self.readonly_fields:
-            self.readonly_fields += tuple(readonly_fields)
-        else:
-            self.readonly_fields = readonly_fields
+        if not hasattr(self, "readonly_fields"):
+            self.readonly_fields = tuple()
+
+        # Get all model fields
+        fields = self.model._meta.get_fields()
+        # Filter out related fields and fields that are not concrete
+        filtered_fields = [
+            field.name
+            for field in fields
+            if not isinstance(
+                field, (models.ManyToOneRel, models.ManyToManyRel, models.OneToOneRel)
+            )
+            and field.concrete
+        ]
+        self.readonly_fields += tuple(filtered_fields)
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         extra_context = extra_context or {}
