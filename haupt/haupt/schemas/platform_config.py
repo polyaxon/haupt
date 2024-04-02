@@ -206,10 +206,7 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_EMAIL_SUBJECT_PREFIX", default="[Polyaxon]"
     )
     email_use_tls: Optional[bool] = Field(alias="POLYAXON_EMAIL_USE_TLS", default=False)
-    email_backend: Optional[str] = Field(
-        alias="POLYAXON_EMAIL_BACKEND",
-        default="django.core.mail.backends.console.EmailBackend",
-    )
+    email_backend: Optional[str] = Field(alias="POLYAXON_EMAIL_BACKEND")
     rest_throttle_rates_impersonate: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_IMPERSONATE", default=500
     )
