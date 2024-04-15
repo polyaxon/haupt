@@ -79,7 +79,11 @@ class FullSettingsMixin:
         )
         agent = None
         if hasattr(obj, "agent") and obj.agent:
-            agent = {"name": obj.agent.name, "version": obj.agent.version}
+            agent = {
+                "name": obj.agent.name,
+                "version": obj.agent.version,
+                "url": obj.agent.hostname,
+            }
         queue = None
         if hasattr(obj, "queue") and obj.queue:
             queue = {"name": obj.queue.name}
