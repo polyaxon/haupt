@@ -5,6 +5,7 @@ LABEL maintainer="Polyaxon, Inc. <contact@polyaxon.com>"
 
 RUN apt-get -y update && \
     apt-get -y install nginx && \
+    apt-get -y install socat && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
