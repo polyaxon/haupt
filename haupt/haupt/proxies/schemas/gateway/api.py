@@ -62,7 +62,7 @@ def get_api_location_config(resolver: str, auth=str):
     ssl_server_name = get_ssl_server_name(service)
     header_host = get_header_host(service)
     if settings.PROXIES_CONFIG.has_forward_proxy:
-        service = get_service_proxy()
+        service = get_service_proxy(settings.PROXIES_CONFIG.forward_proxy_porotcol)
     config = [
         get_api_config(
             path="= /",

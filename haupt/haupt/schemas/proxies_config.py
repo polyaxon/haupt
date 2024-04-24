@@ -25,6 +25,7 @@ from polyaxon._env_vars.keys import (
     ENV_KEYS_PROXY_AUTH_EXTERNAL,
     ENV_KEYS_PROXY_AUTH_USE_RESOLVER,
     ENV_KEYS_PROXY_FORWARD_PROXY_HOST,
+    ENV_KEYS_PROXY_FORWARD_PROXY_PROTOCOL,
     ENV_KEYS_PROXY_FORWARD_PROXY_KIND,
     ENV_KEYS_PROXY_FORWARD_PROXY_PORT,
     ENV_KEYS_PROXY_GATEWAY_HOST,
@@ -123,6 +124,7 @@ class ProxiesConfig(BaseSchemaModel):
     has_forward_proxy: Optional[bool] = Field(alias=ENV_KEYS_PROXY_HAS_FORWARD_PROXY)
     forward_proxy_port: Optional[int] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_PORT)
     forward_proxy_host: Optional[str] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_HOST)
+    forward_proxy_porotcol: Optional[str] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_PROTOCOL)
     forward_proxy_kind: Optional[Literal["transparent", "connect"]] = Field(
         alias=ENV_KEYS_PROXY_FORWARD_PROXY_KIND
     )

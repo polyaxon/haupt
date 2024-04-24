@@ -55,7 +55,7 @@ def get_auth_location_config(resolver: str, is_local_service: bool = False):
         resolver = ""
     header_host = get_header_host(service)
     if settings.PROXIES_CONFIG.has_forward_proxy:
-        service = get_service_proxy()
+        service = get_service_proxy(protocol=settings.PROXIES_CONFIG.forward_proxy_porotcol)
     return get_config(
         options=AUTH_LOCATION_CONFIG if settings.PROXIES_CONFIG.auth_enabled else "",
         indent=0,

@@ -25,5 +25,7 @@ def get_header_host(url: str):
     return "proxy_set_header Host $http_host;"
 
 
-def get_service_proxy(port: int = 8443):
-    return "https://127.0.0.1:{}".format(port)
+def get_service_proxy(protocol: str = "https", port: int = 8443):
+    protocol = protocol or "https"
+    port = port or 8443
+    return "{}://127.0.0.1:{}".format(protocol, port)
