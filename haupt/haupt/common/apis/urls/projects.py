@@ -1,10 +1,14 @@
 from haupt.common.apis.regex import (
     OWNER_NAME_PATTERN,
     PROJECT_NAME_PATTERN,
+    TEAM_NAME_PATTERN,
     UUID_PATTERN,
 )
 
 # Projects
+URLS_TEAMS_PROJECTS_CREATE = r"^{}/{}/projects/create/?$".format(
+    OWNER_NAME_PATTERN, TEAM_NAME_PATTERN
+)
 URLS_PROJECTS_CREATE = r"^{}/projects/create/?$".format(OWNER_NAME_PATTERN)
 URLS_PROJECTS_LIST = r"^{}/projects/list/?$".format(OWNER_NAME_PATTERN)
 URLS_PROJECTS_NAMES = r"^{}/projects/names/?$".format(OWNER_NAME_PATTERN)
