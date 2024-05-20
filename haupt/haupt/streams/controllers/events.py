@@ -174,7 +174,11 @@ async def get_archived_operation_event_and_assets(
         subpaths.append("{}/{}".format(run_uuid, file_from_path))
 
     return await download_files(
-        fs=fs, subpaths=subpaths, check_cache=check_cache, pkg_files=pkg_files
+        fs=fs,
+        store_path=store_path,
+        subpaths=subpaths,
+        check_cache=check_cache,
+        pkg_files=pkg_files,
     )
 
 
