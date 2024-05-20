@@ -14,6 +14,7 @@ from haupt.apis.serializers.projects import (
     ProjectDetailSerializer,
     ProjectNameSerializer,
 )
+from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.common.apis.paginator import LargeLimitOffsetPagination
 from haupt.common.content_types import ContentTypes
 from haupt.common.endpoints.base import (
@@ -85,6 +86,12 @@ class ProjectNameListMixin:
     queryset = Models.Project.objects.only("name").order_by("-updated_at")
     serializer_class = ProjectNameSerializer
     pagination_class = LargeLimitOffsetPagination
+    filter_backends = (QueryFilter, OrderingFilter)
+    query_manager = ProjectQueryManager
+    check_alive = ProjectQueryManager.CHECK_ALIVE
+    ordering = ProjectQueryManager.FIELDS_DEFAULT_ORDERING
+    ordering_fields = ProjectQueryManager.FIELDS_ORDERING
+    ordering_proxy_fields = ProjectQueryManager.FIELDS_ORDERING_PROXY
     ALLOWED_METHODS = ["GET"]
 
 
