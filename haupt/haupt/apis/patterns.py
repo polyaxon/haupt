@@ -42,7 +42,8 @@ orgs_urls = "orgs/{}".format(OWNER_NAME_PATTERN)
 ui_urlpatterns = [
     r"^$",
     r"^{}/?".format(orgs_urls),
-    r"^{}/projects/?".format(orgs_urls),
+    r"^{}/.*/?".format(orgs_urls),
+    # Projects
     r"^{}/?$".format(projects_urls),
     r"^{}/runs.*/?".format(projects_urls),
     r"^{}/jobs.*/?".format(projects_urls),
@@ -53,8 +54,11 @@ ui_urlpatterns = [
     r"^{}/artifacts.*/?".format(projects_urls),
     r"^{}/components.*/?".format(projects_urls),
     r"^{}/models.*/?".format(projects_urls),
+    r"^{}/dashboards.*/?".format(projects_urls),
+    r"^{}/reports.*/?".format(projects_urls),
+    r"^{}/searches.*/?".format(projects_urls),
     r"^{}/cli.*/?".format(projects_urls),
-    r"^{}/settings/?".format(projects_urls),
+    r"^{}/settings.*/?".format(projects_urls),
     r"^{}/new.*/?".format(projects_urls),
 ]
 

@@ -405,20 +405,29 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
         }
 
     def get_settings(self, obj):
+        settings = {}
         build = (
             obj.upstream_runs.filter(downstream_edges__kind=V1RunEdgeKind.BUILD)
             .order_by("created_at")
             .last()
         )
-        return {
-            "build": {
+        if build:
+            settings["build"] = {
                 "name": build.name,
                 "status": build.status,
                 "uuid": build.uuid.hex,
             }
-            if build
-            else None,
-        }
+
+        agent = None
+        if hasattr(obj, "agent") and obj.agent:
+            agent = {
+                "name": obj.agent.name,
+                "version": obj.agent.version,
+                "url": obj.agent.hostname,
+            }
+        if agent:
+            settings["agent"] = agent
+        return settings
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

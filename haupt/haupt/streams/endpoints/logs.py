@@ -125,7 +125,8 @@ async def collect_run_logs(
     )
     if not k8s_operation:
         errors = (
-            "Run's logs was not collected, resource was not found for run %s" % run_uuid
+            "Run's logs were not collected, resource was not found for run %s"
+            % run_uuid
         )
         logger.warning(errors)
         return UJSONResponse(
