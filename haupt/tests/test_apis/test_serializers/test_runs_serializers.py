@@ -129,7 +129,7 @@ class TestOperationCreateSerializer(BaseTestRunSerializer):
 
         assert set(data.keys()) == self.expected_keys
         assert data.pop("uuid") == obj1.uuid.hex
-        assert data.pop("settings") == {"build": None}
+        assert data.pop("settings") == {}
 
         for k, v in data.items():
             assert getattr(obj1, k) == v
