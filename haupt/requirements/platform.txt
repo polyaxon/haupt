@@ -1,4 +1,4 @@
 celery==5.4.0
 psycopg==3.1.19
 psycopg-binary==3.1.19
-redis==5.0.4
+redis==5.0.6
