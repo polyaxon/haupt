@@ -20,6 +20,7 @@ class ProjectQueryManager(BaseQueryManager):
     FIELDS_PROXY = {
         "id": "uuid",
         "uid": "uuid",
+        "contributors": "contributors__username",
     }
     FIELDS_USE_NAME = {
         "teams",
@@ -48,6 +49,8 @@ class ProjectQueryManager(BaseQueryManager):
         "live_state": parse_value_operation,
         # Teams
         "teams": parse_value_operation,
+        # Contributors
+        "contributors": parse_value_operation,
     }
     CONDITIONS_BY_FIELD = {
         # Uuid
@@ -69,4 +72,6 @@ class ProjectQueryManager(BaseQueryManager):
         "live_state": ValueCondition,
         # Teams
         "teams": ValueCondition,
+        # Contributors
+        "contributors": ValueCondition,
     }

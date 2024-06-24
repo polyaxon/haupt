@@ -58,6 +58,7 @@ class RunQueryManager(BaseQueryManager):
         "downstream": "downstream_runs",
         "user": "user__username",
         "teams": "project__teams__name",
+        "contributors": "contributors__username",
     }
     FIELDS_DISTINCT = {
         "artifacts",
@@ -193,6 +194,8 @@ class RunQueryManager(BaseQueryManager):
         "connections": parse_value_operation,
         # Teams
         "teams": parse_value_operation,
+        # Contributors
+        "contributors": parse_value_operation,
         # My runs
         "mine": parse_value_operation,
     }
@@ -295,6 +298,8 @@ class RunQueryManager(BaseQueryManager):
         "connections": ValueCondition,
         # Teams
         "teams": ValueCondition,
+        # Contributors
+        "contributors": ValueCondition,
         # My runs
         "mine": CallbackCondition(callback_conditions.mine_condition),
     }

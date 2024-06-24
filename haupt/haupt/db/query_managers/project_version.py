@@ -21,6 +21,7 @@ class ProjectVersionQueryManager(BaseQueryManager):
         "id": "uuid",
         "uid": "uuid",
         "teams": "project__teams__name",
+        "contributors": "contributors__username",
     }
     FIELDS_ORDERING = (
         "created_at",
@@ -59,6 +60,8 @@ class ProjectVersionQueryManager(BaseQueryManager):
         "run": parse_value_operation,
         # Teams
         "teams": parse_value_operation,
+        # Contributors
+        "contributors": parse_value_operation,
         # Projects
         "project": parse_value_operation,
     }
@@ -86,6 +89,8 @@ class ProjectVersionQueryManager(BaseQueryManager):
         "run": ValueCondition,
         # Teams
         "teams": ValueCondition,
+        # Contributors
+        "contributors": ValueCondition,
         # Projects
         "project": ValueCondition,
     }

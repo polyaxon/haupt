@@ -207,7 +207,7 @@ class ProjectVersionDetailSerializer(
         return set(f[0] for f in found)
 
     def update(self, instance, validated_data):
-        kind = validated_data.pop("c" "kind", None)
+        kind = validated_data.pop("kind", None)
         if kind and instance.kind != kind:
             raise ValidationError("Changing a version kind is not permitted.")
         content = validated_data.get("content")
