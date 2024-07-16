@@ -1,6 +1,7 @@
 from collections import namedtuple
 from typing import Dict, List, Optional, Set, Tuple, Union
 
+from clipped.utils.enums import get_enum_value
 from clipped.utils.lists import to_list
 
 from haupt.common.service_interface import Service
@@ -299,8 +300,8 @@ class OperationsService(Service):
             readme=readme,
             params=params,
             inputs=inputs,
-            kind=kind,
-            runtime=runtime,
+            kind=get_enum_value(kind),
+            runtime=get_enum_value(runtime),
             meta_info=meta_info,
             original_id=original_id,
             cloning_kind=cloning_kind,
