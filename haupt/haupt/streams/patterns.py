@@ -64,7 +64,11 @@ if is_viewer:
         r"^{}/projects/?".format(orgs_urls),
         r"^{}/?$".format(projects_urls),
         r"^{}/runs.*/?".format(projects_urls),
-        r"^{}/jobs.*/?".format(projects_urls),
+        r"^{}/job.*/?".format(projects_urls),
+        r"^{}/service.*/?".format(projects_urls),
+        r"^{}/matrix.*/?".format(projects_urls),
+        r"^{}/dag.*/?".format(projects_urls),
+        r"^{}/schedule.*/?".format(projects_urls),
         r"^{}/cli.*/?".format(projects_urls),
     ]
 else:
