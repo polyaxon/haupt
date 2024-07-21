@@ -74,7 +74,6 @@ class RunQueryManager(BaseQueryManager):
         "kind",
         "namespace",
         "runtime",
-        "user",
         "uuid",
         "duration",
         "wait_time",
@@ -97,6 +96,7 @@ class RunQueryManager(BaseQueryManager):
         "meta_flags": {"field": "meta_info", "annotate": True},
         "meta_info": {"field": "meta_info", "annotate": True},
         "meta_values": {"field": "meta_info", "annotate": True},
+        "user": {"field": "user__username"},
     }
     FIELDS_DEFAULT_ORDERING = ("-updated_at",)
     CHECK_ALIVE = True
