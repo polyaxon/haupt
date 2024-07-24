@@ -24,12 +24,8 @@ from traceml.events import V1Events
 from traceml.processors.importance_processors import calculate_importance_correlation
 
 
-@transaction.non_atomic_requests
-async def get_multi_run_events(
+async def _get_multi_run_events(
     request: ASGIRequest,
-    namespace: str,
-    owner: str,
-    project: str,
     event_kind: str,
     methods: Optional[Dict] = None,
 ) -> Union[UJSONResponse, HttpResponse]:
@@ -59,6 +55,41 @@ async def get_multi_run_events(
         sample=sample,
     )
     return UJSONResponse({"data": events})
+
+
+@transaction.non_atomic_requests
+async def get_orgs_multi_run_events(
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    event_kind: str,
+    methods: Optional[Dict] = None,
+) -> Union[UJSONResponse, HttpResponse]:
+    return await _get_multi_run_events(request, event_kind, methods)
+
+
+@transaction.non_atomic_requests
+async def get_teams_multi_run_events(
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    team: str,
+    event_kind: str,
+    methods: Optional[Dict] = None,
+) -> Union[UJSONResponse, HttpResponse]:
+    return await _get_multi_run_events(request, event_kind, methods)
+
+
+@transaction.non_atomic_requests
+async def get_multi_run_events(
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    project: str,
+    event_kind: str,
+    methods: Optional[Dict] = None,
+) -> Union[UJSONResponse, HttpResponse]:
+    return await _get_multi_run_events(request, event_kind, methods)
 
 
 async def get_package_event_assets(
@@ -172,6 +203,10 @@ async def get_run_importance_correlation(
     )
 
 
+URLS_ORGS_RUNS_MULTI_EVENTS = (
+    "<str:namespace>/orgs/<str:owner>/runs/multi/events/<str:event_kind>"
+)
+URLS_TEAMS_RUNS_MULTI_EVENTS = "<str:namespace>/orgs/<str:owner>/teams/<str:team>/runs/multi/events/<str:event_kind>"
 URLS_RUNS_MULTI_EVENTS = (
     "<str:namespace>/<str:owner>/<str:project>/runs/multi/events/<str:event_kind>"
 )
@@ -186,6 +221,17 @@ URLS_RUNS_IMPORTANCE_CORRELATION = (
 # fmt: off
 events_routes = [
     path(
+        URLS_ORGS_RUNS_MULTI_EVENTS,
+        get_orgs_multi_run_events,
+        name="get_orgs_multi_run_events",
+        kwargs=dict(methods=["GET"]),
+    ),
+    path(
+        URLS_TEAMS_RUNS_MULTI_EVENTS,
+        get_teams_multi_run_events,
+        name="get_teams_multi_run_events",
+        kwargs=dict(methods=["GET"]),
+    ), path(
         URLS_RUNS_MULTI_EVENTS,
         get_multi_run_events,
         name="multi_run_events",
