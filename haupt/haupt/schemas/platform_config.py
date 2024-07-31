@@ -115,32 +115,35 @@ class PlatformConfig(BaseSchemaModel):
     celery_worker_max_memory_per_child: Optional[int] = Field(
         alias="POLYAXON_CELERY_WORKER_MAX_MEMORY_PER_CHILD", default=400000
     )
-    intervals_operations_default_retry_delay: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_OPERATIONS_DEFAULT_RETRY_DELAY", default=60
+    cron_intervals_heartbeat_check: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_HEARTBEAT_CHECK", default=60
     )
-    intervals_operations_max_retry_delay: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_OPERATIONS_MAX_RETRY_DELAY", default=3600
+    cron_intervals_stats_calculation: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_STATS_CALCULATION", default=60 * 5
     )
-    intervals_runs_scheduler: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_RUNS_SCHEDULER", default=30
+    cron_intervals_clean_activity_logs: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_CLEAN_ACTIVITY_LOGS", default=60
     )
-    intervals_heartbeat_check: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_HEARTBEAT_CHECK", default=60
+    cron_intervals_clean_support_access: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_CLEAN_SUPPORT_ACCESS", default=60
     )
-    intervals_stats_calculation: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_STATS_CALCULATION", default=60 * 5
+    cron_intervals_clean_notifications: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_CLEAN_NOTIFICATIONS", default=60
     )
-    intervals_clean_activity_logs: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_CLEAN_ACTIVITY_LOGS", default=60
+    cron_intervals_delete_archived: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_DELETE_ARCHIVED", default=60
     )
-    intervals_clean_support_access: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_CLEAN_SUPPORT_ACCESS", default=60
+    cleaning_intervals_activity_logs: Optional[int] = Field(
+        alias="POLYAXON_CLEANING_INTERVALS_ACTIVITY_LOGS", default=3 * 30
     )
-    intervals_clean_notifications: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_CLEAN_NOTIFICATIONS", default=60
+    cleaning_intervals_notifications: Optional[int] = Field(
+        alias="POLYAXON_CLEANING_INTERVALS_NOTIFICATIONS", default=30
     )
-    intervals_delete_archived: Optional[int] = Field(
-        alias="POLYAXON_INTERVALS_DELETE_ARCHIVED", default=60
+    cleaning_intervals_archives: Optional[int] = Field(
+        alias="POLYAXON_CLEANING_INTERVALS_ARCHIVES", default=30
+    )
+    cleaning_intervals_deletion: Optional[int] = Field(
+        alias="POLYAXON_CLEANING_INTERVALS_DELETION", default=15
     )
 
     internal_exchange: Optional[str] = Field(

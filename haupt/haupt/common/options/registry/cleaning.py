@@ -38,7 +38,7 @@ class CleaningIntervalsOption(Option):
 
 class CleaningIntervalsActivityLogs(CleaningIntervalsOption):
     key = CLEANING_INTERVALS_ACTIVITY_LOGS
-    default = 15
+    default = 90
     description = "A cleaning interval for activity logs in days"
 
 

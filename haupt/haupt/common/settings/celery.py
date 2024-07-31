@@ -46,15 +46,15 @@ def set_celery(
     context[
         "CELERY_WORKER_MAX_MEMORY_PER_CHILD"
     ] = config.celery_worker_max_memory_per_child
-
-    class Intervals:
-        """All intervals are in seconds"""
-
-        OPERATIONS_DEFAULT_RETRY_DELAY = config.intervals_operations_default_retry_delay
-        OPERATIONS_MAX_RETRY_DELAY = config.intervals_operations_max_retry_delay
-        RUNS_SCHEDULER = config.intervals_runs_scheduler
-
-    context["Intervals"] = Intervals
     context["CELERY_TASK_ROUTES"] = routes
     if schedules:
         context["CELERY_BEAT_SCHEDULE"] = schedules
+
+    context[
+        "CLEANING_INTERVALS_ACTIVITY_LOGS"
+    ] = config.cleaning_intervals_activity_logs
+    context[
+        "CLEANING_INTERVALS_NOTIFICATIONS"
+    ] = config.cleaning_intervals_notifications
+    context["CLEANING_INTERVALS_ARCHIVES"] = config.cleaning_intervals_archives
+    context["CLEANING_INTERVALS_DELETION"] = config.cleaning_intervals_deletion
