@@ -255,7 +255,7 @@ class OperationsService(Service):
         runtime = None
         if compiled_operation:
             self.is_valid(compiled_operation)
-            # If the is ab upload we need to check the build process immediately
+            # If there is an upload we need to check the build process immediately
             if pending == V1RunPending.UPLOAD and compiled_operation.build:
                 upload_artifacts = meta_info.pop(META_UPLOAD_ARTIFACTS, None)
                 build_instance = self.resolve_build(
@@ -272,7 +272,7 @@ class OperationsService(Service):
                 # Change the pending logic to wait to build and remove build requirements
                 compiled_operation.build = None
                 pending = V1RunPending.BUILD
-            # If the is a clone/resume we need to check the build process and remove it
+            # If this is a clone/resume we need to check the build process and remove it
             if cloning_kind and compiled_operation.build:
                 compiled_operation.build = None
 

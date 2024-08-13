@@ -106,7 +106,7 @@ class RunCloneView(RunEndpoint, CreateEndpoint):
 class RunRestartView(RunCloneView):
     AUDITOR_EVENT_TYPES = {"POST": RUN_RESTARTED_ACTOR}
 
-    def _get_Additional_fields(self, obj):
+    def _get_additional_fields(self, obj):
         return {}
 
     def clone(self, obj, content, **kwargs):
@@ -118,7 +118,7 @@ class RunRestartView(RunCloneView):
             description=kwargs.get("description"),
             tags=kwargs.get("tags"),
             meta_info=kwargs.get("meta_info"),
-            **self._get_Additional_fields(obj)
+            **self._get_additional_fields(obj)
         )
 
 
