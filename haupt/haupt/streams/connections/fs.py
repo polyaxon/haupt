@@ -1,6 +1,9 @@
 import os
 
+from datetime import timedelta
 from typing import Optional
+
+from clipped.utils.tz import now
 
 from polyaxon._connections import CONNECTION_CONFIG
 from polyaxon._contexts import paths as ctx_paths
@@ -13,6 +16,7 @@ from polyaxon._services import PolyaxonServices
 
 class AppFS:
     _connections = {}
+    _refresh_state = {}
 
     @classmethod
     async def set_fs(cls, connection: Optional[str] = None) -> FSSystem:
@@ -27,13 +31,21 @@ class AppFS:
             name = get_artifacts_store_name()
 
         cls._connections[name] = fs
+        cls._refresh_state[name] = now()
         return cls._connections[name]
+
+    @classmethod
+    async def refresh_fs(cls, connection: Optional[str] = None) -> FSSystem:
+        await cls.close_fs(connection=connection)
+        return await cls.set_fs(connection=connection)
 
     @classmethod
     async def close_fs(cls, connection: Optional[str] = None):
         connection = connection or get_artifacts_store_name()
-        fs = cls._connections.get(connection)
-        await close_fs(fs)
+        cls._refresh_state.pop(connection, None)
+        fs = cls._connections.pop(connection, None)
+        if fs:
+            await close_fs(fs)
 
     @classmethod
     async def get_fs(cls, connection: Optional[str] = None) -> FSSystem:
@@ -45,6 +57,9 @@ class AppFS:
         fs = cls._connections.get(connection)
         if not fs:
             return await cls.set_fs(connection=connection)
+        last_state = cls._refresh_state.get(connection)
+        if last_state and now() > last_state + timedelta(hours=3):
+            return await cls.refresh_fs(connection=connection)
         return fs
 
     @staticmethod
