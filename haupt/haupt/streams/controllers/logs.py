@@ -153,18 +153,15 @@ async def get_operation_logs(
     instance: str,
     last_time: Optional[datetime.datetime],
 ):
-    previous_last = last_time
     operation_logs, last_time = await query_k8s_operation_logs(
         instance=instance,
-        last_time=None,
+        last_time=last_time,
         k8s_manager=k8s_manager,
         stream=True,
     )
     if k8s_operation.get("status", {}).get("completionTime"):
         last_time = None
-    if previous_last:
-        operation_logs = [
-            l.to_dict() for l in operation_logs if l.timestamp > previous_last
-        ]
+    if operation_logs:
+        operation_logs = [l.to_dict() for l in operation_logs]
 
     return operation_logs, last_time
