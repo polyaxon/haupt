@@ -8,8 +8,8 @@ if [ $? -eq 0 ]; then
     if [ "$1" = "local-sqlite" ]; then
         cd haupt; POLYAXON_PLATFORM_CONFIG="$ROOT_DIR/.docker/local.test.yaml" DJANGO_SETTINGS_MODULE="haupt.polyconf.settings" POLYAXON_STATIC_ROOT="" POLYAXON_DB_NAME="/tmp/db" py.test $PYTESTOPT ${@:2}
     elif [ "$1" = "container-sqlite" ]; then
-        docker-compose -f docker-compose.test.sqlite.yml run -w /haupt/haupt api py.test $PYTESTOPT ${@:2}
+        docker compose -f docker-compose.test.sqlite.yml run -w /haupt/haupt api py.test $PYTESTOPT ${@:2}
     elif [ "$1" = "container-pgsql" ]; then
-        docker-compose -f docker-compose.test.pgsql.yml run -w /haupt/haupt api py.test $PYTESTOPT ${@:2}
+        docker compose -f docker-compose.test.pgsql.yml run -w /haupt/haupt api py.test $PYTESTOPT ${@:2}
     fi
 fi

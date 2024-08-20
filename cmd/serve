@@ -6,9 +6,9 @@ if [ $? -eq 0 ]; then
     if [ "$1" = "local-sqlite" ]; then
         haupt -v sandbox --workers 1
     elif [ "$1" = "container-pgsql" ]; then
-        docker-compose -f docker-compose.test.pgsql.yml run --publish 8000:8000 -w /haupt/haupt api uvicorn haupt.polyconf.asgi.server:application --port 8000 --host 0.0.0.0 --workers 8
+        docker compose -f docker-compose.test.pgsql.yml run --publish 8000:8000 -w /haupt/haupt api uvicorn haupt.polyconf.asgi.server:application --port 8000 --host 0.0.0.0 --workers 8
     elif [ "$1" = "container-sqlite" ]; then
-        docker-compose -f docker-compose.test.sqlite.yml run --publish 8000:8000 -w /haupt/haupt api uvicorn haupt.polyconf.asgi.server:application --port 8000 --host 0.0.0.0 --workers 8
+        docker compose -f docker-compose.test.sqlite.yml run --publish 8000:8000 -w /haupt/haupt api uvicorn haupt.polyconf.asgi.server:application --port 8000 --host 0.0.0.0 --workers 8
     elif [ "$1" = "nginx-pgsql" ]; then
         echo "Coming soon"
     elif [ "$1" = "streams" ]; then
