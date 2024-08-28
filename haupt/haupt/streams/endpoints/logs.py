@@ -17,16 +17,18 @@ from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.k8s_crd import get_k8s_operation
 from haupt.streams.controllers.logs import (
     get_archived_operation_logs,
-    get_operation_logs,
+    get_k8s_operation_logs,
+    get_run_logs_files,
     get_tmp_operation_logs,
 )
 from haupt.streams.endpoints.base import UJSONResponse
-from haupt.streams.tasks.logs import clean_tmp_logs, upload_logs
 from haupt.streams.tasks.op_spec import upload_op_spec
 from polyaxon import settings
-from polyaxon._k8s.logging.async_monitor import get_op_spec, query_k8s_operation_logs
+from polyaxon._fs.async_manager import upload_data
+from polyaxon._k8s.logging.async_monitor import get_op_spec, query_k8s_pod_logs
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._utils.fqn_utils import get_resource_name, get_resource_name_for_kind
+from traceml.logging import V1Logs
 
 logger = logging.getLogger("haupt.streams.logs")
 
@@ -61,7 +63,7 @@ async def get_run_logs(
             k8s_manager=k8s_manager, resource_name=resource_name
         )
         if k8s_operation:
-            operation_logs, last_time = await get_operation_logs(
+            operation_logs, last_time = await get_k8s_operation_logs(
                 k8s_manager=k8s_manager,
                 k8s_operation=k8s_operation,
                 instance=run_uuid,
@@ -133,45 +135,42 @@ async def collect_run_logs(
             data={"errors": errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    operation_logs, _ = await query_k8s_operation_logs(
-        instance=run_uuid, k8s_manager=k8s_manager, last_time=None
-    )
+
+    fs = await AppFS.get_fs()
+    store_path = AppFS.get_fs_root_path()
+
+    async def collect_and_archive_pod_logs():
+        files = await get_run_logs_files(
+            fs=fs, store_path=store_path, run_uuid=run_uuid
+        )
+        pods_from_files = [f.split(".jsonl")[0] for f in files]
+        pods = await k8s_manager.list_pods(
+            label_selector=k8s_manager.get_managed_by_polyaxon(run_uuid)
+        )
+        for pod in pods:
+            if pod.metadata.name in pods_from_files:
+                continue
+            logs, _ = await query_k8s_pod_logs(k8s_manager=k8s_manager, pod=pod)
+
+            if not logs:
+                continue
+
+            logs = V1Logs.construct(logs=logs)
+            subpath = "{}/plxlogs/{}.jsonl".format(run_uuid, pod.metadata.name)
+            await upload_data(
+                fs=fs,
+                store_path=store_path,
+                subpath=subpath,
+                data=logs.get_jsonl_events(),
+            )
+
+    # Only update logs of pods from the last timestamp
+    await collect_and_archive_pod_logs()
     op_spec, _, _ = await get_op_spec(
         k8s_manager=k8s_manager, run_uuid=run_uuid, run_kind=run_kind
     )
     if k8s_manager:
         await k8s_manager.close()
-    if not operation_logs:
-        # TODO: Add logic to handle job without logs
-        errors = "Operation logs could not be fetched for run %s" % run_uuid
-        logger.warning(errors)
-        return HttpResponse(
-            content={"errors": errors},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-    fs = await AppFS.get_fs()
-    store_path = AppFS.get_fs_root_path()
-    try:
-        await upload_logs(
-            fs=fs, store_path=store_path, run_uuid=run_uuid, logs=operation_logs
-        )
-    except Exception as e:
-        errors = (
-            "Run's logs was not collected, an error was raised while uploading the data. "
-            "Error %s." % e
-        )
-        logger.warning(errors)
-        return UJSONResponse(
-            data={"errors": errors},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        await clean_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
-    except Exception as e:
-        errors = "Did not remove temp logs, an error was raised. " "Error %s." % e
-        logger.debug(errors)
 
     if op_spec:
         try:

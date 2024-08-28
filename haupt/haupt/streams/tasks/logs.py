@@ -1,3 +1,5 @@
+import os
+
 from datetime import datetime
 from typing import List
 
@@ -5,6 +7,7 @@ from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_path
 
 from asgiref.sync import sync_to_async
+from polyaxon import settings
 from polyaxon._fs.async_manager import (
     delete_file_or_dir,
     download_dir,
@@ -44,6 +47,11 @@ async def content_to_logs(content, logs_path, to_structured: bool = False):
             if to_structured:
                 return logs_data.logs
             return logs_data.to_dict().get("logs", [])
+        if ".jsonl" in logs_path:
+            logs_data = V1Logs.read_jsonl(content, to_structured=to_structured)
+            if to_structured:
+                return logs_data.logs
+            return logs_data
         # Chunked logs
         data = orjson_loads(content)
         if to_structured:
@@ -84,7 +92,15 @@ async def download_run_logs_file(
     return await content_to_logs(content, subpath)
 
 
-async def download_tmp_logs(fs: FSSystem, store_path: str, run_uuid: str) -> str:
-    subpath = "{}/.tmpplxlogs".format(run_uuid)
-    delete_path(subpath)
+async def download_logs(
+    fs: FSSystem, subpath: str, store_path: str, run_uuid: str, check_cache: bool = True
+) -> str:
+    subpath = "{}/{}".format(run_uuid, subpath)
+    path_to = os.path.join(settings.CLIENT_CONFIG.archives_root or "", subpath)
+    if os.path.exists(path_to):
+        if check_cache:
+            # path already exists
+            return path_to
+        else:
+            delete_path(path_to)
     return await download_dir(fs=fs, store_path=store_path, subpath=subpath)

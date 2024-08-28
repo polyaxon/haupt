@@ -8,8 +8,8 @@ import aiofiles
 from haupt.streams.tasks.logs import (
     content_to_logs,
     download_agent_logs_file,
+    download_logs,
     download_run_logs_file,
-    download_tmp_logs,
 )
 from polyaxon._fs.async_manager import list_files
 from polyaxon._fs.types import FSSystem
@@ -60,7 +60,7 @@ async def get_next_file(
     return files[i]
 
 
-async def read_tmp_logs_file(logs_path) -> List[V1Log]:
+async def read_logs_file(logs_path) -> List[V1Log]:
     if not logs_path or not os.path.exists(logs_path):
         return []
 
@@ -97,7 +97,7 @@ async def get_archived_agent_logs(
     return logs, last_file, files
 
 
-async def get_archived_operation_logs(
+async def get_legacy_archived_operation_logs(
     fs: FSSystem,
     store_path: str,
     run_uuid: str,
@@ -121,23 +121,34 @@ async def get_archived_operation_logs(
     return logs, last_file, files
 
 
-async def get_tmp_operation_logs(
-    fs: FSSystem, store_path: str, run_uuid: str, last_time: Optional[datetime.datetime]
+async def get_archived_pods_operation_logs(
+    fs: FSSystem,
+    store_path: str,
+    run_uuid: str,
+    subpath: str,
+    last_time: Optional[datetime.datetime] = None,
+    check_cache: bool = True,
 ) -> Tuple[List[V1Log], Optional[datetime.datetime]]:
     logs = []
 
-    tmp_logs = await download_tmp_logs(fs=fs, store_path=store_path, run_uuid=run_uuid)
+    logs_path = await download_logs(
+        fs=fs,
+        store_path=store_path,
+        subpath=subpath,
+        run_uuid=run_uuid,
+        check_cache=check_cache,
+    )
 
-    if not tmp_logs or not os.path.exists(tmp_logs):
+    if not logs_path or not os.path.exists(logs_path):
         return logs, None
 
-    tmp_log_files = os.listdir(tmp_logs)
-    if not tmp_log_files:
+    log_files = os.listdir(logs_path)
+    if not log_files:
         return logs, None
 
-    for tmp_file in tmp_log_files:
-        logs_path = os.path.join(tmp_logs, tmp_file)
-        logs += await read_tmp_logs_file(logs_path)
+    for log_file in log_files:
+        _logs_path = os.path.join(logs_path, log_file)
+        logs += await read_logs_file(_logs_path)
 
     if last_time:
         logs = [l for l in logs if l.timestamp > last_time]
@@ -147,7 +158,54 @@ async def get_tmp_operation_logs(
     return [l.to_dict() for l in logs], last_time
 
 
-async def get_operation_logs(
+async def get_tmp_operation_logs(
+    fs: FSSystem, store_path: str, run_uuid: str, last_time: Optional[datetime.datetime]
+) -> Tuple[List[V1Log], Optional[datetime.datetime]]:
+    logs, last_time = await get_archived_pods_operation_logs(
+        fs=fs,
+        store_path=store_path,
+        run_uuid=run_uuid,
+        subpath="plxlogs",
+        last_time=last_time,
+        check_cache=False,
+    )
+    if logs:
+        return logs, last_time
+    return await get_archived_pods_operation_logs(
+        fs=fs,
+        store_path=store_path,
+        run_uuid=run_uuid,
+        subpath=".tmpplxlogs",
+        last_time=last_time,
+    )
+
+
+async def get_archived_operation_logs(
+    fs: FSSystem,
+    store_path: str,
+    run_uuid: str,
+    last_file: Optional[str],
+    check_cache: bool = True,
+) -> Tuple[List[V1Log], Optional[str], List[str]]:
+    logs, _ = await get_archived_pods_operation_logs(
+        fs=fs,
+        store_path=store_path,
+        run_uuid=run_uuid,
+        subpath="plxlogs",
+        check_cache=check_cache,
+    )
+    if logs:
+        return logs, None, []
+    return await get_legacy_archived_operation_logs(
+        fs=fs,
+        store_path=store_path,
+        run_uuid=run_uuid,
+        last_file=last_file,
+        check_cache=check_cache,
+    )
+
+
+async def get_k8s_operation_logs(
     k8s_manager: AsyncK8sManager,
     k8s_operation: any,
     instance: str,
