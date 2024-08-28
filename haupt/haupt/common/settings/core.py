@@ -1,4 +1,4 @@
-import logging
+from clipped.utils.paths import RW_R_R_PERMISSIONS
 
 from haupt import settings
 from haupt.managers.sandbox import SandboxConfigManager
@@ -13,7 +13,7 @@ def set_core(context, config: PlatformConfig, use_db: bool = True):
     context["SCHEDULER_ENABLED"] = config.scheduler_enabled
     context["K8S_NAMESPACE"] = config.namespace
 
-    context["FILE_UPLOAD_PERMISSIONS"] = 0o644
+    context["FILE_UPLOAD_PERMISSIONS"] = RW_R_R_PERMISSIONS
     context[
         "MIN_ARTIFACTS_DELETION_TIMEDELTA"
     ] = config.min_artifacts_deletion_timedelta
