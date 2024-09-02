@@ -104,6 +104,7 @@ class SchedulingResolver(resolver.BaseResolver):
         cloning_kind: V1CloningKind = None,
         original_uuid: Optional[str] = None,
         is_independent: bool = True,
+        username: Optional[str] = None,
     ):
         super().__init__(
             run=run,
@@ -120,6 +121,7 @@ class SchedulingResolver(resolver.BaseResolver):
             cloning_kind=cloning_kind,
             original_uuid=original_uuid,
             is_independent=is_independent,
+            username=username,
         )
         self.project = self.run.project
         self.schedule_at = self.run.schedule_at
