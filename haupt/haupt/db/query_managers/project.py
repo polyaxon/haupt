@@ -1,8 +1,10 @@
 from django.conf import settings
 
+from haupt.db.query_managers import callback_conditions
 from haupt.db.query_managers.manager import BaseQueryManager
 from polyaxon._pql.builder import (
     ArrayCondition,
+    CallbackCondition,
     DateTimeCondition,
     KeysCondition,
     SearchCondition,
@@ -51,6 +53,8 @@ class ProjectQueryManager(BaseQueryManager):
         "teams": parse_value_operation,
         # Contributors
         "contributors": parse_value_operation,
+        # Kind
+        "kind": parse_value_operation,
     }
     CONDITIONS_BY_FIELD = {
         # Uuid
@@ -74,4 +78,6 @@ class ProjectQueryManager(BaseQueryManager):
         "teams": ValueCondition,
         # Contributors
         "contributors": ValueCondition,
+        # Kind
+        "kind": CallbackCondition(callback_conditions.project_kind_condition),
     }

@@ -3,6 +3,7 @@ from typing import Any, Iterable, Optional, Union
 from clipped.utils.bools import to_bool
 from clipped.utils.lists import to_list
 
+from polyaxon._schemas.lifecycle import V1ProjectFeature
 from polyaxon.schemas import LiveState, ManagedBy
 from traceml.artifacts import V1ArtifactKind
 
@@ -151,6 +152,28 @@ def mine_condition(
     params = to_list(params)
     if len(params) == 1:
         query = query_backend(user=request.user)
+        if negation:
+            return ~query
+        return query
+    return None
+
+
+def project_kind_condition(
+    queryset: Any,
+    params: Union[str, Iterable],
+    negation: bool,
+    query_backend: Any,
+    timezone: Optional[str] = None,
+    request: Optional[Any] = None,
+) -> Any:
+    params = to_list(params)
+    if len(params) == 1:
+        kind = params[0]
+        project_features = V1ProjectFeature.to_set()
+        if kind not in project_features:
+            return None
+        excluded_features = list(project_features - {kind})
+        query = query_backend(excluded_features__contains=excluded_features)
         if negation:
             return ~query
         return query
