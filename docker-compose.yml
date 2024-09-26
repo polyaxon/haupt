@@ -7,7 +7,7 @@ x-defaults: &defaults
 
 services:
   postgres:
-    image: postgres:14.5-alpine
+    image: postgres:16.4-alpine
     environment:
       POSTGRES_USER: "haupt"
       POSTGRES_PASSWORD: "haupt"
