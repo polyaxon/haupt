@@ -131,7 +131,7 @@ async def download_artifact(
     )
     if not archived_path:
         return HttpResponse(
-            content="Artifact not found: filepath={}".format(archived_path),
+            content="Artifact not found: filepath={}".format(subpath),
             status=status.HTTP_404_NOT_FOUND,
         )
     if stream:
