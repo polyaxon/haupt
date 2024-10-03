@@ -46,6 +46,7 @@ from polyaxon._constants.metadata import (
     META_IS_EXTERNAL,
     META_PORTS,
     META_REWRITE_PATH,
+    META_TTL,
     META_UPLOAD_ARTIFACTS,
 )
 from polyaxon._contexts import keys as ctx_keys
@@ -676,6 +677,12 @@ class SchedulingResolver(resolver.BaseResolver):
         # handle services ports
         if self.compiled_operation.is_service_run and self.compiled_operation.run.ports:
             self.run.meta_info[META_PORTS] = self.compiled_operation.run.ports
+        # handle ttl
+        if (
+            self.compiled_operation.termination
+            and self.compiled_operation.termination.ttl
+        ):
+            self.run.meta_info[META_TTL] = self.compiled_operation.termination.ttl
 
     def _persist_resources(self):
         if self.compiled_operation.has_pipeline:
