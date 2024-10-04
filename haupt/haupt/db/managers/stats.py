@@ -216,28 +216,30 @@ class StatsSerializer(
         return queryset
 
 
-def annotate_statuses(queryset):
-    return queryset.annotate(
-        count=Count(
-            "runs",
-            distinct=True,
-        ),
-        running=Count(
+def annotate_statuses(queryset, include_total=False):
+    agg = {
+        "running": Count(
             "runs",
             filter=Q(runs__status__in=LifeCycle.RUNNING_VALUES),
             distinct=True,
         ),
-        pending=Count(
+        "pending": Count(
             "runs",
             filter=Q(runs__status__in=LifeCycle.ALL_PENDING_VALUES),
             distinct=True,
         ),
-        warning=Count(
+        "warning": Count(
             "runs",
             filter=Q(runs__status__in=LifeCycle.ALL_WARNING_VALUES),
             distinct=True,
         ),
-    )
+    }
+    if include_total:
+        agg["count"] = Count(
+            "runs",
+            distinct=True,
+        )
+    return queryset.annotate(**agg)
 
 
 def annotate_quota(queryset):
