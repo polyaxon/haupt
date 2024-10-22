@@ -76,4 +76,5 @@ WRITE_ACTIONS = [
     GRANTED,
     REVOKED,
     INVITED,
+    NEW_STAGE,
 ]
