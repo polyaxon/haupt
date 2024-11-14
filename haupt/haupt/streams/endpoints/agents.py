@@ -3,6 +3,7 @@ import logging
 from typing import Dict, List, Optional, Union
 
 from clipped.utils.bools import to_bool
+from clipped.utils.paths import delete_path
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -51,6 +52,13 @@ async def collect_agent_data(
     fs = await AppFS.get_fs()
     store_path = AppFS.get_fs_root_path()
 
+    # Cleanup archives
+    if store_path != settings.AGENT_CONFIG.local_root:
+        delete_path(settings.AGENT_CONFIG.local_root)
+    if store_path != settings.CLIENT_CONFIG.archives_root:
+        delete_path(settings.CLIENT_CONFIG.archives_root)
+
+    # Collect agent data
     async def collect_and_archive_agent_services_logs(pods: List[V1Pod]):
         for pod in pods:
             logs = await collect_agent_service_logs(k8s_manager=k8s_manager, pod=pod)
