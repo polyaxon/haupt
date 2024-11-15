@@ -26,8 +26,8 @@ from polyaxon._k8s.logging.async_monitor import (
 )
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._services import PolyaxonServices
+from haupt.polyconf.config_manager import PLATFORM_CONFIG
 from traceml.logging import V1Logs
-
 logger = logging.getLogger("haupt.streams.agents")
 
 
@@ -95,7 +95,8 @@ async def collect_agent_data(
             agent_uuid=agent_uuid,
             agent_spec=agent_spec,
         )
-    if pods:
+    # Do not collect core pods logs in debug mode
+    if pods and PLATFORM_CONFIG.log_level != "DEBUG":
         await collect_and_archive_agent_services_logs(pods=pods)
 
     if k8s_manager:
