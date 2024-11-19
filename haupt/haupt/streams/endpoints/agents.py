@@ -13,6 +13,7 @@ from django.urls import path
 
 from haupt.common.endpoints.files import FilePathResponse
 from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
+from haupt.polyconf.config_manager import PLATFORM_CONFIG
 from haupt.streams.connections.fs import AppFS
 from haupt.streams.controllers.logs import get_archived_agent_logs
 from haupt.streams.endpoints.base import UJSONResponse
@@ -26,8 +27,8 @@ from polyaxon._k8s.logging.async_monitor import (
 )
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._services import PolyaxonServices
-from haupt.polyconf.config_manager import PLATFORM_CONFIG
 from traceml.logging import V1Logs
+
 logger = logging.getLogger("haupt.streams.agents")
 
 

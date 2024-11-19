@@ -26,7 +26,11 @@ os.environ.setdefault("ASGI_APPLICATION", "haupt.polyconf.asgi.viewer.applicatio
 os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.STREAMS
 os.environ[ENV_KEYS_SERVICE_MODE] = PolyaxonServices.VIEWER
 os.environ[ENV_KEYS_UI_IN_SANDBOX] = "true"
-logging.debug("Sandbox root {}".format(os.environ.get(ENV_KEYS_SANDBOX_ROOT, ctx_paths.CONTEXT_OFFLINE_ROOT)))
+logging.debug(
+    "Sandbox root {}".format(
+        os.environ.get(ENV_KEYS_SANDBOX_ROOT, ctx_paths.CONTEXT_OFFLINE_ROOT)
+    )
+)
 settings.set_sandbox_config(
     path=os.environ.get(ENV_KEYS_SANDBOX_ROOT, ctx_paths.CONTEXT_OFFLINE_ROOT),
     env_only_config=True,
