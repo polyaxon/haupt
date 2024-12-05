@@ -1,1 +1,1 @@
-whitenoise==6.7.0
+whitenoise==6.8.2
