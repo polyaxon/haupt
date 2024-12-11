@@ -28,7 +28,12 @@ from polyaxon._fs.async_manager import (
 async def handle_upload(
     request: ASGIRequest, run_uuid: str, is_file: bool
 ) -> HttpResponse:
-    content_file = request.FILES["upload_file"]
+    content_file = request.FILES.get("upload_file")
+    if not content_file:
+        return HttpResponse(
+            content="A file is required to upload a file",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     content_json = request.POST.get("json")
     content_json = orjson_loads(content_json) if content_json else {}
     overwrite = content_json.get("overwrite", True)
