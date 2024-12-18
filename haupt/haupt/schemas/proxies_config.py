@@ -41,6 +41,7 @@ from polyaxon._env_vars.keys import (
     ENV_KEYS_STATIC_ROOT,
     ENV_KEYS_STATIC_URL,
     ENV_KEYS_UI_ADMIN_ENABLED,
+    ENV_KEYS_UI_SINGLE_URL,
 )
 from polyaxon._schemas.base import BaseSchemaModel
 from polyaxon.api import STATIC_V1
@@ -121,6 +122,7 @@ class ProxiesConfig(BaseSchemaModel):
     )
     static_url: Optional[str] = Field(alias=ENV_KEYS_STATIC_URL)
     ui_admin_enabled: Optional[bool] = Field(alias=ENV_KEYS_UI_ADMIN_ENABLED)
+    ui_single_url: Optional[str] = Field(alias=ENV_KEYS_UI_SINGLE_URL)
     has_forward_proxy: Optional[bool] = Field(alias=ENV_KEYS_PROXY_HAS_FORWARD_PROXY)
     forward_proxy_port: Optional[int] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_PORT)
     forward_proxy_host: Optional[str] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_HOST)

@@ -25,9 +25,11 @@ from polyaxon._env_vars.keys import (
     ENV_KEYS_UI_ADMIN_ENABLED,
     ENV_KEYS_UI_ASSETS_VERSION,
     ENV_KEYS_UI_BASE_URL,
+    ENV_KEYS_UI_DEFAULT_STREAMS_URL,
     ENV_KEYS_UI_ENABLED,
     ENV_KEYS_UI_IN_SANDBOX,
     ENV_KEYS_UI_OFFLINE,
+    ENV_KEYS_UI_SINGLE_URL,
 )
 from polyaxon._k8s.namespace import DEFAULT_NAMESPACE
 from polyaxon._schemas.base import BaseSchemaModel
@@ -298,6 +300,10 @@ class PlatformConfig(BaseSchemaModel):
     )
     ui_offline: Optional[bool] = Field(alias=ENV_KEYS_UI_OFFLINE, default=False)
     ui_enabled: Optional[bool] = Field(alias=ENV_KEYS_UI_ENABLED, default=True)
+    ui_single_url: Optional[bool] = Field(alias=ENV_KEYS_UI_SINGLE_URL, default=False)
+    ui_default_streams_url: Optional[str] = Field(
+        alias=ENV_KEYS_UI_DEFAULT_STREAMS_URL, default=None
+    )
 
     class Config:
         extra = Extra.ignore

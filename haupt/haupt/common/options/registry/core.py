@@ -14,6 +14,8 @@ UI_BASE_URL = "UI_BASE_URL"
 UI_OFFLINE = "UI_OFFLINE"
 UI_ENABLED = "UI_ENABLED"
 UI_IN_SANDBOX = "UI_IN_SANDBOX"
+UI_SINGLE_URL = "UI_SINGLE_URL"
+UI_DEFAULT_STREAMS_URL = "UI_DEFAULT_STREAMS_URL"
 
 OPTIONS = {
     LOGGING,
@@ -30,6 +32,8 @@ OPTIONS = {
     UI_OFFLINE,
     UI_ENABLED,
     UI_IN_SANDBOX,
+    UI_SINGLE_URL,
+    UI_DEFAULT_STREAMS_URL,
 }
 
 
@@ -198,4 +202,28 @@ class UiInSandbox(Option):
     store = OptionStores.SETTINGS
     typing = "bool"
     default = False
+    options = None
+
+
+class UiSingleUrl(Option):
+    key = UI_SINGLE_URL
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    store = OptionStores.SETTINGS
+    typing = "bool"
+    default = False
+    options = None
+
+
+class UiDefaultStreamsUrl(Option):
+    key = UI_DEFAULT_STREAMS_URL
+    scope = OptionScope.GLOBAL
+    is_secret = False
+    is_optional = True
+    is_list = False
+    store = OptionStores.SETTINGS
+    typing = "str"
+    default = ""
     options = None
