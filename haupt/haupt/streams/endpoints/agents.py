@@ -3,7 +3,7 @@ import logging
 from typing import Dict, List, Optional, Union
 
 from clipped.utils.bools import to_bool
-from clipped.utils.paths import delete_path
+from clipped.utils.paths import delete_old_files
 from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
@@ -55,9 +55,9 @@ async def collect_agent_data(
 
     # Cleanup archives
     if store_path != settings.AGENT_CONFIG.local_root:
-        delete_path(settings.AGENT_CONFIG.local_root)
+        delete_old_files(settings.AGENT_CONFIG.local_root)
     if store_path != settings.CLIENT_CONFIG.archives_root:
-        delete_path(settings.CLIENT_CONFIG.archives_root)
+        delete_old_files(settings.CLIENT_CONFIG.archives_root)
 
     # Collect agent data
     async def collect_and_archive_agent_services_logs(pods: List[V1Pod]):
