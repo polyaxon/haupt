@@ -25,7 +25,7 @@ location /streams/ {
 }
 """  # noqa
 
-        assert get_streams_location_config(resolver="", auth="") == expected
+        assert get_streams_location_config(resolver="", cors="", auth="") == expected
 
         settings.PROXIES_CONFIG.streams_port = 8888
         settings.PROXIES_CONFIG.auth_enabled = True
@@ -46,7 +46,8 @@ location /streams/ {
 }
 """  # noqa
         assert (
-            get_streams_location_config(resolver="", auth=get_auth_config()) == expected
+            get_streams_location_config(resolver="", cors="", auth=get_auth_config())
+            == expected
         )
 
     def test_streams_location_with_dns_prefix(self):
@@ -69,7 +70,9 @@ location /streams/ {
         settings.PROXIES_CONFIG.dns_custom_cluster = "cluster.local"
         assert get_dns_config() == "coredns.kube-system.svc.cluster.local"
         resolver = get_resolver()
-        assert get_streams_location_config(resolver=resolver, auth="") == expected
+        assert (
+            get_streams_location_config(resolver=resolver, cors="", auth="") == expected
+        )
 
         expected = r"""
 location /streams/ {
@@ -93,6 +96,8 @@ location /streams/ {
         assert get_dns_config() == "kube-dns.new-system.svc.new-dns"
         resolver = get_resolver()
         assert (
-            get_streams_location_config(resolver=resolver, auth=get_auth_config())
+            get_streams_location_config(
+                resolver=resolver, cors="", auth=get_auth_config()
+            )
             == expected
         )

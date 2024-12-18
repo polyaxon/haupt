@@ -34,7 +34,9 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         settings.PROXIES_CONFIG.dns_use_resolver = False
         resolver = get_resolver()
         assert (
-            get_services_location_config(resolver=resolver, auth="", rewrite=True)
+            get_services_location_config(
+                resolver=resolver, cors="", auth="", rewrite=True
+            )
             == expected
         )
 
@@ -64,7 +66,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=True
             )
             == expected
         )
@@ -92,7 +94,9 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         assert get_dns_config() == "kube-dns.kube-system.svc.cluster.local"
         resolver = get_resolver()
         assert (
-            get_services_location_config(resolver=resolver, auth="", rewrite=True)
+            get_services_location_config(
+                resolver=resolver, cors="", auth="", rewrite=True
+            )
             == expected
         )
 
@@ -121,7 +125,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=True
             )
             == expected
         )
@@ -154,7 +158,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=True
             )
             == expected
         )
@@ -184,7 +188,7 @@ location ~ /rewrite-services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=True
             )
             == expected
         )
@@ -212,7 +216,9 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         settings.PROXIES_CONFIG.dns_use_resolver = False
         resolver = get_resolver()
         assert (
-            get_services_location_config(resolver=resolver, auth="", rewrite=False)
+            get_services_location_config(
+                resolver=resolver, cors="", auth="", rewrite=False
+            )
             == expected
         )
 
@@ -240,7 +246,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=False
             )
             == expected
         )
@@ -266,7 +272,9 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         assert get_dns_config() == "kube-dns.kube-system.svc.cluster.local"
         resolver = get_resolver()
         assert (
-            get_services_location_config(resolver=resolver, auth="", rewrite=False)
+            get_services_location_config(
+                resolver=resolver, cors="", auth="", rewrite=False
+            )
             == expected
         )
 
@@ -293,7 +301,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=False
             )
             == expected
         )
@@ -324,7 +332,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=False
             )
             == expected
         )
@@ -352,7 +360,7 @@ location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False
+                resolver=resolver, cors="", auth=get_auth_config(), rewrite=False
             )
             == expected
         )
@@ -383,7 +391,7 @@ location ~ /rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth="", rewrite=True, external=True
+                resolver=resolver, cors="", auth="", rewrite=True, external=True
             )
             == expected
         )
@@ -411,7 +419,11 @@ location ~ /rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True, external=True
+                resolver=resolver,
+                cors="",
+                auth=get_auth_config(),
+                rewrite=True,
+                external=True,
             )
             == expected
         )
@@ -440,7 +452,7 @@ location ~ /rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth="", rewrite=True, external=True
+                resolver=resolver, cors="", auth="", rewrite=True, external=True
             )
             == expected
         )
@@ -468,6 +480,7 @@ location ~ /rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         assert (
             get_services_location_config(
                 resolver=resolver,
+                cors="",
                 auth=get_auth_config(),
                 rewrite=True,
                 external=True,
@@ -500,7 +513,11 @@ location ~ /rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True, external=True
+                resolver=resolver,
+                cors="",
+                auth=get_auth_config(),
+                rewrite=True,
+                external=True,
             )
             == expected
         )
@@ -527,7 +544,11 @@ location ~ /rewrite-external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=True, external=True
+                resolver=resolver,
+                cors="",
+                auth=get_auth_config(),
+                rewrite=True,
+                external=True,
             )
             == expected
         )
@@ -556,7 +577,7 @@ location ~ /external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth="", rewrite=False, external=True
+                resolver=resolver, cors="", auth="", rewrite=False, external=True
             )
             == expected
         )
@@ -582,7 +603,11 @@ location ~ /external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False, external=True
+                resolver=resolver,
+                cors="",
+                auth=get_auth_config(),
+                rewrite=False,
+                external=True,
             )
             == expected
         )
@@ -609,7 +634,7 @@ location ~ /external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth="", rewrite=False, external=True
+                resolver=resolver, cors="", auth="", rewrite=False, external=True
             )
             == expected
         )
@@ -634,7 +659,11 @@ location ~ /external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False, external=True
+                resolver=resolver,
+                cors="",
+                auth=get_auth_config(),
+                rewrite=False,
+                external=True,
             )
             == expected
         )
@@ -663,6 +692,7 @@ location ~ /external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         assert (
             get_services_location_config(
                 resolver=resolver,
+                cors="",
                 auth=get_auth_config(),
                 rewrite=False,
                 external=True,
@@ -690,7 +720,11 @@ location ~ /external/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-
         resolver = get_resolver()
         assert (
             get_services_location_config(
-                resolver=resolver, auth=get_auth_config(), rewrite=False, external=True
+                resolver=resolver,
+                cors="",
+                auth=get_auth_config(),
+                rewrite=False,
+                external=True,
             )
             == expected
         )
@@ -701,14 +735,14 @@ class TestPluginsSchemas(BaseProxiesTestCase):
     SET_PROXIES_SETTINGS = True
 
     def test_no_plugins(self):
-        assert get_plugins_location_config(resolver="", auth="") == []
+        assert get_plugins_location_config(resolver="", cors="", auth="") == []
 
     def test_plugins(self):
         proxy_services = {"tensorboard": {"port": 6006}, "notebook": {"port": 8888}}
         assert (
             len(
                 get_plugins_location_config(
-                    resolver="", auth="", proxy_services=proxy_services
+                    resolver="", cors="", auth="", proxy_services=proxy_services
                 )
             )
             == 2
@@ -748,7 +782,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
         assert (
             "\n".join(
                 get_plugins_location_config(
-                    resolver=resolver, auth="", proxy_services=proxy_services
+                    resolver=resolver, cors="", auth="", proxy_services=proxy_services
                 )
             )
             == expected
@@ -797,6 +831,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
             "\n".join(
                 get_plugins_location_config(
                     resolver=resolver,
+                    cors="",
                     auth=get_auth_config(),
                     proxy_services=proxy_services,
                 )
@@ -842,7 +877,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
         assert (
             "\n".join(
                 get_plugins_location_config(
-                    resolver=resolver, auth="", proxy_services=proxy_services
+                    resolver=resolver, cors="", auth="", proxy_services=proxy_services
                 )
             )
             == expected
@@ -890,6 +925,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
             "\n".join(
                 get_plugins_location_config(
                     resolver=resolver,
+                    cors="",
                     auth=get_auth_config(),
                     proxy_services=proxy_services,
                 )
@@ -943,6 +979,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
             "\n".join(
                 get_plugins_location_config(
                     resolver=resolver,
+                    cors="",
                     auth=get_auth_config(),
                     proxy_services=proxy_services,
                 )
@@ -992,6 +1029,7 @@ location ~ /notebook/proxy/([-_.:\w]+)/(.*) {
             "\n".join(
                 get_plugins_location_config(
                     resolver=resolver,
+                    cors="",
                     auth=get_auth_config(),
                     proxy_services=proxy_services,
                 )

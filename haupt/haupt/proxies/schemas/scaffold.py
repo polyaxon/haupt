@@ -27,6 +27,7 @@ def get_scaffold_config(
     use_assets_config: bool = False,
     use_services_configs: bool = False,
     resolver: Optional[str] = None,
+    cors: Optional[str] = None,
     auth: Optional[str] = None,
     api_configs: Optional[List[str]] = None,
     api_location_configs: Optional[List[str]] = None,
@@ -52,22 +53,28 @@ def get_scaffold_config(
         ]
     if is_local_streams_service:
         config.append(
-            get_auth_request_config(),
+            get_auth_request_config(cors=cors),
         )
     if use_services_configs:
         config += [
             get_internal_location_config(
-                resolver=resolver, is_local_service=is_local_streams_service
+                resolver=resolver, cors=cors, is_local_service=is_local_streams_service
             ),
             get_streams_location_config(
-                resolver=resolver, auth=auth, is_local_service=is_local_streams_service
+                resolver=resolver,
+                cors=cors,
+                auth=auth,
+                is_local_service=is_local_streams_service,
             ),
             get_k8s_location_config(
-                resolver=resolver, auth=auth, is_local_service=is_local_streams_service
+                resolver=resolver,
+                cors=cors,
+                auth=auth,
+                is_local_service=is_local_streams_service,
             ),
-            # get_plugins_location_config(resolver=resolver, auth=auth)
+            # get_plugins_location_config(resolver=resolver, cors=cors, auth=auth)
         ]
-        config += get_services_definitions(resolver=resolver, auth=auth)
+        config += get_services_definitions(resolver=resolver, cors=cors, auth=auth)
     if api_location_configs:
         config += api_location_configs
     return config

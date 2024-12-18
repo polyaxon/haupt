@@ -1,3 +1,5 @@
+from typing import Optional
+
 from haupt import settings
 from haupt.proxies.schemas.base import clean_config, get_config
 from haupt.proxies.schemas.urls import (
@@ -16,6 +18,7 @@ from polyaxon.api import (
 
 OPTIONS = r"""
 location {path} {{
+    {cors}
     {auth}
     {resolver}
     {ssl_server_name}
@@ -35,6 +38,7 @@ def get_api_config(
     path: str,
     service: str,
     resolver: str,
+    cors: str,
     auth: str,
     ssl_server_name: str,
     header_host: str,
@@ -44,19 +48,24 @@ def get_api_config(
         path=path,
         service=service,
         resolver=resolver,
+        cors=cors,
         auth=auth,
         ssl_server_name=ssl_server_name,
         header_host=header_host,
     )
 
 
-def get_api_location_config(resolver: str, auth=str):
+def get_api_location_config(
+    resolver: str, cors: Optional[str] = "", auth: Optional[str] = ""
+):
     service = get_service_url(
         host=settings.PROXIES_CONFIG.api_host,
         port=settings.PROXIES_CONFIG.api_port,
     )
     if not settings.PROXIES_CONFIG.api_use_resolver:
         resolver = ""
+    if not settings.PROXIES_CONFIG.ui_single_url:
+        cors = ""
     if not settings.PROXIES_CONFIG.auth_external:
         auth = ""
     ssl_server_name = get_ssl_server_name(service)
@@ -68,6 +77,7 @@ def get_api_location_config(resolver: str, auth=str):
             path="= /",
             service=service,
             resolver=resolver,
+            cors=cors,
             auth=auth,
             ssl_server_name=ssl_server_name,
             header_host=header_host,
@@ -76,6 +86,7 @@ def get_api_location_config(resolver: str, auth=str):
             path=API_V1_LOCATION,
             service=service,
             resolver=resolver,
+            cors=cors,
             auth=auth,
             ssl_server_name=ssl_server_name,
             header_host=header_host,
@@ -84,6 +95,7 @@ def get_api_location_config(resolver: str, auth=str):
             path=AUTH_V1_LOCATION,
             service=service,
             resolver=resolver,
+            cors=cors,
             auth="",
             ssl_server_name=ssl_server_name,
             header_host=header_host,
@@ -92,6 +104,7 @@ def get_api_location_config(resolver: str, auth=str):
             path=UI_V1_LOCATION,
             service=service,
             resolver=resolver,
+            cors=cors,
             auth="",
             ssl_server_name=ssl_server_name,
             header_host=header_host,
@@ -100,6 +113,7 @@ def get_api_location_config(resolver: str, auth=str):
             path=SSO_V1_LOCATION,
             service=service,
             resolver=resolver,
+            cors=cors,
             auth="",
             ssl_server_name=ssl_server_name,
             header_host=header_host,
@@ -108,6 +122,7 @@ def get_api_location_config(resolver: str, auth=str):
             path="/static/",
             service=service,
             resolver=resolver,
+            cors=cors,
             auth="",
             ssl_server_name=ssl_server_name,
             header_host=header_host,
@@ -119,6 +134,7 @@ def get_api_location_config(resolver: str, auth=str):
                 path=ADMIN_V1_LOCATION,
                 service=service,
                 resolver=resolver,
+                cors=cors,
                 auth=auth,
                 ssl_server_name=ssl_server_name,
                 header_host=header_host,
