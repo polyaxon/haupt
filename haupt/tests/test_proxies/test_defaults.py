@@ -24,7 +24,8 @@ class TestSettings(BaseProxiesTestCase):
         assert settings.PROXIES_CONFIG.dns_prefix is None
         assert settings.PROXIES_CONFIG.namespace is None
         assert settings.PROXIES_CONFIG.namespaces is None
-        assert settings.PROXIES_CONFIG.log_level == "warn"
+        assert settings.PROXIES_CONFIG.log_level is None
+        assert settings.PROXIES_CONFIG.get_log_level() == "warn"
         assert settings.PROXIES_CONFIG.nginx_timeout == 650
         assert settings.PROXIES_CONFIG.nginx_indent_char == " "
         assert settings.PROXIES_CONFIG.nginx_indent_width == 4

@@ -29,7 +29,7 @@ from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._services import PolyaxonServices
 from traceml.logging import V1Logs
 
-logger = logging.getLogger("haupt.streams.agents")
+_logger = logging.getLogger("haupt.streams.agents")
 
 
 @transaction.non_atomic_requests
@@ -45,7 +45,7 @@ async def collect_agent_data(
         validate_internal_auth(request)
     except Exception as e:
         errors = "Request requires an authenticated internal service %s" % e
-        logger.warning(errors)
+        _logger.warning(errors)
         return UJSONResponse(
             data={"errors": errors},
             status=status.HTTP_400_BAD_REQUEST,

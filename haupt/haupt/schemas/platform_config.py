@@ -2,7 +2,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional
 from typing_extensions import Literal
 
-from clipped.compact.pydantic import Extra, Field, validator
+from clipped.compact.pydantic import (
+    Field,
+    field_validator,
+    validation_always,
+    validation_before,
+)
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 
 from haupt import pkg
@@ -46,8 +51,8 @@ class PlatformConfig(BaseSchemaModel):
     config_module: Optional[str] = Field(
         alias="POLYAXON_CONFIG_MODULE", default="polyconf"
     )
-    root_dir: Optional[Path] = Field(alias="POLYAXON_CONFIG_ROOT_DIR")
-    service: Optional[str] = Field(alias=ENV_KEYS_SERVICE)
+    root_dir: Optional[Path] = Field(alias="POLYAXON_CONFIG_ROOT_DIR", default=None)
+    service: Optional[str] = Field(alias=ENV_KEYS_SERVICE, default=None)
     is_debug_mode: Optional[bool] = Field(alias=ENV_KEYS_DEBUG, default=False)
     namespace: Optional[str] = Field(
         alias=ENV_KEYS_K8S_NAMESPACE, default=DEFAULT_NAMESPACE
@@ -66,29 +71,39 @@ class PlatformConfig(BaseSchemaModel):
     redis_protocol: Optional[str] = Field(
         alias="POLYAXON_REDIS_PROTOCOL", default="redis"
     )
-    redis_password: Optional[str] = Field(alias="POLYAXON_REDIS_PASSWORD")  # secret
-    redis_sessions_url: Optional[str] = Field(alias="POLYAXON_REDIS_SESSIONS_URL")
-    redis_heartbeat_url: Optional[str] = Field(alias="POLYAXON_REDIS_HEARTBEAT_URL")
-    admin_name: Optional[str] = Field(alias="POLYAXON_ADMIN_NAME")
-    admin_mail: Optional[str] = Field(alias="POLYAXON_ADMIN_MAIL")
-    extra_apps: Optional[List[str]] = Field(alias="POLYAXON_EXTRA_APPS")
+    redis_password: Optional[str] = Field(
+        alias="POLYAXON_REDIS_PASSWORD", default=None
+    )  # secret
+    redis_sessions_url: Optional[str] = Field(
+        alias="POLYAXON_REDIS_SESSIONS_URL", default=None
+    )
+    redis_heartbeat_url: Optional[str] = Field(
+        alias="POLYAXON_REDIS_HEARTBEAT_URL", default=None
+    )
+    admin_name: Optional[str] = Field(alias="POLYAXON_ADMIN_NAME", default=None)
+    admin_mail: Optional[str] = Field(alias="POLYAXON_ADMIN_MAIL", default=None)
+    extra_apps: Optional[List[str]] = Field(alias="POLYAXON_EXTRA_APPS", default=None)
     media_root: Optional[str] = Field(alias="POLYAXON_MEDIA_ROOT", default="")
     media_url: Optional[str] = Field(alias="POLYAXON_MEDIA_URL", default="")
-    static_root: Optional[str] = Field(alias=ENV_KEYS_STATIC_ROOT)
-    static_url: Optional[str] = Field(alias=ENV_KEYS_STATIC_URL)
-    artifacts_root: Optional[str] = Field(alias=ENV_KEYS_ARTIFACTS_ROOT)
-    archives_root: Optional[str] = Field(alias=ENV_KEYS_ARCHIVES_ROOT)
+    static_root: Optional[str] = Field(alias=ENV_KEYS_STATIC_ROOT, default=None)
+    static_url: Optional[str] = Field(alias=ENV_KEYS_STATIC_URL, default=None)
+    artifacts_root: Optional[str] = Field(alias=ENV_KEYS_ARTIFACTS_ROOT, default=None)
+    archives_root: Optional[str] = Field(alias=ENV_KEYS_ARCHIVES_ROOT, default=None)
     max_concurrency: Optional[int] = Field(alias=ENV_KEYS_MAX_CONCURRENCY, default=50)
     broker_backend: Optional[Literal["redis", "rabbitmq"]] = Field(
-        alias="POLYAXON_BROKER_BACKEND"
+        alias="POLYAXON_BROKER_BACKEND", default=None
     )
     celery_redis_broker_url: Optional[str] = Field(
-        alias="POLYAXON_REDIS_CELERY_BROKER_URL"
+        alias="POLYAXON_REDIS_CELERY_BROKER_URL", default=None
     )
-    celery_amqp_broker_url: Optional[str] = Field(alias="POLYAXON_AMQP_URL")
-    celery_amqp_user: Optional[str] = Field(alias="POLYAXON_RABBITMQ_USER")
+    celery_amqp_broker_url: Optional[str] = Field(
+        alias="POLYAXON_AMQP_URL", default=None
+    )
+    celery_amqp_user: Optional[str] = Field(
+        alias="POLYAXON_RABBITMQ_USER", default=None
+    )
     celery_amqp_password: Optional[str] = Field(
-        alias="POLYAXON_RABBITMQ_PASSWORD"
+        alias="POLYAXON_RABBITMQ_PASSWORD", default=None
     )  # secret
     celery_task_track_started: Optional[bool] = Field(
         alias="POLYAXON_CELERY_TASK_TRACK_STARTED", default=True
@@ -100,7 +115,7 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_CELERY_CONFIRM_PUBLISH", default=True
     )
     celery_result_backend: Optional[str] = Field(
-        alias="POLYAXON_REDIS_CELERY_RESULT_BACKEND_URL"
+        alias="POLYAXON_REDIS_CELERY_RESULT_BACKEND_URL", default=None
     )
     celery_worker_prefetch_multiplier: Optional[int] = Field(
         alias="POLYAXON_CELERY_WORKER_PREFETCH_MULTIPLIER", default=4
@@ -160,13 +175,15 @@ class PlatformConfig(BaseSchemaModel):
     db_engine_name: Optional[Literal["sqlite", "pgsql"]] = Field(
         alias="POLYAXON_DB_ENGINE", default="sqlite"
     )
-    db_name: Optional[str] = Field(alias="POLYAXON_DB_NAME")
-    db_user: Optional[str] = Field(alias="POLYAXON_DB_USER")
-    db_password: Optional[str] = Field(alias="POLYAXON_DB_PASSWORD")  # secret
-    db_host: Optional[str] = Field(alias="POLYAXON_DB_HOST")
-    db_port: Optional[str] = Field(alias="POLYAXON_DB_PORT")
+    db_name: Optional[str] = Field(alias="POLYAXON_DB_NAME", default=None)
+    db_user: Optional[str] = Field(alias="POLYAXON_DB_USER", default=None)
+    db_password: Optional[str] = Field(
+        alias="POLYAXON_DB_PASSWORD", default=None
+    )  # secret
+    db_host: Optional[str] = Field(alias="POLYAXON_DB_HOST", default=None)
+    db_port: Optional[str] = Field(alias="POLYAXON_DB_PORT", default=None)
     db_conn_max_age: Optional[int] = Field(alias="POLYAXON_DB_CONN_MAX_AGE", default=0)
-    db_options: Optional[Dict] = Field(alias="POLYAXON_DB_OPTIONS")
+    db_options: Optional[Dict] = Field(alias="POLYAXON_DB_OPTIONS", default=None)
     cors_allowed_origins: Optional[List[str]] = Field(
         alias="POLYAXON_CORS_ALLOWED_ORIGINS", default=[]
     )
@@ -174,30 +191,32 @@ class PlatformConfig(BaseSchemaModel):
     ssl_redirect_enabled: Optional[bool] = Field(
         alias="POLYAXON_SSL_REDIRECT_ENABLED", default=False
     )
-    encryption_key: Optional[str] = Field(alias="POLYAXON_ENCRYPTION_KEY")
+    encryption_key: Optional[str] = Field(alias="POLYAXON_ENCRYPTION_KEY", default=None)
     encryption_secret: Optional[str] = Field(
-        alias="POLYAXON_ENCRYPTION_SECRET"
+        alias="POLYAXON_ENCRYPTION_SECRET", default=None
     )  # secret
-    encryption_backend: Optional[str] = Field(alias="POLYAXON_ENCRYPTION_BACKEND")
+    encryption_backend: Optional[str] = Field(
+        alias="POLYAXON_ENCRYPTION_BACKEND", default=None
+    )
     secret_key: Optional[str] = Field(
         alias=ENV_KEYS_SECRET_KEY, default="default-secret"
     )  # secret
     secret_internal_token: Optional[str] = Field(
         alias="POLYAXON_SECRET_INTERNAL_TOKEN", default="default-secret"
     )  # secret
-    platform_host: Optional[str] = Field(alias=ENV_KEYS_PLATFORM_HOST)
+    platform_host: Optional[str] = Field(alias=ENV_KEYS_PLATFORM_HOST, default=None)
     allowed_hosts: Optional[List[str]] = Field(
         alias="POLYAXON_ALLOWED_HOSTS", default=["*"]
     )
     allowed_versions: Optional[List[str]] = Field(
         alias="POLYAXON_ALLOWED_VERSIONS", default=[]
     )
-    pod_ip: Optional[str] = Field(alias="POLYAXON_POD_IP")
-    host_ip: Optional[str] = Field(alias="POLYAXON_HOST_IP")
+    pod_ip: Optional[str] = Field(alias="POLYAXON_POD_IP", default=None)
+    host_ip: Optional[str] = Field(alias="POLYAXON_HOST_IP", default=None)
     frontend_debug: Optional[bool] = Field(
         alias="POLYAXON_FRONTEND_DEBUG", default=False
     )
-    template_debug: Optional[bool] = Field(alias="DJANGO_TEMPLATE_DEBUG")
+    template_debug: Optional[bool] = Field(alias="DJANGO_TEMPLATE_DEBUG", default=False)
     email_from_email: Optional[str] = Field(
         alias="POLYAXON_EMAIL_FROM", default="<Polyaxon>"
     )
@@ -211,7 +230,7 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_EMAIL_SUBJECT_PREFIX", default="[Polyaxon]"
     )
     email_use_tls: Optional[bool] = Field(alias="POLYAXON_EMAIL_USE_TLS", default=False)
-    email_backend: Optional[str] = Field(alias="POLYAXON_EMAIL_BACKEND")
+    email_backend: Optional[str] = Field(alias="POLYAXON_EMAIL_BACKEND", default=None)
     rest_throttle_rates_impersonate: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_IMPERSONATE", default=500
     )
@@ -240,23 +259,30 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_THROTTLE_RATES_CHECKS", default=10
     )
     services_analytics_backend: Optional[str] = Field(
-        alias="POLYAXON_ANALYTICS_BACKEND"
+        alias="POLYAXON_ANALYTICS_BACKEND", default=None
     )
     services_analytics_options: Optional[Dict] = Field(
         alias="POLYAXON_ANALYTICS_OPTIONS", default={}
     )
-    services_analytics_url: Optional[str] = Field(alias="POLYAXON_ANALYTICS_URL")
+    services_analytics_url: Optional[str] = Field(
+        alias="POLYAXON_ANALYTICS_URL", default=None
+    )
     services_transactions_backend: Optional[str] = Field(
-        alias="POLYAXON_TRANSACTIONS_BACKEND"
+        alias="POLYAXON_TRANSACTIONS_BACKEND",
+        default=None,
     )
     services_transactions_options: Optional[Dict] = Field(
         alias="POLYAXON_TRANSACTIONS_OPTIONS", default={}
     )
-    services_metrics_backend: Optional[str] = Field(alias="POLYAXON_METRICS_BACKEND")
+    services_metrics_backend: Optional[str] = Field(
+        alias="POLYAXON_METRICS_BACKEND", default=None
+    )
     services_metrics_options: Optional[Dict] = Field(
         alias="POLYAXON_METRICS_OPTIONS", default={}
     )
-    services_errors_backend: Optional[str] = Field(alias="POLYAXON_ERRORS_BACKEND")
+    services_errors_backend: Optional[str] = Field(
+        alias="POLYAXON_ERRORS_BACKEND", default=None
+    )
     services_errors_options: Optional[Dict] = Field(
         alias="POLYAXON_ERRORS_OPTIONS", default={}
     )
@@ -294,7 +320,7 @@ class PlatformConfig(BaseSchemaModel):
     ui_admin_enabled: Optional[bool] = Field(
         alias=ENV_KEYS_UI_ADMIN_ENABLED, default=False
     )
-    ui_base_url: Optional[str] = Field(alias=ENV_KEYS_UI_BASE_URL)
+    ui_base_url: Optional[str] = Field(alias=ENV_KEYS_UI_BASE_URL, default=None)
     ui_assets_version: Optional[str] = Field(
         alias=ENV_KEYS_UI_ASSETS_VERSION, default=""
     )
@@ -306,28 +332,29 @@ class PlatformConfig(BaseSchemaModel):
     )
 
     class Config:
-        extra = Extra.ignore
+        extra = "ignore"
 
-    @validator(
+    @field_validator(
         "extra_apps",
         "cors_allowed_origins",
         "allowed_hosts",
         "allowed_versions",
-        pre=True,
+        **validation_before,
     )
     def validate_str_list(cls, v, field: "ModelField"):
         if not isinstance(v, str):
             return v
+        key = cls.get_field_name(field)
         try:
             return ConfigParser.parse(List)(
-                key=field.name,
+                key=key,
                 value=v,
                 is_optional=True,
             )
         except PolyaxonSchemaError as e:
-            raise ValueError("Received an invalid {} `{}`".format(field.name, v)) from e
+            raise ValueError("Received an invalid {} `{}`".format(key, v)) from e
 
-    @validator(
+    @field_validator(
         "db_options",
         "services_analytics_options",
         "services_transactions_options",
@@ -340,21 +367,22 @@ class PlatformConfig(BaseSchemaModel):
         "auth_okta_options",
         "auth_onelogin_options",
         "auth_azuread_options",
-        pre=True,
+        **validation_before,
     )
     def validate_json_fields(cls, v, field: "ModelField"):
         if not isinstance(v, str):
             return v
+        key = cls.get_field_name(field)
         try:
             return ConfigParser.parse(Dict)(
-                key=field.name,
+                key=key,
                 value=v,
                 is_optional=True,
             )
         except PolyaxonSchemaError as e:
-            raise ValueError("Received an invalid {} `{}`".format(field.name, v)) from e
+            raise ValueError("Received an invalid {} `{}`".format(key, v)) from e
 
-    @validator("log_level", always=True, pre=True)
+    @field_validator("log_level", **validation_always, **validation_before)
     def validate_log_level(cls, v):
         if v:
             return v.upper()

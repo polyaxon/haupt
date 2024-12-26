@@ -1,7 +1,7 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
-from clipped.compact.pydantic import Extra, Field, validator
+from clipped.compact.pydantic import Field
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 
 from polyaxon._contexts import paths as ctx_paths
@@ -52,8 +52,10 @@ class ProxiesConfig(BaseSchemaModel):
     _DEFAULT_TARGET_PORT = 8000
     _DEFAULT_PORT = 80
 
-    namespace: Optional[str] = Field(alias=ENV_KEYS_K8S_NAMESPACE)
-    namespaces: Optional[List[str]] = Field(alias=ENV_KEYS_PROXY_NAMESPACES)
+    namespace: Optional[str] = Field(alias=ENV_KEYS_K8S_NAMESPACE, default=None)
+    namespaces: Optional[List[str]] = Field(
+        alias=ENV_KEYS_PROXY_NAMESPACES, default=None
+    )
     gateway_port: Optional[int] = Field(
         alias=ENV_KEYS_PROXY_GATEWAY_PORT, default=_DEFAULT_PORT
     )
@@ -87,7 +89,9 @@ class ProxiesConfig(BaseSchemaModel):
     auth_enabled: Optional[bool] = Field(
         alias=ENV_KEYS_PROXY_AUTH_ENABLED, default=False
     )
-    auth_external: Optional[str] = Field(alias=ENV_KEYS_PROXY_AUTH_EXTERNAL)
+    auth_external: Optional[str] = Field(
+        alias=ENV_KEYS_PROXY_AUTH_EXTERNAL, default=None
+    )
     auth_use_resolver: Optional[bool] = Field(
         alias=ENV_KEYS_PROXY_AUTH_USE_RESOLVER, default=False
     )
@@ -102,11 +106,11 @@ class ProxiesConfig(BaseSchemaModel):
         alias=ENV_KEYS_DNS_CUSTOM_CLUSTER, default="cluster.local"
     )
     dns_backend: Optional[str] = Field(alias=ENV_KEYS_DNS_BACKEND, default="kube-dns")
-    dns_prefix: Optional[str] = Field(alias=ENV_KEYS_DNS_PREFIX)
+    dns_prefix: Optional[str] = Field(alias=ENV_KEYS_DNS_PREFIX, default=None)
     logs_root: Optional[str] = Field(
         alias=ENV_KEYS_LOGS_ROOT, default=DEFAULT_LOGS_ROOT
     )
-    log_level: Optional[str] = Field(alias=ENV_KEYS_LOG_LEVEL)
+    log_level: Optional[str] = Field(alias=ENV_KEYS_LOG_LEVEL, default=None)
     nginx_timeout: Optional[int] = Field(alias=ENV_KEYS_NGINX_TIMEOUT, default=650)
     nginx_indent_char: Optional[str] = Field(
         alias=ENV_KEYS_NGINX_INDENT_CHAR, default=" "
@@ -120,22 +124,32 @@ class ProxiesConfig(BaseSchemaModel):
     static_root: Optional[str] = Field(
         alias=ENV_KEYS_STATIC_ROOT, default="/{}".format(STATIC_V1)
     )
-    static_url: Optional[str] = Field(alias=ENV_KEYS_STATIC_URL)
-    ui_admin_enabled: Optional[bool] = Field(alias=ENV_KEYS_UI_ADMIN_ENABLED)
-    ui_single_url: Optional[str] = Field(alias=ENV_KEYS_UI_SINGLE_URL)
-    has_forward_proxy: Optional[bool] = Field(alias=ENV_KEYS_PROXY_HAS_FORWARD_PROXY)
-    forward_proxy_port: Optional[int] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_PORT)
-    forward_proxy_host: Optional[str] = Field(alias=ENV_KEYS_PROXY_FORWARD_PROXY_HOST)
+    static_url: Optional[str] = Field(alias=ENV_KEYS_STATIC_URL, default=None)
+    ui_admin_enabled: Optional[bool] = Field(
+        alias=ENV_KEYS_UI_ADMIN_ENABLED, default=None
+    )
+    ui_single_url: Optional[str] = Field(alias=ENV_KEYS_UI_SINGLE_URL, default=None)
+    has_forward_proxy: Optional[bool] = Field(
+        alias=ENV_KEYS_PROXY_HAS_FORWARD_PROXY, default=None
+    )
+    forward_proxy_port: Optional[int] = Field(
+        alias=ENV_KEYS_PROXY_FORWARD_PROXY_PORT, default=None
+    )
+    forward_proxy_host: Optional[str] = Field(
+        alias=ENV_KEYS_PROXY_FORWARD_PROXY_HOST, default=None
+    )
     forward_proxy_protocol: Optional[str] = Field(
-        alias=ENV_KEYS_PROXY_FORWARD_PROXY_PROTOCOL
+        alias=ENV_KEYS_PROXY_FORWARD_PROXY_PROTOCOL, default=None
     )
     forward_proxy_kind: Optional[Literal["transparent", "connect"]] = Field(
-        alias=ENV_KEYS_PROXY_FORWARD_PROXY_KIND
+        alias=ENV_KEYS_PROXY_FORWARD_PROXY_KIND, default=None
     )
 
     class Config:
-        extra = Extra.ignore
+        extra = "ignore"
 
-    @validator("log_level", always=True)
-    def validate_log_level(cls, v):
-        return (v or "warn").lower()
+    def get_log_level(self):
+        log_level = (self.log_level or "warn").lower()
+        if log_level == "warning":
+            log_level = "warn"
+        return log_level

@@ -12,7 +12,7 @@ def set_ui(context, config: PlatformConfig, processors: Optional[List[str]] = No
     context["PLATFORM_HOST"] = platform_host
 
     def get_allowed_hosts():
-        allowed_hosts = config.allowed_hosts
+        allowed_hosts = config.allowed_hosts or ["*"]
         if platform_host:
             allowed_hosts.append(platform_host)
         if ".polyaxon.com" not in allowed_hosts:
