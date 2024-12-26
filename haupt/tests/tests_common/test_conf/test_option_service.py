@@ -202,6 +202,7 @@ class TestConfService(TestCase):
         assert option_key == DummySettingsOption.key
 
     def test_read_keys_from_env(self):
+        os.environ.pop(DummyEnvOption.key, None)
         # The service's manager did not subscribe to the event yet
         with self.assertRaises(ConfException):
             self.env_service.get(key=DummyEnvOption.key)
