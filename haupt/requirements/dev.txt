@@ -1,2 +1,3 @@
-pandas
 django-debug-toolbar
+pandas
+ipython
