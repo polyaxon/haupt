@@ -118,7 +118,7 @@ class RunRestartView(RunCloneView):
             description=kwargs.get("description"),
             tags=kwargs.get("tags"),
             meta_info=kwargs.get("meta_info"),
-            **self._get_additional_fields(obj)
+            **self._get_additional_fields(obj),
         )
 
 
@@ -138,7 +138,7 @@ class RunResumeView(RunCloneView):
             tags=kwargs.get("tags"),
             meta_info=kwargs.get("meta_info"),
             message="Run was resumed by user.",
-            **self._get_additional_fields(obj)
+            **self._get_additional_fields(obj),
         )
 
     def pre_validate(self, obj):

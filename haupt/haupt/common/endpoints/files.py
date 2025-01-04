@@ -18,7 +18,7 @@ class FilePathResponse(FileResponse):
             as_attachment=as_attachment,
             filename=filename,
             headers=headers,
-            **kwargs
+            **kwargs,
         )
 
     def get_stat_headers(self, filepath: str) -> Optional[Dict]:

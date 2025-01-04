@@ -1428,13 +1428,13 @@ class TestProjectRunsListViewV1(BaseTest):
         assert resp.data["next"] is None
         assert resp.data["count"] == 2
 
-        resp = self.client.get(self.url + f"?query=cloning_kind:cache")
+        resp = self.client.get(self.url + "?query=cloning_kind:cache")
         assert resp.status_code == status.HTTP_200_OK
 
         assert resp.data["next"] is None
         assert resp.data["count"] == 1
 
-        resp = self.client.get(self.url + f"?query=cloning_kind:cache")
+        resp = self.client.get(self.url + "?query=cloning_kind:cache")
         assert resp.status_code == status.HTTP_200_OK
 
         assert resp.data["next"] is None

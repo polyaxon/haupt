@@ -1,5 +1,3 @@
-import os
-
 import click
 
 from polyaxon.logger import clean_outputs

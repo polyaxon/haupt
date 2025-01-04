@@ -38,7 +38,7 @@ class BookmarkDeleteView(BaseEndpoint, DestroyEndpoint):
             Models.Bookmark,
             **user_filter,
             content_type__model=self.content_type,
-            object_id=obj.id
+            object_id=obj.id,
         )
         bookmark.enabled = False
         bookmark.save(update_fields=["enabled"])

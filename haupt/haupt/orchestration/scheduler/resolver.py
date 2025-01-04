@@ -1628,8 +1628,9 @@ class SchedulingResolver(resolver.BaseResolver):
         # }
         if len(ids) != len(names):
             raise AccessNotFound(
-                "Some {} version refs were provided "
-                "but were not found: `{}`".format(kind, names)
+                "Some {} version refs were provided but were not found: `{}`".format(
+                    kind, names
+                )
             )
 
         # if (

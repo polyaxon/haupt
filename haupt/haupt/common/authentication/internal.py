@@ -66,7 +66,9 @@ class InternalAuthentication(PolyaxonAuthentication):
         return self.authenticate_credentials(internal_service, token)
 
     def authenticate_credentials(
-        self, service: str, key: str  # pylint:disable=arguments-differ
+        self,
+        service: str,
+        key: str,  # pylint:disable=arguments-differ
     ) -> Optional[Tuple["InternalUser", None]]:
         internal_user = InternalUser(service=service)
         if internal_user.access_token != key:

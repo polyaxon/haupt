@@ -81,9 +81,7 @@ class APIHandler:
         )
 
     @classmethod
-    def handle_run_approved_triggered(
-        cls, workers_backend, event: "Event"
-    ) -> None:  # noqa: F821
+    def handle_run_approved_triggered(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         run = cls.MANAGER.get_run(run_id=event.instance_id, run=event.instance)
         if not run:
             return
@@ -101,21 +99,15 @@ class APIHandler:
         )
 
     @classmethod
-    def handle_run_stopped_triggered(
-        cls, workers_backend, event: "Event"
-    ) -> None:  # noqa: F821
+    def handle_run_stopped_triggered(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         cls.MANAGER.runs_stop(run_id=event.instance_id, run=event.instance)
 
     @classmethod
-    def handle_run_skipped_triggered(
-        cls, workers_backend, event: "Event"
-    ) -> None:  # noqa: F821
+    def handle_run_skipped_triggered(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         cls.MANAGER.runs_skip(run_id=event.instance_id, run=event.instance)
 
     @classmethod
-    def handle_run_done(
-        cls, workers_backend, event: "Event" = None
-    ) -> None:  # noqa: F821
+    def handle_run_done(cls, workers_backend, event: "Event" = None) -> None:  # noqa: F821
         """Handles all run done statuses"""
         workers_backend.send(
             SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
@@ -125,9 +117,7 @@ class APIHandler:
         )
 
     @classmethod
-    def handle_run_new_status(
-        cls, workers_backend, event: "Event"
-    ) -> None:  # noqa: F821
+    def handle_run_new_status(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         run = cls.MANAGER.get_run(run_id=event.instance_id, run=event.instance)
         if not run:
             return
@@ -143,9 +133,7 @@ class APIHandler:
             )
 
     @classmethod
-    def handle_new_artifacts(
-        cls, workers_backend, event: "Event"
-    ) -> None:  # noqa: F821
+    def handle_new_artifacts(cls, workers_backend, event: "Event") -> None:  # noqa: F821
         artifacts = event.data.get("artifacts")
         if not artifacts:
             return

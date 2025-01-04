@@ -84,7 +84,7 @@ class Event:
         instance_uuid: Optional[str] = None,
         ref_id: Optional[str] = None,
         event_data: Mapping = None,
-        **items
+        **items,
     ):
         self.uuid = UUID(uid) if uid else uuid1()
         self.datetime = datetime or timezone.now()
@@ -250,7 +250,7 @@ class Event:
             instance=event_data.get("instance"),
             instance_id=event_data.get("instance_id"),
             instance_uuid=event_data.get("instance_uuid"),
-            **kwargs
+            **kwargs,
         )
 
 

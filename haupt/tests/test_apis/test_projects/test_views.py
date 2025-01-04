@@ -1,7 +1,6 @@
 import pytest
 
 from flaky import flaky
-from mock.mock import patch
 
 from rest_framework import status
 

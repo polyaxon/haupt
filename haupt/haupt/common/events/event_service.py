@@ -17,7 +17,7 @@ class EventService(Service):
         event_type: str,
         event_data: Mapping = None,
         instance: Any = None,
-        **kwargs
+        **kwargs,
     ) -> Event:
         if instance or not event_data:
             return self.event_manager.get(event_type).from_instance(instance, **kwargs)
@@ -30,7 +30,7 @@ class EventService(Service):
         event_type: str,
         event_data: Mapping = None,
         instance: Any = None,
-        **kwargs
+        **kwargs,
     ) -> Optional[Event]:
         """Validate and record an event.
 

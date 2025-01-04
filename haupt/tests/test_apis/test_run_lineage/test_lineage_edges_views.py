@@ -264,12 +264,12 @@ class BaseRunEdgeListViewV1(BaseTest):
         assert resp.data["count"] == 0
 
         # Values
-        resp = self.client.get(self.url + f"?query=values.foo:bar")
+        resp = self.client.get(self.url + "?query=values.foo:bar")
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 4
 
-        resp = self.client.get(self.url + f"?query=values.foo:moo")
+        resp = self.client.get(self.url + "?query=values.foo:moo")
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["next"] is None
         assert resp.data["count"] == 0
