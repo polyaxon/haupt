@@ -21,7 +21,7 @@ class BaseClient(Client):
         path,
         data=None,
         content_type=CONTENT_TYPE_APPLICATION_JSON,
-        **extra
+        **extra,
     ):
         if data is None:
             data = {}

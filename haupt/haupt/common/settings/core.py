@@ -16,7 +16,7 @@ def set_core(context, config: PlatformConfig, use_db: bool = True):
     context["FILE_UPLOAD_PERMISSIONS"] = RW_R_R_PERMISSIONS
     context[
         "MIN_ARTIFACTS_DELETION_TIMEDELTA"
-    ] = config.min_artifacts_deletion_timedelta
+    ] = config.min_artifacts_deletion_timedelta  # fmt: skip
     context["TTL_HEARTBEAT"] = config.ttl_heartbeat
 
     context["WSGI_APPLICATION"] = "{}.wsgi.application".format(config.config_module)

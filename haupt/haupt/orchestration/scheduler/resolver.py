@@ -651,11 +651,11 @@ class SchedulingResolver(resolver.BaseResolver):
         if self.run.is_matrix and self.compiled_operation.matrix.concurrency:
             self.run.meta_info[
                 META_CONCURRENCY
-            ] = self.compiled_operation.matrix.concurrency
+            ] = self.compiled_operation.matrix.concurrency  # fmt: skip
         elif self.run.is_dag and self.compiled_operation.run.concurrency:
             self.run.meta_info[
                 META_CONCURRENCY
-            ] = self.compiled_operation.run.concurrency
+            ] = self.compiled_operation.run.concurrency  # fmt: skip
 
         # Handle early stopping
         if self.run.is_matrix and self.compiled_operation.matrix.early_stopping:
@@ -952,7 +952,7 @@ class SchedulingResolver(resolver.BaseResolver):
             pipeline_override["runPatch"] = {}
             pipeline_override["runPatch"][
                 "environment"
-            ] = run_config.environment.to_dict()
+            ] = run_config.environment.to_dict()  # fmt: skip
         if compiled_operation.termination:
             pipeline_override["termination"] = compiled_operation.termination.to_dict()
         if compiled_operation.plugins:

@@ -27,7 +27,7 @@ def set_celery(
 
     context[
         "CELERY_WORKER_PREFETCH_MULTIPLIER"
-    ] = config.celery_worker_prefetch_multiplier
+    ] = config.celery_worker_prefetch_multiplier  # fmt: skip
 
     context["CELERY_TASK_ALWAYS_EAGER"] = config.celery_task_always_eager
     if config.celery_task_always_eager:
@@ -42,19 +42,19 @@ def set_celery(
     context["CELERY_HARD_TIME_LIMIT_DELAY"] = config.celery_hard_time_limit_delay
     context[
         "CELERY_WORKER_MAX_TASKS_PER_CHILD"
-    ] = config.celery_worker_max_tasks_per_child
+    ] = config.celery_worker_max_tasks_per_child  # fmt: skip
     context[
         "CELERY_WORKER_MAX_MEMORY_PER_CHILD"
-    ] = config.celery_worker_max_memory_per_child
+    ] = config.celery_worker_max_memory_per_child  # fmt: skip
     context["CELERY_TASK_ROUTES"] = routes
     if schedules:
         context["CELERY_BEAT_SCHEDULE"] = schedules
 
     context[
         "CLEANING_INTERVALS_ACTIVITY_LOGS"
-    ] = config.cleaning_intervals_activity_logs
+    ] = config.cleaning_intervals_activity_logs  # fmt: skip
     context[
         "CLEANING_INTERVALS_NOTIFICATIONS"
-    ] = config.cleaning_intervals_notifications
+    ] = config.cleaning_intervals_notifications  # fmt: skip
     context["CLEANING_INTERVALS_ARCHIVES"] = config.cleaning_intervals_archives
     context["CLEANING_INTERVALS_DELETION"] = config.cleaning_intervals_deletion
