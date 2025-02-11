@@ -8,12 +8,12 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from clipped.config.patch_strategy import PatchStrategy
 from clipped.utils.bools import to_bool
 from clipped.utils.lists import to_list
+from clipped._vendor.croniter import croniter
 
 from django.conf import settings
 from django.db.models import Count, Q
 from django.utils.timezone import now
 
-from croniter import croniter
 from haupt.common.db.runs import bulk_create_runs
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.db.abstracts.project_versions import BaseProjectVersion
