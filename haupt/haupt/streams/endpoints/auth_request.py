@@ -70,8 +70,8 @@ async def _check_auth_cache(request_cache: str) -> bool:
 async def _persist_auth_cache(request_cache: str, response: bool):
     cache_path = _get_auth_cache_path(request_cache)
     data = {"time": DateTimeFormatter.format_datetime(now()), "response": response}
-    async with aiofiles.open(cache_path, "w") as filepath:
-        await filepath.write(orjson_dumps(data))
+    async with aiofiles.open(cache_path, "w") as outfile:
+        await outfile.write(orjson_dumps(data))
 
 
 async def _check_auth_service(headers: Dict):
