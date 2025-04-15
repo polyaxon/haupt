@@ -1,3 +1,4 @@
+import logging
 import os
 
 from haupt.schemas.platform_config import PlatformConfig
@@ -10,6 +11,7 @@ def set_assets(context, config: PlatformConfig):
 
     context["STATIC_ROOT"] = config.static_root or str(config.root_dir / "static")
     context["STATIC_URL"] = config.static_url or "/static/"
+    logging.debug(f"STATIC_ROOT: {context['STATIC_ROOT']}")
 
     # Additional locations of static files
     public_dir = str(config.root_dir / "public")
