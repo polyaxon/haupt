@@ -106,6 +106,7 @@ class SchedulingResolver(resolver.BaseResolver):
         original_uuid: Optional[str] = None,
         is_independent: bool = True,
         username: Optional[str] = None,
+        user_email: Optional[str] = None,
     ):
         super().__init__(
             run=run,
@@ -123,6 +124,7 @@ class SchedulingResolver(resolver.BaseResolver):
             original_uuid=original_uuid,
             is_independent=is_independent,
             username=username,
+            user_email=user_email
         )
         self.project = self.run.project
         self.schedule_at = self.run.schedule_at
