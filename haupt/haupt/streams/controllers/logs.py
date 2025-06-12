@@ -15,6 +15,7 @@ from polyaxon._fs.async_manager import list_files
 from polyaxon._fs.types import FSSystem
 from polyaxon._k8s.logging.async_monitor import query_k8s_operation_logs
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
+from traceml.events import get_logs_path
 from traceml.logging import V1Log
 
 
@@ -33,7 +34,9 @@ async def get_agent_logs_files(
 
 async def get_run_logs_files(fs: FSSystem, store_path: str, run_uuid: str) -> List[str]:
     files = await list_files(
-        fs=fs, store_path=store_path, subpath="{}/plxlogs".format(run_uuid)
+        fs=fs,
+        store_path=store_path,
+        subpath=get_logs_path(run_path=run_uuid, full_path=False),
     )
     if not files["files"]:
         return []

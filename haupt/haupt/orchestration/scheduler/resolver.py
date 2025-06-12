@@ -124,7 +124,7 @@ class SchedulingResolver(resolver.BaseResolver):
             original_uuid=original_uuid,
             is_independent=is_independent,
             username=username,
-            user_email=user_email
+            user_email=user_email,
         )
         self.project = self.run.project
         self.schedule_at = self.run.schedule_at

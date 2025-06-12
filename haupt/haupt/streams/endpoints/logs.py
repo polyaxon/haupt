@@ -28,6 +28,7 @@ from polyaxon._fs.async_manager import upload_data
 from polyaxon._k8s.logging.async_monitor import get_op_spec, query_k8s_pod_logs
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._utils.fqn_utils import get_resource_name, get_resource_name_for_kind
+from traceml.events import get_logs_path
 from traceml.logging import V1Logs
 
 logger = logging.getLogger("haupt.streams.logs")
@@ -156,7 +157,7 @@ async def collect_run_logs(
                 continue
 
             logs = V1Logs.construct(logs=logs)
-            subpath = "{}/plxlogs/{}.jsonl".format(run_uuid, pod.metadata.name)
+            subpath = get_logs_path(run_path=run_uuid, filename=pod.metadata.name)
             await upload_data(
                 fs=fs,
                 store_path=store_path,
