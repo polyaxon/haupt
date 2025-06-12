@@ -110,7 +110,7 @@ setup(
     install_requires=[requirements],
     extras_require=extra,
     entry_points={"console_scripts": ["haupt = haupt.main:cli"]},
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     classifiers=[
         "Intended Audience :: Information Technology",
         "Intended Audience :: System Administrators",
