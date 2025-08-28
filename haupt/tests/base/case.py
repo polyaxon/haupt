@@ -90,6 +90,12 @@ class BaseTestProjectStatsSerializer(PolyaxonBaseTestSerializer):
                 V1ProjectVersionKind.ARTIFACT: 3,
             },
             tracking_time={"1": 1111, "0": 200},
+            wait_time={"1": 1111, "0": 200},
+            resource_usage={
+                "cpu": {"1": 1, "0": 2},
+                "memory": {"1": 1, "0": 2},
+                "gpu": {"1": 1, "0": 2},
+            },
         )
         stats.save()
         return stats

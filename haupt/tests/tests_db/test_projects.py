@@ -9,9 +9,8 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.deleted import ArchivedManager, LiveManager
 from haupt.db.managers.projects import update_project_based_on_last_updated_entities
 from haupt.db.managers.stats import (
-    collect_project_run_count_stats,
-    collect_project_run_duration_stats,
-    collect_project_run_status_stats,
+    collect_entity_run_stats,
+    collect_entity_run_status_stats,
     collect_project_version_stats,
 )
 from haupt.db.models.project_stats import ProjectStats
@@ -144,7 +143,7 @@ class TestProjectModel(TestCase):
         assert stats.updated_at.hour != 0
 
     def test_collect_project_run_count_stats(self):
-        run_count = collect_project_run_count_stats(self.project)
+        run_count = collect_entity_run_stats(project=self.project).run_count
         assert run_count == {}
 
         # Add a new runs
@@ -153,15 +152,15 @@ class TestProjectModel(TestCase):
         RunFactory(project=self.project, live_state=LiveState.ARCHIVED)
         RunFactory(project=self.project, live_state=LiveState.DELETION_PROGRESSING)
 
-        run_count = collect_project_run_count_stats(self.project)
+        run_count = collect_entity_run_stats(project=self.project).run_count
         assert run_count == {
             LiveState.LIVE.value: 2,
             LiveState.ARCHIVED.value: 1,
             LiveState.DELETION_PROGRESSING.value: 1,
         }
 
-    def test_collect_project_run_status_stats(self):
-        run_count = collect_project_run_status_stats(self.project)
+    def test_collect_entity_run_status_stats(self):
+        run_count = collect_entity_run_status_stats(project=self.project)
         assert run_count == {}
 
         # Add a new runs
@@ -177,14 +176,14 @@ class TestProjectModel(TestCase):
             status=V1Statuses.STARTING,
         )
 
-        run_count = collect_project_run_status_stats(self.project)
+        run_count = collect_entity_run_status_stats(project=self.project)
         assert run_count == {
             V1Statuses.RUNNING.value: 2,
             V1Statuses.STARTING.value: 1,
         }
 
     def test_collect_project_run_duration_stats(self):
-        run_duration = collect_project_run_duration_stats(self.project)
+        run_duration = collect_entity_run_stats(project=self.project).tracking_time
         assert run_duration == {}
 
         # Add a new runs
@@ -199,7 +198,7 @@ class TestProjectModel(TestCase):
             project=self.project, duration=1, live_state=LiveState.DELETION_PROGRESSING
         )
 
-        run_duration = collect_project_run_duration_stats(self.project)
+        run_duration = collect_entity_run_stats(project=self.project).tracking_time
         assert run_duration == {
             LiveState.LIVE.value: 28,
             LiveState.ARCHIVED.value: 24,
@@ -207,7 +206,7 @@ class TestProjectModel(TestCase):
         }
 
     def test_collect_project_version_stats(self):
-        version_count = collect_project_version_stats(self.project)
+        version_count = collect_project_version_stats(project=self.project)
         assert version_count == {}
 
         # Add a new versions
@@ -221,7 +220,7 @@ class TestProjectModel(TestCase):
         ProjectVersionFactory(project=self.project, kind=V1ProjectVersionKind.ARTIFACT)
         ProjectVersionFactory(project=self.project, kind=V1ProjectVersionKind.ARTIFACT)
 
-        version_count = collect_project_version_stats(self.project)
+        version_count = collect_project_version_stats(project=self.project)
         assert version_count == {
             V1ProjectVersionKind.COMPONENT.value: 4,
             V1ProjectVersionKind.MODEL.value: 2,

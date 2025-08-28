@@ -29,9 +29,8 @@ from haupt.db.managers.runs import (
     is_pipeline_done,
 )
 from haupt.db.managers.stats import (
-    collect_project_run_count_stats,
-    collect_project_run_duration_stats,
-    collect_project_run_status_stats,
+    collect_entity_run_stats,
+    collect_entity_run_status_stats,
     collect_project_unique_user_stats,
     collect_project_version_stats,
 )
@@ -1478,9 +1477,12 @@ class SchedulingManager:
         project = Models.Project.all.select_related("latest_stats").get(id=project_id)
         current_hour = now().replace(minute=0, second=0, microsecond=0)
 
-        run_count = collect_project_run_count_stats(project=project)
-        status_count = collect_project_run_status_stats(project=project)
-        run_tracking_time = collect_project_run_duration_stats(project=project)
+        status_count = collect_entity_run_status_stats(project=project)
+        project_run_stats = collect_entity_run_stats(project=project)
+        run_count = project_run_stats.run_count
+        run_tracking_time = project_run_stats.tracking_time
+        run_wait_time = project_run_stats.wait_time
+        # run_resource_usage = collect_project_run_resource_usage_stats(project=project)
         version_count = collect_project_version_stats(project=project)
         user_count = collect_project_unique_user_stats(project=project)
 
@@ -1497,6 +1499,8 @@ class SchedulingManager:
         latest_stats.run = run_count
         latest_stats.status = status_count
         latest_stats.tracking_time = run_tracking_time
+        latest_stats.wait_time = run_wait_time
+        # latest_stats.resource_usage = run_resource_usage
         latest_stats.version = version_count
         latest_stats.user = user_count
         latest_stats.save()

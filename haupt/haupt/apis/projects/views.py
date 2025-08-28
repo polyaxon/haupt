@@ -4,10 +4,15 @@ from rest_framework.response import Response
 
 from django.conf import settings
 
+from clipped.utils.bools import to_bool
 from haupt.apis.bookmarks.views import BookmarkCreateView, BookmarkDeleteView
 from haupt.apis.endpoints.project import ProjectEndpoint
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedListMixinView
-from haupt.apis.serializers.project_stats import ProjectStatsSerializer
+from haupt.apis.serializers.project_stats import (
+    ProjectStatsSerializer,
+    get_stats,
+    RealTimeStats,
+)
 from haupt.apis.serializers.projects import (
     BookmarkedProjectSerializer,
     ProjectCreateSerializer,
@@ -42,7 +47,7 @@ from haupt.db.managers.live_state import (
     restore_project,
 )
 from haupt.db.managers.projects import add_project_contributors
-from haupt.db.managers.stats import StatsSerializer
+from haupt.db.managers.stats import SeriesSerializer, StatsSerializer, annotate_statuses
 from haupt.db.query_managers.project import ProjectQueryManager
 from polyaxon._services.values import PolyaxonServices
 
@@ -191,22 +196,37 @@ class ProjectStatsView(ProjectEndpoint, RetrieveEndpoint, StatsMixin):
         queryset = super().get_queryset()
         if mode == "stats":
             return queryset.select_related("latest_stats")
+        if mode == "realtime":
+            return annotate_statuses(queryset)
         return queryset
 
     def get_serializer(self, *args, **kwargs):
         mode = self.validate_stats_mode()
         if mode == "stats":
             return ProjectStatsSerializer(self.project.latest_stats)
-        queryset = Models.Run.objects.filter(project_id=self.project.id)
-        queryset = StatsSerializer.filter_queryset(
-            queryset=queryset,
-            request=self.request,
-            view=self,
-        )
-        return StatsSerializer(
-            queryset=queryset,
-            kind=self.request.query_params.get("kind"),
-            aggregate=self.request.query_params.get("aggregate"),
-            groupby=self.request.query_params.get("groupby"),
-            trunc=self.request.query_params.get("trunc"),
-        )
+        elif mode == "realtime":
+            return RealTimeStats(get_stats(self.project))
+        elif mode == "series":
+            return SeriesSerializer(
+                queryset=Models.ProjectStats.objects.filter(project_id=self.project.id),
+                start_date=self.request.query_params.get("start_date"),
+                end_date=self.request.query_params.get("end_date"),
+                boundary=to_bool(
+                    self.request.query_params.get("boundary"), handle_none=True
+                ),
+                serializer_class=ProjectStatsSerializer,
+            )
+        else:  # analytics mode
+            queryset = Models.Run.objects.filter(project_id=self.project.id)
+            queryset = StatsSerializer.filter_queryset(
+                queryset=queryset,
+                request=self.request,
+                view=self,
+            )
+            return StatsSerializer(
+                queryset=queryset,
+                kind=self.request.query_params.get("kind"),
+                aggregate=self.request.query_params.get("aggregate"),
+                groupby=self.request.query_params.get("groupby"),
+                trunc=self.request.query_params.get("trunc"),
+            )

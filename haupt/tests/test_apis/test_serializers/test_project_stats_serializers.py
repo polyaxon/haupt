@@ -16,6 +16,8 @@ class TestProjectStatsSerializer(BaseTestProjectStatsSerializer):
         "status",
         "version",
         "tracking_time",
+        "wait_time",
+        "resource_usage",
     }
 
     def test_serialize_one_light(self):
@@ -35,6 +37,12 @@ class TestProjectStatsSerializer(BaseTestProjectStatsSerializer):
                 V1ProjectVersionKind.ARTIFACT: 3,
             },
             tracking_time={"1": 1111, "0": 200},
+            wait_time={"1": 1111, "0": 200},
+            resource_usage={
+                "cpu": {"1": 1, "0": 2},
+                "memory": {"1": 1, "0": 2},
+                "gpu": {"1": 1, "0": 2},
+            },
         )
         assert data == expected
 
@@ -56,6 +64,12 @@ class TestProjectStatsSerializer(BaseTestProjectStatsSerializer):
                 V1ProjectVersionKind.ARTIFACT: 3,
             },
             tracking_time={"1": 1111, "0": 200},
+            wait_time={"1": 1111, "0": 200},
+            resource_usage={
+                "cpu": {"1": 1, "0": 2},
+                "memory": {"1": 1, "0": 2},
+                "gpu": {"1": 1, "0": 2},
+            },
         )
         assert data == expected
         self.serializer_class.LIGHT = True

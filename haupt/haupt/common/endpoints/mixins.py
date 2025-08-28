@@ -65,6 +65,6 @@ class DestroyModelMixin(DJRDestroyModelMixin):
 class StatsMixin:
     def validate_stats_mode(self):
         mode = self.request.query_params.get("mode")
-        if mode not in {"stats", "analytics"}:
+        if mode not in {"stats", "analytics", "series", "realtime"}:
             raise ValidationError("Received an unsupported mode: {}".format(mode))
         return mode
