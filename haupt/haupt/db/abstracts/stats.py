@@ -21,6 +21,12 @@ class StatsModel(DiffModel):
     tracking_time = models.JSONField(
         encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
     )
+    wait_time = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
+    resource_usage = models.JSONField(
+        encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
+    )
 
     class Meta:
         abstract = True
