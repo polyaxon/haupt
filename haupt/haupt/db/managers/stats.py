@@ -379,7 +379,7 @@ def collect_entity_run_status_stats(**filters):
 
 
 class ProjectRunStats(
-    namedtuple("ProjectRunStats", "run_count tracking_time wait_time")
+    namedtuple("ProjectRunStats", "run_count tracking_time wait_time resources")
 ):
     pass
 
@@ -391,39 +391,83 @@ def collect_entity_run_stats(**filters):
         .annotate(
             run_count=Count("id"),
             sum_duration=Sum("duration"),
-            avg_duration=Avg("duration"),
-            min_duration=Min("duration"),
-            max_duration=Max("duration"),
             sum_wait_time=Sum("wait_time"),
-            avg_wait_time=Avg("wait_time"),
-            min_wait_time=Min("wait_time"),
-            max_wait_time=Max("wait_time"),
             sum_cpu=Sum("cpu"),
-            avg_cpu=Avg("cpu"),
-            min_cpu=Min("cpu"),
-            max_cpu=Max("cpu"),
             sum_memory=Sum("memory"),
-            avg_memory=Avg("memory"),
-            min_memory=Min("memory"),
-            max_memory=Max("memory"),
             sum_gpu=Sum("gpu"),
-            avg_gpu=Avg("gpu"),
-            min_gpu=Min("gpu"),
-            max_gpu=Max("gpu"),
             sum_cost=Sum("cost"),
-            avg_cost=Avg("cost"),
-            min_cost=Min("cost"),
-            max_cost=Max("cost"),
             sum_custom=Sum("custom"),
-            avg_custom=Avg("custom"),
-            min_custom=Min("custom"),
-            max_custom=Max("custom"),
         )
     )
+    rolling = collect_entity_run_rolling_stats(**filters)
     run_count = {item["live_state"]: item["run_count"] for item in data}
-    wait_time = {item["live_state"]: item["sum_wait_time"] for item in data}
     tracking_time = {item["live_state"]: item["sum_duration"] for item in data}
-    return ProjectRunStats(run_count, tracking_time, wait_time)
+    tracking_time["rolling"] = rolling.get("duration", {})
+    wait_time = {item["live_state"]: item["sum_wait_time"] for item in data}
+    wait_time["rolling"] = rolling.get("wait_time", {})
+    cpu = {item["live_state"]: item["sum_cpu"] for item in data}
+    cpu["rolling"] = rolling.get("cpu", {})
+    memory = {item["live_state"]: item["sum_memory"] for item in data}
+    memory["rolling"] = rolling.get("memory", {})
+    gpu = {item["live_state"]: item["sum_gpu"] for item in data}
+    gpu["rolling"] = rolling.get("gpu", {})
+    cost = {item["live_state"]: item["sum_cost"] for item in data}
+    cost["rolling"] = rolling.get("cost", {})
+    custom = {item["live_state"]: item["sum_custom"] for item in data}
+    custom["rolling"] = rolling.get("custom", {})
+    resources = {
+        "cpu": cpu,
+        "memory": memory,
+        "gpu": gpu,
+        "cost": cost,
+        "custom": custom,
+    }
+    return ProjectRunStats(run_count, tracking_time, wait_time, resources)
+
+
+def collect_entity_run_rolling_stats(**filters):
+    last_hour = now() - timedelta(hours=1)
+    _data = Models.Run.all.filter(created_at__gte=last_hour, **filters).aggregate(
+        avg_duration=Avg("duration"),
+        min_duration=Min("duration"),
+        max_duration=Max("duration"),
+        avg_wait_time=Avg("wait_time"),
+        min_wait_time=Min("wait_time"),
+        max_wait_time=Max("wait_time"),
+        avg_cpu=Avg("cpu"),
+        min_cpu=Min("cpu"),
+        max_cpu=Max("cpu"),
+        avg_memory=Avg("memory"),
+        min_memory=Min("memory"),
+        max_memory=Max("memory"),
+        avg_gpu=Avg("gpu"),
+        min_gpu=Min("gpu"),
+        max_gpu=Max("gpu"),
+        avg_cost=Avg("cost"),
+        min_cost=Min("cost"),
+        max_cost=Max("cost"),
+        avg_custom=Avg("custom"),
+        min_custom=Min("custom"),
+        max_custom=Max("custom"),
+    )
+    data = {}
+    for key in [
+        "duration",
+        "wait_time",
+        "cpu",
+        "memory",
+        "gpu",
+        "cost",
+        "custom",
+    ]:
+        key_data = {
+            "avg": _data.get(f"avg_{key}", 0),
+            "min": _data.get(f"min_{key}", 0),
+            "max": _data.get(f"max_{key}", 0),
+        }
+        data[key] = key_data
+
+    return data
 
 
 def collect_project_version_stats(**filters):

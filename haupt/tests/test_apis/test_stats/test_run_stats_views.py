@@ -90,7 +90,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
             "version": None,
             "tracking_time": None,
             "wait_time": None,
-            "resource_usage": None,
+            "resources": None,
         }
 
         self.project.latest_stats = ProjectStats(
@@ -105,7 +105,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
             },
             tracking_time={"1": 1111, "0": 200},
             wait_time={"1": 100, "0": 50},
-            resource_usage={
+            resources={
                 "cpu": {"1": 0.5, "0": 0.2},
                 "memory": {"1": 1024, "0": 512},
             },
@@ -129,7 +129,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
             },
             "tracking_time": {"1": 1111, "0": 200},
             "wait_time": {"1": 100, "0": 50},
-            "resource_usage": {
+            "resources": {
                 "cpu": {"1": 0.5, "0": 0.2},
                 "memory": {"1": 1024, "0": 512},
             },
@@ -148,7 +148,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
                 status={"running": i % 3, "succeeded": 1000 + i * 4},
                 tracking_time={"total": 86400 + i * 3600},
                 wait_time={"total": 3600 + i * 60},
-                resource_usage={
+                resources={
                     "cpu": {"1": 1 * (1 + i * 0.1), "0": 2 * (1 + i * 0.1)},
                     "memory": {"1": 512 + i * 10, "0": 1024 + i * 20},
                     "gpu": {"1": 0.1 + i * 0.01, "0": 0.2 + i * 0.02},
@@ -205,7 +205,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
                 status={"succeeded": i * 10},
                 tracking_time={"total": i * 1000},
                 wait_time={"total": i * 100},
-                resource_usage={
+                resources={
                     "cpu": {"1": 1 * (1 + i * 0.1), "0": 2 * (1 + i * 0.1)},
                     "memory": {"1": 512 + i * 10, "0": 1024 + i * 20},
                     "gpu": {"1": 0.1 + i * 0.01, "0": 0.2 + i * 0.02},
@@ -265,7 +265,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
                 status={"succeeded": 400 + i * 5},
                 tracking_time={"total": 1000 + i * 100},
                 wait_time={"total": 200 + i * 20},
-                resource_usage={
+                resources={
                     "cpu": {"1": 1 * (1 + i * 0.1), "0": 2 * (1 + i * 0.1)},
                     "memory": {"1": 512 + i * 10, "0": 1024 + i * 20},
                     "gpu": {"1": 0.1 + i * 0.01, "0": 0.2 + i * 0.02},
@@ -339,7 +339,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
             status={"succeeded": 80},
             tracking_time={"total": 500},
             wait_time={"total": 100},
-            resource_usage={
+            resources={
                 "cpu": {"1": 0.5, "0": 1.0},
                 "memory": {"1": 1024, "0": 2048},
                 "gpu": {"1": 0.1, "0": 0.2},
@@ -372,7 +372,7 @@ class TestProjectStatsViewV1(BaseTestStatsViewV1):
                 status={"succeeded": 800 + i * 10},
                 tracking_time={"total": 5000 + i * 200},
                 wait_time={"total": 300 + i * 30},
-                resource_usage={
+                resources={
                     "cpu": {"1": 1 * (1 + i * 0.1), "0": 2 * (1 + i * 0.1)},
                     "memory": {"1": 512 + i * 10, "0": 1024 + i * 20},
                     "gpu": {"1": 0.1 + i * 0.01, "0": 0.2 + i * 0.02},

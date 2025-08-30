@@ -91,7 +91,7 @@ class BaseTestProjectStatsSerializer(PolyaxonBaseTestSerializer):
             },
             tracking_time={"1": 1111, "0": 200},
             wait_time={"1": 1111, "0": 200},
-            resource_usage={
+            resources={
                 "cpu": {"1": 1, "0": 2},
                 "memory": {"1": 1, "0": 2},
                 "gpu": {"1": 1, "0": 2},

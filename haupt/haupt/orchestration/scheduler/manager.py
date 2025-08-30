@@ -1482,7 +1482,7 @@ class SchedulingManager:
         run_count = project_run_stats.run_count
         run_tracking_time = project_run_stats.tracking_time
         run_wait_time = project_run_stats.wait_time
-        # run_resource_usage = collect_project_run_resource_usage_stats(project=project)
+        run_resources = project_run_stats.resources
         version_count = collect_project_version_stats(project=project)
         user_count = collect_project_unique_user_stats(project=project)
 
@@ -1500,7 +1500,7 @@ class SchedulingManager:
         latest_stats.status = status_count
         latest_stats.tracking_time = run_tracking_time
         latest_stats.wait_time = run_wait_time
-        # latest_stats.resource_usage = run_resource_usage
+        latest_stats.resources = run_resources
         latest_stats.version = version_count
         latest_stats.user = user_count
         latest_stats.save()
