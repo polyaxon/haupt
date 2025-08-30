@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="projectstats",
-            name="resource_usage",
+            name="resources",
             field=models.JSONField(
                 blank=True,
                 default=dict,

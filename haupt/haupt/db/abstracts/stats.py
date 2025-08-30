@@ -24,7 +24,7 @@ class StatsModel(DiffModel):
     wait_time = models.JSONField(
         encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
     )
-    resource_usage = models.JSONField(
+    resources = models.JSONField(
         encoder=DjangoJSONEncoder, blank=True, null=True, default=dict
     )
 

@@ -45,7 +45,7 @@ class StatsUserSerializerMixin(serializers.ModelSerializer):
             "status",
             "tracking_time",
             "wait_time",
-            "resource_usage",
+            "resources",
         )
         fields = base_fields + ("version",)
 

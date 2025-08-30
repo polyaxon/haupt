@@ -861,7 +861,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "resource_usage",
+                    "resources",
                     models.JSONField(
                         blank=True,
                         default=dict,
