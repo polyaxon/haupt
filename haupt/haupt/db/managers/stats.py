@@ -426,29 +426,36 @@ def collect_entity_run_stats(**filters):
 
 
 def collect_entity_run_rolling_stats(**filters):
-    last_hour = now() - timedelta(hours=1)
-    _data = Models.Run.all.filter(created_at__gte=last_hour, **filters).aggregate(
-        avg_duration=Avg("duration"),
-        min_duration=Min("duration"),
-        max_duration=Max("duration"),
-        avg_wait_time=Avg("wait_time"),
-        min_wait_time=Min("wait_time"),
-        max_wait_time=Max("wait_time"),
-        avg_cpu=Avg("cpu"),
-        min_cpu=Min("cpu"),
-        max_cpu=Max("cpu"),
-        avg_memory=Avg("memory"),
-        min_memory=Min("memory"),
-        max_memory=Max("memory"),
-        avg_gpu=Avg("gpu"),
-        min_gpu=Min("gpu"),
-        max_gpu=Max("gpu"),
-        avg_cost=Avg("cost"),
-        min_cost=Min("cost"),
-        max_cost=Max("cost"),
-        avg_custom=Avg("custom"),
-        min_custom=Min("custom"),
-        max_custom=Max("custom"),
+    last_time = now() - timedelta(days=30)
+    duration_filter = Q(duration__gt=0)
+    wait_time_filter = Q(duration__gt=0)
+    cpu_filter = Q(cpu__gt=0)
+    memory_filter = Q(memory__gt=0)
+    gpu_filter = Q(gpu__gt=0)
+    cost_filter = Q(cost__gt=0)
+    custom_filter = Q(custom__gt=0)
+    _data = Models.Run.all.filter(created_at__gte=last_time, **filters).aggregate(
+        avg_duration=Avg("duration", filter=duration_filter),
+        min_duration=Min("duration", filter=duration_filter),
+        max_duration=Max("duration", filter=duration_filter),
+        avg_wait_time=Avg("wait_time", filter=wait_time_filter),
+        min_wait_time=Min("wait_time", filter=wait_time_filter),
+        max_wait_time=Max("wait_time", filter=wait_time_filter),
+        avg_cpu=Avg("cpu", filter=cpu_filter),
+        min_cpu=Min("cpu", filter=cpu_filter),
+        max_cpu=Max("cpu", filter=cpu_filter),
+        avg_memory=Avg("memory", filter=memory_filter),
+        min_memory=Min("memory", filter=memory_filter),
+        max_memory=Max("memory", filter=memory_filter),
+        avg_gpu=Avg("gpu", filter=gpu_filter),
+        min_gpu=Min("gpu", filter=gpu_filter),
+        max_gpu=Max("gpu", filter=gpu_filter),
+        avg_cost=Avg("cost", filter=cost_filter),
+        max_cost=Max("cost", filter=cost_filter),
+        min_cost=Min("cost", filter=cost_filter),
+        avg_custom=Avg("custom", filter=custom_filter),
+        min_custom=Min("custom", filter=custom_filter),
+        max_custom=Max("custom", filter=custom_filter),
     )
     data = {}
     for key in [
@@ -520,6 +527,26 @@ def collect_org_project_count_stats(org: Any):
 def collect_agent_queue_count_stats(agent: Any):
     data = agent.queues.values("live_state").annotate(queue_count=Count("id"))
     return {item["live_state"]: item["queue_count"] for item in data}
+
+
+def collect_agent_project_count_stats(agent: Any):
+    """Collect distinct project count for agent grouped by live_state."""
+    data = (
+        Models.Run.objects.filter(agent=agent)
+        .values("project__live_state")
+        .annotate(project_count=Count("project", distinct=True))
+    )
+    return {item["project__live_state"]: item["project_count"] for item in data}
+
+
+def collect_queue_project_count_stats(queue: Any):
+    """Collect distinct project count for queue grouped by live_state."""
+    data = (
+        Models.Run.objects.filter(queue=queue)
+        .values("project__live_state")
+        .annotate(project_count=Count("project", distinct=True))
+    )
+    return {item["project__live_state"]: item["project_count"] for item in data}
 
 
 def collect_org_projects_contributors(org: Any):

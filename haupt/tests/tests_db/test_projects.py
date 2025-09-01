@@ -244,9 +244,9 @@ class TestProjectModel(TestCase):
         assert run_stats.wait_time["rolling"]["min"] is None
         assert run_stats.wait_time["rolling"]["max"] is None
 
-        # Create runs with specific timestamps in the last hour
+        # Create runs with specific timestamps
         recent_time = now() - timedelta(minutes=30)
-        old_time = now() - timedelta(hours=2)
+        old_time = now() - timedelta(days=31)  # Outside the 30-day rolling window
 
         # Recent runs (should be included in rolling stats)
         run1 = RunFactory(project=self.project, duration=10, wait_time=5)
