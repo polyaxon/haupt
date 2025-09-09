@@ -1247,7 +1247,7 @@ class SchedulingResolver(resolver.BaseResolver):
         date_now = now()
         meta_info = cls._pass_down_uploaded_artifacts(run=run)
         component_state = None
-        for op_spec in ops:
+        for index, op_spec in enumerate(ops):
             # We make sure that the component state resolves to the correct runs' state
             # Calculate this value once
             if not component_state:
@@ -1269,8 +1269,9 @@ class SchedulingResolver(resolver.BaseResolver):
                 meta_info=meta_info,
             ).instance
             op_run.uuid = uuid.uuid4().hex
-            op_run.created_at = date_now
-            op_run.updated_at = date_now
+            # Add milliseconds based on position to preserve order
+            op_run.created_at = date_now + timedelta(milliseconds=index)
+            op_run.updated_at = date_now + timedelta(milliseconds=index)
             cls._set_pipeline_run_pending_logic(current_run=op_run, parent_run=run)
             yield op_run
 

@@ -308,7 +308,7 @@ def get_runs_by_pipeline(
         status=V1Statuses.COMPILED,
         pending__isnull=True,
         managed_by=managed_by,
-    )[:num_to_run]
+    ).order_by("created_at")[:num_to_run]
 
 
 def check_pipelines(
@@ -353,7 +353,7 @@ def get_runs_by_controller(
         status=V1Statuses.COMPILED,
         pending__isnull=True,
         managed_by=managed_by,
-    )[:num_to_run]
+    ).order_by("created_at")[:num_to_run]
 
 
 def get_annotated_pipelines(
@@ -499,17 +499,21 @@ def get_queued_runs(
         full = True
         num_to_run = max_budget
 
-    queryset = Models.Run.objects.filter(
-        kind__in=[
-            V1RunKind.JOB,
-            V1RunKind.SERVICE,
-            V1RunKind.TUNER,
-            V1RunKind.NOTIFIER,
-        ],
-        status=V1Statuses.QUEUED,
-        pending__isnull=True,
-        managed_by=managed_by,
-    ).prefetch_related("project")[:num_to_run]
+    queryset = (
+        Models.Run.objects.filter(
+            kind__in=[
+                V1RunKind.JOB,
+                V1RunKind.SERVICE,
+                V1RunKind.TUNER,
+                V1RunKind.NOTIFIER,
+            ],
+            status=V1Statuses.QUEUED,
+            pending__isnull=True,
+            managed_by=managed_by,
+        )
+        .order_by("created_at")
+        .prefetch_related("project")[:num_to_run]
+    )
 
     # Set scheduled
     condition = V1StatusCondition.get_condition(

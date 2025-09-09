@@ -54,6 +54,7 @@ from polyaxon._constants.metadata import (
     META_HAS_HOOKS,
     META_IS_HOOK,
     META_ITERATION,
+    META_CONCURRENCY,
 )
 from polyaxon._operations import get_bo_tuner, get_hyperband_tuner, get_hyperopt_tuner
 from polyaxon.exceptions import (
@@ -624,7 +625,8 @@ class SchedulingManager:
 
     @staticmethod
     def _get_max_budget(run: Models.Run) -> int:
-        return -1
+        meta_info = run.meta_info or {}
+        return meta_info.get(META_CONCURRENCY) or -1
 
     @classmethod
     def _start_pipeline(cls, run: Models.Run):
@@ -632,21 +634,30 @@ class SchedulingManager:
         max_budget = 100
         independent_ops = dags.get_independent_ops(dag)
         run_max_budget = cls._get_max_budget(run)
-        if len(independent_ops) > 100 and run_max_budget > 0:
+        if len(independent_ops) > 1 and run_max_budget > 0:
             max_budget = run_max_budget
-        independent_ops = Models.Run.objects.filter(
-            id__in=independent_ops,
-            status=V1Statuses.CREATED,
-            pending=None,
-        ).values_list("id", flat=True)
+        independent_ops = (
+            Models.Run.objects.filter(
+                id__in=independent_ops,
+                status=V1Statuses.CREATED,
+                pending=None,
+            )
+            .order_by("created_at")
+            .values_list("id", flat=True)
+        )
+        countdown = 0
+        _max_budget = max_budget
         for i_run in independent_ops:
             options = {}
-            if max_budget < 0:
-                options = {"countdown": 2 + abs(max_budget) // 50}
+            if countdown > 0:
+                options = {"countdown": countdown}
+            if _max_budget < 1:
+                countdown += 1
+                _max_budget = max_budget
             workers.send(
                 SchedulerCeleryTasks.RUNS_PREPARE, kwargs={"run_id": i_run}, **options
             )
-            max_budget -= 1
+            _max_budget -= 1
 
         condition = V1StatusCondition.get_condition(
             type=V1Statuses.RUNNING,
