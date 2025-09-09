@@ -61,16 +61,22 @@ ADDITIONAL_ONLY_FIELD = ["is_public"] if settings.HAS_ORG_MANAGEMENT else []
 
 
 class ProjectsListMixinView(BookmarkedListMixinView):
-    queryset = Models.Project.all.only(
-        "uuid",
-        "name",
-        "description",
-        "created_at",
-        "updated_at",
-        "tags",
-        "live_state",
-        *ADDITIONAL_ONLY_FIELD,
-    ).order_by("-updated_at")
+    queryset = (
+        Models.Project.all.select_related("user")
+        .only(
+            "uuid",
+            "name",
+            "description",
+            "created_at",
+            "updated_at",
+            "tags",
+            "live_state",
+            "user_id",
+            "user__username",
+            *ADDITIONAL_ONLY_FIELD,
+        )
+        .order_by("-updated_at")
+    )
     serializer_class = BookmarkedProjectSerializer
 
     bookmarked_model = "project"
@@ -108,9 +114,11 @@ class ProjectDetailView(
     ProjectEndpoint, RetrieveEndpoint, UpdateEndpoint, DestroyEndpoint
 ):
     queryset = (
-        Models.Project.all.select_related("owner").prefetch_related("contributors")
+        Models.Project.all.select_related("owner", "user").prefetch_related(
+            "contributors"
+        )
         if settings.HAS_ORG_MANAGEMENT
-        else Models.Project.all
+        else Models.Project.all.select_related("user")
     )
     serializer_class = ProjectDetailSerializer
     ALLOWED_METHODS = ["GET", "PUT", "PATCH", "DELETE"]

@@ -12,6 +12,7 @@ from haupt.apis.serializers.artifacts import (
 from haupt.apis.serializers.base.owner_mixin import ProjectOwnerMixin
 from haupt.apis.serializers.base.project import ProjectMixin
 from haupt.apis.serializers.base.tags import TagsMixin
+from haupt.apis.serializers.base.user_mixin import UserMixin
 from haupt.apis.serializers.base.uuid_slug_related_field import UuidSlugRelatedField
 from haupt.db.defs import Models
 from haupt.db.managers.versions import get_component_version_state
@@ -42,9 +43,10 @@ class ProjectVersionNameSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class ProjectVersionSerializer(serializers.ModelSerializer):
+class ProjectVersionSerializer(serializers.ModelSerializer, UserMixin):
     uuid = fields.UUIDField(format="hex", read_only=True)
     state = fields.UUIDField(format="hex", read_only=True)
+    user = fields.SerializerMethodField()
 
     class Meta:
         model = Models.ProjectVersion
@@ -53,6 +55,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "tags",
+            "user",
             "created_at",
             "updated_at",
             "stage",

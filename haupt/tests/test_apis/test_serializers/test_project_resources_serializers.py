@@ -15,6 +15,7 @@ class TestProjectVersionSerializer(BaseTestProjectVersionSerializer):
         "name",
         "description",
         "tags",
+        "user",
         "created_at",
         "updated_at",
         "stage",

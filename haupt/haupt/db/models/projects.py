@@ -1,5 +1,6 @@
 from django.core.validators import validate_slug
 from django.db import models
+from django.conf import settings
 
 from haupt.common.validation.blacklist import validate_blacklist_name
 from haupt.db.abstracts.catalogs import BaseLiveStateCatalog
@@ -18,6 +19,13 @@ class Project(BaseLiveStateCatalog, ReadmeModel, ContributorsModel):
     )
     name = models.CharField(
         max_length=128, validators=[validate_slug, validate_blacklist_name], unique=True
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="+",
+        null=True,
+        blank=True,
     )
 
     class Meta(BaseLiveStateCatalog.Meta):

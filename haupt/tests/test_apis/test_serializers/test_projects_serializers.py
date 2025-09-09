@@ -31,6 +31,7 @@ class TestProjectSerializer(BaseTestProjectSerializer):
         "name",
         "description",
         "tags",
+        "user",
         "created_at",
         "updated_at",
     }
@@ -56,6 +57,7 @@ class TestBookmarkedProjectSerializer(BaseTestProjectSerializer):
         "name",
         "description",
         "tags",
+        "user",
         "created_at",
         "updated_at",
         "bookmarked",

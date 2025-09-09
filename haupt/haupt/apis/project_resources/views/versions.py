@@ -60,7 +60,11 @@ ADDITIONAL_SELECT_RELATED = ["project__owner"] if settings.HAS_ORG_MANAGEMENT el
 
 
 class ProjectVersionListView(VersionListEndpoint, ListEndpoint, CreateEndpoint):
-    queryset = Models.ProjectVersion.objects.defer("content").order_by("-updated_at")
+    queryset = (
+        Models.ProjectVersion.objects.select_related("user")
+        .defer("content")
+        .order_by("-updated_at")
+    )
     filter_backends = (QueryFilter, OrderingFilter)
     query_manager = ProjectVersionQueryManager
     check_alive = ProjectVersionQueryManager.CHECK_ALIVE
@@ -74,7 +78,7 @@ class ProjectVersionListView(VersionListEndpoint, ListEndpoint, CreateEndpoint):
     EVENTS_TYPE = None
 
     def perform_create(self, serializer):
-        instance = serializer.save(project=self.project)
+        instance = serializer.save(project=self.project, user=self.request.user)
         if not self.EVENTS_TYPE:
             return
         add_version_contributors(instance, users=[self.request.user])
@@ -97,6 +101,7 @@ class ProjectComponentVersionListView(ProjectVersionListView):
     EVENTS_TYPE = COMPONENT_VERSION_CREATED_ACTOR
     queryset = (
         Models.ProjectVersion.objects.filter(kind=V1ProjectVersionKind.COMPONENT)
+        .select_related("user")
         .defer("content")
         .order_by("-updated_at")
     )
@@ -110,6 +115,7 @@ class ProjectModelVersionListView(ProjectVersionListView):
     EVENTS_TYPE = MODEL_VERSION_CREATED_ACTOR
     queryset = (
         Models.ProjectVersion.objects.filter(kind=V1ProjectVersionKind.MODEL)
+        .select_related("user")
         .defer("content")
         .order_by("-updated_at")
     )
@@ -123,6 +129,7 @@ class ProjectArtifactVersionListView(ProjectVersionListView):
     EVENTS_TYPE = ARTIFACT_VERSION_CREATED_ACTOR
     queryset = (
         Models.ProjectVersion.objects.filter(kind=V1ProjectVersionKind.ARTIFACT)
+        .select_related("user")
         .defer("content")
         .order_by("-updated_at")
     )
@@ -202,6 +209,7 @@ class ProjectVersionDetailView(
         "project",
         "run",
         "run__project",
+        "user",
     ).prefetch_related(
         *ADDITIONAL_PREFETCH_RELATED_DETAILS,
         "lineage",

@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 from haupt.common.validation.slugs import validate_slug_with_dots
 from haupt.db.abstracts.catalogs import BaseCatalog
@@ -20,6 +21,13 @@ class BaseProjectVersion(
         choices=V1ProjectVersionKind.to_choices(),
     )
     name = models.CharField(max_length=128, validators=[validate_slug_with_dots])
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
     project = models.ForeignKey(
         "db.Project", on_delete=models.CASCADE, related_name="versions"
     )

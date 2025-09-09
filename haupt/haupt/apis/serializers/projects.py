@@ -5,6 +5,7 @@ from django.db import IntegrityError
 
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedSerializerMixin
 from haupt.apis.serializers.base.tags import TagsMixin
+from haupt.apis.serializers.base.user_mixin import UserMixin
 from haupt.db.defs import Models
 
 
@@ -14,8 +15,9 @@ class ProjectNameSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class ProjectSerializer(TagsMixin, serializers.ModelSerializer):
+class ProjectSerializer(TagsMixin, UserMixin, serializers.ModelSerializer):
     uuid = fields.UUIDField(format="hex", read_only=True)
+    user = fields.SerializerMethodField()
 
     class Meta:
         model = Models.Project
@@ -24,6 +26,7 @@ class ProjectSerializer(TagsMixin, serializers.ModelSerializer):
             "name",
             "description",
             "tags",
+            "user",
             "created_at",
             "updated_at",
         )
