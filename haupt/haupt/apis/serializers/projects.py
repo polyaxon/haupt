@@ -3,10 +3,12 @@ from rest_framework.exceptions import ValidationError
 
 from django.db import IntegrityError
 
+from django.contrib.auth import get_user_model
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedSerializerMixin
 from haupt.apis.serializers.base.tags import TagsMixin
-from haupt.apis.serializers.base.user_mixin import UserMixin
 from haupt.db.defs import Models
+
+User = get_user_model()
 
 
 class ProjectNameSerializer(serializers.ModelSerializer):
@@ -15,9 +17,14 @@ class ProjectNameSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class ProjectSerializer(TagsMixin, UserMixin, serializers.ModelSerializer):
+class ProjectSerializer(TagsMixin, serializers.ModelSerializer):
     uuid = fields.UUIDField(format="hex", read_only=True)
-    user = fields.SerializerMethodField()
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        queryset=User.objects.only("id"),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = Models.Project
