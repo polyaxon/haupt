@@ -75,12 +75,6 @@ class OperationsService(Service):
             return V1RunKind.JOB, V1RunKind.TFJOB
         elif compiled_operation.is_pytorch_job_run:
             return V1RunKind.JOB, V1RunKind.PYTORCHJOB
-        elif compiled_operation.is_paddle_job_run:
-            return V1RunKind.JOB, V1RunKind.PADDLEJOB
-        elif compiled_operation.is_mx_job_run:
-            return V1RunKind.JOB, V1RunKind.MXJOB
-        elif compiled_operation.is_xgb_job_run:
-            return V1RunKind.JOB, V1RunKind.XGBJOB
         elif compiled_operation.is_mpi_job_run:
             return V1RunKind.JOB, V1RunKind.MPIJOB
         elif compiled_operation.is_ray_job_run:
