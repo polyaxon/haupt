@@ -12,6 +12,7 @@ from haupt.streams.controllers.k8s_crd import get_k8s_operation
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.op_spec import download_op_spec
 from polyaxon import settings
+from polyaxon._k8s.converter.mixins import get_plural_for_kind
 from polyaxon._k8s.logging.async_monitor import get_op_spec
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._utils.fqn_utils import get_resource_name_for_kind
@@ -31,6 +32,7 @@ async def k8s_inspect_run(
     resource_name = get_resource_name_for_kind(run_uuid=run_uuid)
     connection = request.GET.get("connection")
     status = request.GET.get("status")
+    kind = request.GET.get("kind")
 
     async def get_archived_spec() -> Optional[FilePathResponse]:
         spec_path = await download_op_spec(
@@ -52,7 +54,9 @@ async def k8s_inspect_run(
     )
     await k8s_manager.setup()
     k8s_operation = await get_k8s_operation(
-        k8s_manager=k8s_manager, resource_name=resource_name
+        k8s_manager=k8s_manager,
+        resource_name=resource_name,
+        plural=get_plural_for_kind(kind),
     )
     data = None
     if k8s_operation:

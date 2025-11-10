@@ -78,15 +78,16 @@ def get_stopping_runs(
     agent_filters = agent_filters or {}
     filters = Q(status=V1Statuses.STOPPING)
     if dj_settings.HAS_ORG_MANAGEMENT:
-        values_list = ["project__name", "uuid", "kind", "namespace"]
+        values_list = ["project__name", "uuid", "runtime", "namespace"]
     else:
-        values_list = ["project__name", "uuid", "kind"]
+        values_list = ["project__name", "uuid", "runtime"]
     stopping_runs = (
         Models.Run.restorable.filter(
             **agent_filters,
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
+                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -134,6 +135,7 @@ def get_deleting_runs(
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
+                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -191,15 +193,16 @@ def get_deleting_runs(
 
     # Clean and stop
     if dj_settings.HAS_ORG_MANAGEMENT:
-        values_list = ["project__name", "uuid", "kind", "name", "id", "namespace"]
+        values_list = ["project__name", "uuid", "runtime", "name", "id", "namespace"]
     else:
-        values_list = ["project__name", "uuid", "kind", "name", "id"]
+        values_list = ["project__name", "uuid", "runtime", "name", "id"]
     deleting_runs = (
         Models.Run.all.filter(
             **agent_filters,
             kind__in={
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
+                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             },
@@ -248,15 +251,16 @@ def get_checks_runs(
     start = now()
     end = start - timedelta(hours=1)
     if dj_settings.HAS_ORG_MANAGEMENT:
-        values_list = ["project__name", "uuid", "kind", "id", "namespace"]
+        values_list = ["project__name", "uuid", "runtime", "id", "namespace"]
     else:
-        values_list = ["project__name", "uuid", "kind", "id"]
+        values_list = ["project__name", "uuid", "runtime", "id"]
     checks_runs = (
         Models.Run.objects.filter(
             **agent_filters,
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
+                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -504,6 +508,7 @@ def get_queued_runs(
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
+                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -528,7 +533,7 @@ def get_queued_runs(
         data = [
             (
                 get_run_instance("default", run.project.name, run.uuid.hex),
-                run.kind,
+                run.runtime,
                 run.name,
                 run.content,
                 getattr(run, "namespace", None),
@@ -539,7 +544,7 @@ def get_queued_runs(
         data = [
             (
                 get_run_instance("default", run.project.name, run.uuid.hex),
-                run.kind,
+                run.runtime,
                 run.name,
                 run.content,
             )

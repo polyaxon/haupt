@@ -451,9 +451,10 @@ class Migration(migrations.Migration):
                         choices=[
                             ("job", "job"),
                             ("service", "service"),
+                            ("cluster", "cluster"),
                             ("dag", "dag"),
-                            ("daskjob", "daskjob"),
-                            ("rayjob", "rayjob"),
+                            ("daskcluster", "daskcluster"),
+                            ("raycluster", "raycluster"),
                             ("mpijob", "mpijob"),
                             ("tfjob", "tfjob"),
                             ("pytorchjob", "pytorchjob"),

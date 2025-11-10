@@ -95,7 +95,7 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.QUEUED]) == {
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
-                run1.kind,
+                run1.runtime,
                 run1.name,
                 run1.content,
                 None,
@@ -123,21 +123,21 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.QUEUED]) == {
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
-                run1.kind,
+                run1.runtime,
                 run1.name,
                 run1.content,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
-                run2.kind,
+                run2.runtime,
                 run2.name,
                 run2.content,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
-                run3.kind,
+                run3.runtime,
                 run3.name,
                 run3.content,
                 None,
@@ -170,14 +170,14 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.QUEUED]) == {
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
-                run1.kind,
+                run1.runtime,
                 run1.name,
                 run1.content,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
-                run2.kind,
+                run2.runtime,
                 run2.name,
                 run2.content,
                 None,
@@ -186,12 +186,12 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.STOPPING]) == {
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
-                run3.kind,
+                run3.runtime,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
-                run4.kind,
+                run4.runtime,
                 None,
             ),
         }
@@ -215,22 +215,22 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.STOPPING]) == {
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
-                run1.kind,
+                run1.runtime,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
-                run2.kind,
+                run2.runtime,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
-                run3.kind,
+                run3.runtime,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
-                run4.kind,
+                run4.runtime,
                 None,
             ),
         }
@@ -254,12 +254,12 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.STOPPING]) == {
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
-                run3.kind,
+                run3.runtime,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
-                run4.kind,
+                run4.runtime,
                 None,
             ),
         }
@@ -267,7 +267,7 @@ class TestAgentState(TestCase):
         assert state["checks"] == [
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
-                run1.kind,
+                run1.runtime,
                 None,
             ),
         ]
@@ -311,12 +311,12 @@ class TestAgentState(TestCase):
         assert set(state[V1Statuses.STOPPING]) == {
             (
                 get_run_instance("default", project.name, run3.uuid.hex),
-                run3.kind,
+                run3.runtime,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run4.uuid.hex),
-                run4.kind,
+                run4.runtime,
                 None,
             ),
         }
@@ -334,14 +334,14 @@ class TestAgentState(TestCase):
             ),
             (
                 get_run_instance("default", project.name, run1.uuid.hex),
-                run1.kind,
+                run1.runtime,
                 run1.name,
                 None,
                 None,
             ),
             (
                 get_run_instance("default", project.name, run2.uuid.hex),
-                run2.kind,
+                run2.runtime,
                 run2.name,
                 None,
                 None,

@@ -25,6 +25,7 @@ from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.op_spec import upload_op_spec
 from polyaxon import settings
 from polyaxon._fs.async_manager import upload_data
+from polyaxon._k8s.converter.mixins import get_plural_for_kind
 from polyaxon._k8s.logging.async_monitor import get_op_spec, query_k8s_pod_logs
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._utils.fqn_utils import get_resource_name, get_resource_name_for_kind
@@ -46,6 +47,7 @@ async def get_run_logs(
     validate_methods(request, methods)
     force = to_bool(request.GET.get("force"), handle_none=True)
     connection = request.GET.get("connection")
+    kind = request.GET.get("kind")
     last_time = request.GET.get("last_time")
     if last_time:
         last_time = parse_datetime(last_time).astimezone()
@@ -61,7 +63,9 @@ async def get_run_logs(
         )
         await k8s_manager.setup()
         k8s_operation = await get_k8s_operation(
-            k8s_manager=k8s_manager, resource_name=resource_name
+            k8s_manager=k8s_manager,
+            resource_name=resource_name,
+            plural=get_plural_for_kind(kind),
         )
         if k8s_operation:
             operation_logs, last_time = await get_k8s_operation_logs(
@@ -124,7 +128,9 @@ async def collect_run_logs(
     )
     await k8s_manager.setup()
     k8s_operation = await get_k8s_operation(
-        k8s_manager=k8s_manager, resource_name=resource_name
+        k8s_manager=k8s_manager,
+        resource_name=resource_name,
+        plural=get_plural_for_kind(run_kind),
     )
     if not k8s_operation:
         errors = (

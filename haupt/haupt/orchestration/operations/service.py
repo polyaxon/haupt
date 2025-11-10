@@ -16,6 +16,7 @@ from polyaxon._constants.metadata import (
     META_HAS_JOBS,
     META_HAS_MATRICES,
     META_HAS_SERVICES,
+    META_HAS_CLUSTERS,
     META_ITERATION,
     META_RECOMPILE,
     META_UPLOAD_ARTIFACTS,
@@ -77,10 +78,10 @@ class OperationsService(Service):
             return V1RunKind.JOB, V1RunKind.PYTORCHJOB
         elif compiled_operation.is_mpi_job_run:
             return V1RunKind.JOB, V1RunKind.MPIJOB
-        elif compiled_operation.is_ray_job_run:
-            return V1RunKind.JOB, V1RunKind.RAYJOB
-        elif compiled_operation.is_dask_job_run:
-            return V1RunKind.JOB, V1RunKind.DASKJOB
+        elif compiled_operation.is_ray_cluster_run:
+            return V1RunKind.CLUSTER, V1RunKind.RAYCLUSTER
+        elif compiled_operation.is_dask_cluster_run:
+            return V1RunKind.CLUSTER, V1RunKind.DASKCLUSTER
         elif compiled_operation.is_tuner_run:
             return V1RunKind.JOB, V1RunKind.TUNER
         elif compiled_operation.is_notifier_run:
@@ -132,6 +133,8 @@ class OperationsService(Service):
                 meta_info[META_HAS_JOBS] = True
             elif kind == V1RunKind.SERVICE:
                 meta_info[META_HAS_SERVICES] = True
+            elif kind == V1RunKind.CLUSTER:
+                meta_info[META_HAS_CLUSTERS] = True
             elif kind == V1RunKind.DAG:
                 meta_info[META_HAS_DAGS] = True
             kind = V1RunKind.SCHEDULE
@@ -143,6 +146,8 @@ class OperationsService(Service):
                 meta_info[META_HAS_SERVICES] = True
             elif kind == V1RunKind.DAG:
                 meta_info[META_HAS_DAGS] = True
+            elif kind == V1RunKind.CLUSTER:
+                meta_info[META_HAS_CLUSTERS] = True
             kind = V1RunKind.MATRIX
             runtime = compiled_operation.matrix.kind
 
