@@ -1,4 +1,4 @@
-fsspec==2025.7.0
+fsspec==2025.9.0
 
 uvicorn[standard]<=0.34.0
 uvloop==0.21.0
