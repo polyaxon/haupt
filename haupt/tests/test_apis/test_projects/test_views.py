@@ -1,7 +1,5 @@
 import pytest
 
-from flaky import flaky
-
 from rest_framework import status
 
 from haupt.apis.serializers.projects import (
@@ -93,7 +91,7 @@ class TestProjectListViewV1(BaseTest):
             len([1 for obj in resp.data["results"] if obj["bookmarked"] is True]) == 1
         )
 
-    @flaky(max_runs=3)
+    @pytest.mark.flaky(max_runs=3)
     def test_pagination(self):
         limit = self.num_objects - 1
         resp = self.client.get("{}?limit={}".format(self.url, limit))
@@ -323,7 +321,7 @@ class TestProjectNameListViewV1(BaseTest):
         assert len(data) == self.queryset.count()
         assert data == self.serializer_class(self.queryset, many=True).data
 
-    @flaky(max_runs=3)
+    @pytest.mark.flaky(max_runs=3)
     def test_pagination(self):
         limit = self.num_objects - 1
         resp = self.client.get("{}?limit={}".format(self.url, limit))

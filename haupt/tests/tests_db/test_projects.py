@@ -1,5 +1,4 @@
 from datetime import timedelta
-from flaky import flaky
 import pytest
 
 from clipped.utils.tz import get_datetime_from_now
@@ -133,7 +132,7 @@ class TestProjectModel(TestCase):
         )
         assert self.project.updated_at >= current_project_updated_at
 
-    @flaky(max_runs=3)
+    @pytest.mark.flaky(max_runs=3)
     def test_project_stats_created_at(self):
         stats = ProjectStats(project=self.project)
         stats.save()

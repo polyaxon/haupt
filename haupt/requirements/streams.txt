@@ -1,10 +1,10 @@
-fsspec==2025.9.0
+fsspec==2025.10.0
 
-uvicorn[standard]<=0.34.0
-uvloop==0.21.0
+uvicorn[standard]<0.39
+uvloop==0.22.1
 
-aiofiles==24.1.0
+aiofiles<=25.1.0
 kubernetes_asyncio>=28.2.1
 nbconvert>=6.5.0
 pandas<=2.2.3
-pyarrow<18.2
+pyarrow<22.1

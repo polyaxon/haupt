@@ -1,7 +1,5 @@
 import pytest
 
-from flaky import flaky
-
 from clipped.utils.tz import get_datetime_from_now
 
 from django.conf import settings
@@ -319,7 +317,7 @@ class TestQueryManager(BaseTestQuery):
         assert built_query == RunQueryManager.handle_query(self.query12)
 
     @pytest.mark.filterwarnings("ignore::RuntimeWarning")
-    @flaky(max_runs=3)
+    @pytest.mark.flaky(max_runs=3)
     def test_apply(self):
         result_queryset = RunQueryManager.apply(
             query_spec=self.query1, queryset=Run.objects
