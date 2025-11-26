@@ -162,7 +162,7 @@ async def collect_run_logs(
             if not logs:
                 continue
 
-            logs = V1Logs.construct(logs=logs)
+            logs = V1Logs.model_construct(logs=logs)
             subpath = get_logs_path(run_path=run_uuid, filename=pod.metadata.name)
             await upload_data(
                 fs=fs,
