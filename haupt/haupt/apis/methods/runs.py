@@ -1,13 +1,14 @@
 from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from clipped.utils.json import orjson_loads
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from django.conf import settings
 from django.db.models import Q
 
 from haupt.common.authentication.base import is_normal_user
+from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import archive_run as base_archive_run
 from haupt.db.managers.live_state import restore_run as base_restore_run
@@ -135,6 +136,15 @@ def transfer_run(view, request, *args, **kwargs):
         raise ValidationError(
             "The destination project `{}` does not exist.".format(project_name)
         )
+
+    # Check user has write access to destination project
+    permission_classes = PERMISSIONS_MAPPING.get(["PROJECT_RESOURCE_PERMISSION"])
+    if permission_classes:
+        permission = permission_classes[0]()
+        if not permission.has_object_permission(request, view, dest_project):
+            raise PermissionDenied(
+                f"You don't have permission to transfer runs to project '{project_name}'"
+            )
 
     view.run.project_id = dest_project.id
     view.run.save(update_fields=["project_id", "updated_at"])

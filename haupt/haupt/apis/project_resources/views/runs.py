@@ -104,7 +104,11 @@ class ProjectRunsRestoreView(ProjectResourceListEndpoint, PostEndpoint):
 class ProjectRunsTransferView(ProjectResourceListEndpoint, PostEndpoint):
     ALLOWED_METHODS = ["POST"]
 
+    def _pre_transfer_check(self, request):
+        pass
+
     def post(self, request, *args, **kwargs):
+        self._pre_transfer_check(request)
         return methods.transfer_runs(
             view=self, request=request, actor=request.user, *args, **kwargs
         )

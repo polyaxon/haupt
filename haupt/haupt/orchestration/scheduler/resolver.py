@@ -475,8 +475,9 @@ class SchedulingResolver(resolver.BaseResolver):
                 queryset = offline_filter.filter_join(queryset=queryset, join=j)
             except PQLException as e:
                 raise PolyaxonCompilerError(
-                    "Received a wrong join specification. "
-                    "Join: {}. Error: {}".format(join.to_dict(), e)
+                    "Received a wrong join specification. Join: {}. Error: {}".format(
+                        join.to_dict(), e
+                    )
                 )
 
             queryset = self._get_edge_queryset(queryset)[offset : offset + limit]

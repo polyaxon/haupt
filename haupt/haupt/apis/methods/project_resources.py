@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from django.conf import settings
@@ -8,6 +8,7 @@ from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.common import auditor
 from haupt.common.authentication.base import is_normal_user
 from haupt.common.content_types import ContentTypes
+from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.common.events.registry.archive import RUN_ARCHIVED_ACTOR, RUN_RESTORED_ACTOR
 from haupt.common.events.registry.run import (
     RUN_APPROVED_ACTOR,
@@ -289,6 +290,15 @@ def transfer_runs(view, request, actor, *args, **kwargs):
         raise ValidationError(
             "The destination project `{}` does not exist.".format(project_name)
         )
+
+    # Check user has write access to destination project
+    permission_classes = PERMISSIONS_MAPPING.get(["PROJECT_SETTINGS_PERMISSION"])
+    if permission_classes:
+        permission = permission_classes[0]()
+        if not permission.has_object_permission(request, view, dest_project):
+            raise PermissionDenied(
+                f"You don't have permission to transfer runs to project '{project_name}'"
+            )
 
     queryset = view.enrich_queryset(Models.Run.all)
     queryset = queryset.filter(uuid__in=uuids)
