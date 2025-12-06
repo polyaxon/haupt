@@ -48,7 +48,6 @@ ui_urlpatterns = [
     r"^{}/runs.*/?".format(projects_urls),
     r"^{}/job.*/?".format(projects_urls),
     r"^{}/service.*/?".format(projects_urls),
-    r"^{}/cluster.*/?".format(projects_urls),
     r"^{}/matrix.*/?".format(projects_urls),
     r"^{}/matrices.*/?".format(projects_urls),
     r"^{}/dag.*/?".format(projects_urls),

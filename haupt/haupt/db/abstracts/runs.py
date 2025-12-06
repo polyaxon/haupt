@@ -163,10 +163,6 @@ class BaseRun(
         return self.kind == V1RunKind.SCHEDULE
 
     @property
-    def is_cluster(self):
-        return self.kind == V1RunKind.CLUSTER
-
-    @property
     def has_pipeline(self):
         return self.is_dag or self.is_matrix or self.is_schedule
 

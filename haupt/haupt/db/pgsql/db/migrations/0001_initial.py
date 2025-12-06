@@ -372,7 +372,6 @@ class Migration(migrations.Migration):
                         choices=[
                             ("job", "job"),
                             ("service", "service"),
-                            ("cluster", "cluster"),
                             ("dag", "dag"),
                             ("daskcluster", "daskcluster"),
                             ("raycluster", "raycluster"),

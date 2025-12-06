@@ -40,7 +40,6 @@ from polyaxon._constants.metadata import (
     META_HAS_DOWNSTREAM_EVENTS_TRIGGER,
     META_HAS_EARLY_STOPPING,
     META_HAS_JOBS,
-    META_HAS_CLUSTERS,
     META_HAS_MATRICES,
     META_HAS_SCHEDULES,
     META_HAS_SERVICES,
@@ -764,7 +763,6 @@ class SchedulingResolver(resolver.BaseResolver):
         run_config = compiled_operation.run  # type: V1Dag
         has_jobs = False
         has_services = False
-        has_clusters = False
         has_dags = False
         has_matrices = False
         has_schedules = False
@@ -1018,8 +1016,6 @@ class SchedulingResolver(resolver.BaseResolver):
                     has_jobs = True
                 if not has_services and runs_by_names[op_name].instance.is_service:
                     has_services = True
-                if not has_clusters and runs_by_names[op_name].instance.is_cluster:
-                    has_clusters = True
                 if not has_dags and runs_by_names[op_name].instance.is_dag:
                     has_dags = True
                 if not has_matrices and runs_by_names[op_name].instance.is_matrix:
@@ -1054,8 +1050,6 @@ class SchedulingResolver(resolver.BaseResolver):
             run.meta_info[META_HAS_JOBS] = has_jobs
         if has_services:
             run.meta_info[META_HAS_SERVICES] = has_services
-        if has_clusters:
-            run.meta_info[META_HAS_CLUSTERS] = has_clusters
         if has_dags:
             run.meta_info[META_HAS_DAGS] = has_dags
         if has_matrices:

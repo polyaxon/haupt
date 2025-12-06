@@ -58,7 +58,6 @@ class CronsHeartbeatManager:
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
-                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],

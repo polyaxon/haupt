@@ -87,7 +87,6 @@ def get_stopping_runs(
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
-                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -135,7 +134,6 @@ def get_deleting_runs(
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
-                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -202,7 +200,6 @@ def get_deleting_runs(
             kind__in={
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
-                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             },
@@ -260,7 +257,6 @@ def get_checks_runs(
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
-                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
@@ -508,7 +504,6 @@ def get_queued_runs(
             kind__in=[
                 V1RunKind.JOB,
                 V1RunKind.SERVICE,
-                V1RunKind.CLUSTER,
                 V1RunKind.TUNER,
                 V1RunKind.NOTIFIER,
             ],
