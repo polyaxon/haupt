@@ -3,6 +3,7 @@ import logging
 from typing import Dict, List, Optional, Union
 
 from clipped.utils.bools import to_bool
+from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_old_files
 from rest_framework import status
 
@@ -127,6 +128,54 @@ async def k8s_inspect_agent(
 
 
 @transaction.non_atomic_requests
+async def restart_agent_pod(
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    agent_uuid: str,
+    methods: Optional[Dict] = None,
+) -> UJSONResponse:
+    validate_methods(request, methods)
+    body = orjson_loads(request.body) if request.body else {}
+    service = body.get("service")
+
+    if not service:
+        return UJSONResponse(
+            data={"errors": "Service name is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if service not in [
+        PolyaxonServices.STREAMS.value,
+        PolyaxonServices.OPERATOR.value,
+        PolyaxonServices.AGENT.value,
+    ]:
+        return UJSONResponse(
+            data={"errors": "Service name is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    label = "app.kubernetes.io/name={}-polyaxon-{}".format(namespace, service)
+
+    k8s_manager = AsyncK8sManager(
+        namespace=namespace,
+        in_cluster=settings.CLIENT_CONFIG.in_cluster,
+    )
+    await k8s_manager.setup()
+
+    try:
+        await k8s_manager.delete_pods(namespace=namespace, label_selector=label)
+    except Exception as e:
+        _logger.warning("Pod deletion failed: %s", e)
+        # We don't return error to user if pod not found (idempotent-ish) or log it
+        pass
+
+    if k8s_manager:
+        await k8s_manager.close()
+
+    return UJSONResponse({"status": "scheduled"})
+
+
+@transaction.non_atomic_requests
 async def get_agent_logs(
     request: ASGIRequest,
     namespace: str,
@@ -161,6 +210,9 @@ URLS_AGENTS_COLLECT = "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/colle
 URLS_AGENTS_K8S_INSPECT = (
     "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/k8s_inspect"
 )
+URLS_AGENTS_K8S_RESTART = (
+    "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/k8s_restart"
+)
 URLS_AGENTS_LOGS = "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/logs"
 
 
@@ -185,5 +237,11 @@ agent_routes = [
         get_agent_logs,
         name="get_agent_logs",
         kwargs=dict(methods=["GET"]),
+    ),
+    path(
+        URLS_AGENTS_K8S_RESTART,
+        restart_agent_pod,
+        name="restart_agent_pod",
+        kwargs=dict(methods=["POST"]),
     ),
 ]
