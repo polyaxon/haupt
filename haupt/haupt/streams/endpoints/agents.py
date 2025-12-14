@@ -144,11 +144,12 @@ async def restart_agent_pod(
             data={"errors": "Service name is required"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if service not in [
+    if service not in {
         PolyaxonServices.STREAMS.value,
         PolyaxonServices.OPERATOR.value,
         PolyaxonServices.AGENT.value,
-    ]:
+        PolyaxonServices.GATEWAY.value,
+    }:
         return UJSONResponse(
             data={"errors": "Service name is required"},
             status=status.HTTP_400_BAD_REQUEST,
