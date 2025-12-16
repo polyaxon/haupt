@@ -1,7 +1,6 @@
 import pytest
 
-from asyncio import Future
-from mock import patch
+from unittest.mock import AsyncMock, patch
 
 from polyaxon import settings
 from polyaxon._connections import V1Connection, V1ConnectionKind, V1ConnectionResource
@@ -79,7 +78,6 @@ class TestNotifyEndpoints(BaseTest):
         with patch(
             "polyaxon._k8s.executor.async_executor.AsyncK8sManager"
         ) as manager_mock:
-            manager_mock.return_value.setup.return_value = Future()
-            manager_mock.return_value.setup.return_value.set_result(None)
+            manager_mock.return_value.setup = AsyncMock(return_value=None)
             response = self.client.post(self.base_url, data=data)
             assert response.status_code == 200
