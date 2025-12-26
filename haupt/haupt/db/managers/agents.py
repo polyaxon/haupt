@@ -73,7 +73,6 @@ def get_stopping_runs(
     max_budget: int,
     managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
-    is_new_agent: Optional[bool] = False,
 ) -> Tuple[List[Tuple[str, str, str]], bool]:
     agent_filters = agent_filters or {}
     filters = Q(status=V1Statuses.STOPPING)
@@ -98,20 +97,14 @@ def get_stopping_runs(
         .values_list(*values_list)[:max_budget]
     )
     full = len(stopping_runs) >= max_budget
-    if is_new_agent:
-        data = [
-            (
-                get_run_instance(owner_name, run[0], run[1].hex),
-                run[2],
-                run[3] if dj_settings.HAS_ORG_MANAGEMENT else None,
-            )
-            for run in stopping_runs
-        ]
-    else:
-        data = [
-            (get_run_instance(owner_name, run[0], run[1].hex), run[2])
-            for run in stopping_runs
-        ]
+    data = [
+        (
+            get_run_instance(owner_name, run[0], run[1].hex),
+            run[2],
+            run[3] if dj_settings.HAS_ORG_MANAGEMENT else None,
+        )
+        for run in stopping_runs
+    ]
     return data, full
 
 
@@ -122,7 +115,6 @@ def get_deleting_runs(
     max_budget: int,
     managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
-    is_new_agent: Optional[bool] = None,
 ) -> Tuple[List[str], List[Tuple[str, str, str, str, str]], bool]:
     agent_filters = agent_filters or {}
     values = []
@@ -169,25 +161,15 @@ def get_deleting_runs(
             ),
             cleaner=agent_config.cleaner,
         )
-        if is_new_agent:
-            values.append(
-                (
-                    get_run_instance(owner_name, "agent", agent_id),
-                    V1RunKind.JOB,
-                    "cleaner",
-                    op.to_json(include_version=True),
-                    None,
-                )
+        values.append(
+            (
+                get_run_instance(owner_name, "agent", agent_id),
+                V1RunKind.JOB,
+                "cleaner",
+                op.to_json(include_version=True),
+                None,
             )
-        else:
-            values.append(
-                (
-                    get_run_instance(owner_name, "agent", agent_id),
-                    V1RunKind.JOB,
-                    "cleaner",
-                    op.to_json(include_version=True),
-                )
-            )
+        )
 
     # Clean and stop
     if dj_settings.HAS_ORG_MANAGEMENT:
@@ -215,25 +197,15 @@ def get_deleting_runs(
         )
     for run in deleting_runs:
         run_uuid = run[1].hex
-        if is_new_agent:
-            values.append(
-                (
-                    get_run_instance(owner_name, run[0], run_uuid),
-                    run[2],
-                    run[3],
-                    None,
-                    run[5] if dj_settings.HAS_ORG_MANAGEMENT else None,
-                )
+        values.append(
+            (
+                get_run_instance(owner_name, run[0], run_uuid),
+                run[2],
+                run[3],
+                None,
+                run[5] if dj_settings.HAS_ORG_MANAGEMENT else None,
             )
-        else:
-            values.append(
-                (
-                    get_run_instance(owner_name, run[0], run_uuid),
-                    run[2],
-                    run[3],
-                    None,
-                )
-            )
+        )
 
     return paths, values, len(values) >= max_budget
 
@@ -242,7 +214,6 @@ def get_checks_runs(
     owner_name: str,
     managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
-    is_new_agent: Optional[bool] = None,
 ) -> List[Tuple[str, str, str]]:
     agent_filters = agent_filters or {}
     start = now()
@@ -267,20 +238,14 @@ def get_checks_runs(
         .prefetch_related("project")
         .values_list(*values_list)
     )
-    if is_new_agent:
-        values = [
-            (
-                get_run_instance(owner_name, run[0], run[1].hex),
-                run[2],
-                run[4] if dj_settings.HAS_ORG_MANAGEMENT else None,
-            )
-            for run in checks_runs
-        ]
-    else:
-        values = [
-            (get_run_instance(owner_name, run[0], run[1].hex), run[2])
-            for run in checks_runs
-        ]
+    values = [
+        (
+            get_run_instance(owner_name, run[0], run[1].hex),
+            run[2],
+            run[4] if dj_settings.HAS_ORG_MANAGEMENT else None,
+        )
+        for run in checks_runs
+    ]
     if checks_runs:
         Models.Run.objects.filter(id__in=[r[3] for r in checks_runs]).update(
             checked_at=start
@@ -473,8 +438,7 @@ def check_controllers(max_budget: int, agent_filters: Optional[Dict] = None) -> 
 
 def get_queued_runs(
     managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
-    is_new_agent: Optional[bool] = None,
-) -> Tuple[List[Tuple[str, str, str, str]], bool]:
+) -> Tuple[List[Tuple[str, str, str, str, str]], bool]:
     consumed = Models.Run.objects.filter(
         status__in=LifeCycle.ON_K8S_VALUES,
         pending__isnull=True,
@@ -524,27 +488,16 @@ def get_queued_runs(
     )
     bulk_new_run_status(runs=[i for i in queryset], condition=condition)
 
-    if is_new_agent:
-        data = [
-            (
-                get_run_instance("default", run.project.name, run.uuid.hex),
-                run.runtime,
-                run.name,
-                run.content,
-                getattr(run, "namespace", None),
-            )
-            for run in queryset
-        ]
-    else:
-        data = [
-            (
-                get_run_instance("default", run.project.name, run.uuid.hex),
-                run.runtime,
-                run.name,
-                run.content,
-            )
-            for run in queryset
-        ]
+    data = [
+        (
+            get_run_instance("default", run.project.name, run.uuid.hex),
+            run.runtime,
+            run.name,
+            run.content,
+            getattr(run, "namespace", None),
+        )
+        for run in queryset
+    ]
 
     return data, full
 
@@ -561,7 +514,6 @@ def get_agent_state() -> Dict:
     stopping_runs, stopping_full = get_stopping_runs(
         owner_name="default",
         max_budget=dj_settings.MAX_CONCURRENCY,
-        is_new_agent=True,
     )
     if stopping_full:
         full = True
@@ -572,19 +524,18 @@ def get_agent_state() -> Dict:
             agent_id="agent",
             agent_config=agent_config,
             max_budget=dj_settings.MAX_CONCURRENCY,
-            is_new_agent=True,
         )
         if deleting_full:
             full = True
     else:
         deleting_runs = []
 
-    checks_runs = get_checks_runs(owner_name="default", is_new_agent=True)
+    checks_runs = get_checks_runs(owner_name="default")
     # We check the pipelines/controllers
     if check_controllers(max_budget=dj_settings.MAX_CONCURRENCY):
         full = True
     # We collect all jobs/services to start
-    queued_runs, queued_full = get_queued_runs(is_new_agent=True)
+    queued_runs, queued_full = get_queued_runs()
     if queued_full:
         full = True
     return {
