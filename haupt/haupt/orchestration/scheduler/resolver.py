@@ -705,6 +705,13 @@ class SchedulingResolver(resolver.BaseResolver):
             if artifacts_path:
                 upload_artifact = collect_lineage_artifacts_path(artifacts_path)
                 self.artifacts.append(upload_artifact)
+        # Check mount section and add each path as a lineage
+        mounts = self.compiled_operation.get_resolved_mount()
+        if mounts:
+            for mount in mounts:
+                if mount.path_to:
+                    mount_artifact = collect_lineage_artifacts_path(mount.path_to)
+                    self.artifacts.append(mount_artifact)
         if self.artifacts:
             set_artifacts(self.run, self.artifacts)
 
