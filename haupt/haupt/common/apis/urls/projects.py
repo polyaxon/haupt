@@ -2,7 +2,6 @@ from haupt.common.apis.regex import (
     OWNER_NAME_PATTERN,
     PROJECT_NAME_PATTERN,
     TEAM_NAME_PATTERN,
-    UUID_PATTERN,
 )
 
 # Projects
@@ -66,9 +65,6 @@ URLS_PROJECTS_ACTIVITIES = r"^{}/{}/activities/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 )
 
-URLS_PROJECTS_ARTIFACT_UPLOAD = r"^{}/{}/artifacts/{}/upload?$".format(
-    OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, UUID_PATTERN
-)
 URLS_PROJECTS_RUNS_TRANSFER = r"^{}/{}/runs/transfer/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 )
