@@ -20,6 +20,12 @@ from polyaxon._pql.parser import QueryOpSpec
 from polyaxon.exceptions import PQLException
 from tests.tests_db.test_query.base import BaseTestQuery
 
+from polyaxon._pql.manager import LegacyQueryMixin
+
+
+class LegacyRunQueryManager(RunQueryManager, LegacyQueryMixin):
+    pass
+
 
 class TestQueryManager(BaseTestQuery):
     def setUp(self):
@@ -37,37 +43,37 @@ class TestQueryManager(BaseTestQuery):
         assert RunQueryManager.NAME == "run"
 
     def test_tokenize(self):
-        tokenized_query = RunQueryManager.tokenize(self.query1)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query1)
         assert dict(tokenized_query.items()) == {
             "created_at": ["last_month"],  # Default filter
             "updated_at": ["<=2020-10-10"],
             "started_at": [">2010-10-10", "~2016-10-01 10:10"],
         }
-        tokenized_query = RunQueryManager.tokenize(self.query12)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query12)
         assert dict(tokenized_query.items()) == {
             "created_at": ["2020-10-10"],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query2)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query2)
         assert dict(tokenized_query) == {
             "created_at": ["last_month"],  # Default filter
             "metrics.loss": ["<=0.8"],
             "status": ["starting|running"],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query3)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query3)
         assert tokenized_query == {
             "created_at": ["last_month"],  # Default filter
             "finished_at": ["2012-12-12..2042-12-12"],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query4)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query4)
         assert tokenized_query == {
             "created_at": ["last_month"],  # Default filter
             "tags": ["~tag1|tag2", "tag3"],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query5)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query5)
         assert tokenized_query == {
             "created_at": ["last_month"],  # Default filter
             "name": ["%foo%"],
@@ -75,9 +81,9 @@ class TestQueryManager(BaseTestQuery):
         }
 
         with self.assertRaises(PQLException):
-            RunQueryManager.tokenize(self.query6)
+            LegacyRunQueryManager.tokenize(self.query6)
 
-        tokenized_query = RunQueryManager.tokenize(self.query7)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query7)
         assert dict(tokenized_query) == {
             "created_at": ["last_month"],  # Default filter
             "metrics.loss": ["nil"],
@@ -85,8 +91,8 @@ class TestQueryManager(BaseTestQuery):
         }
 
     def test_parse(self):
-        tokenized_query = RunQueryManager.tokenize(self.query1)
-        parsed_query = RunQueryManager.parse(tokenized_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query1)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
         assert parsed_query == {
             "updated_at": [QueryOpSpec(op="<=", negation=False, params="2020-10-10")],
             "started_at": [
@@ -96,14 +102,14 @@ class TestQueryManager(BaseTestQuery):
             # Default filter
             "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
-        tokenized_query = RunQueryManager.tokenize(self.query12)
-        parsed_query = RunQueryManager.parse(tokenized_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query12)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
         assert parsed_query == {
             "created_at": [QueryOpSpec(op="=", negation=False, params="2020-10-10")],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query2)
-        parsed_query = RunQueryManager.parse(tokenized_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query2)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
         assert parsed_query == {
             "metrics.loss": [QueryOpSpec(op="<=", negation=False, params=0.8)],
             "status": [
@@ -113,8 +119,8 @@ class TestQueryManager(BaseTestQuery):
             "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query3)
-        parsed_query = RunQueryManager.parse(tokenized_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query3)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
         assert parsed_query == {
             "finished_at": [
                 QueryOpSpec("..", False, params=["2012-12-12", "2042-12-12"])
@@ -123,8 +129,8 @@ class TestQueryManager(BaseTestQuery):
             "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query4)
-        parsed_query = RunQueryManager.parse(tokenized_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query4)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
         assert parsed_query == {
             "tags": [
                 QueryOpSpec("|", True, params=["tag1", "tag2"]),
@@ -134,8 +140,8 @@ class TestQueryManager(BaseTestQuery):
             "created_at": [QueryOpSpec(op="=", negation=False, params="last_month")],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query5)
-        parsed_query = RunQueryManager.parse(tokenized_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query5)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
         assert parsed_query == {
             "name": [QueryOpSpec("%%", False, params="foo")],
             "description": [QueryOpSpec("_%", True, params="bal")],
@@ -144,9 +150,9 @@ class TestQueryManager(BaseTestQuery):
         }
 
     def test_build(self):
-        tokenized_query = RunQueryManager.tokenize(self.query1)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query1)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "updated_at": [
                 QueryCondSpec(
@@ -169,9 +175,9 @@ class TestQueryManager(BaseTestQuery):
             ],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query12)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query12)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "created_at": [
                 QueryCondSpec(
@@ -180,9 +186,9 @@ class TestQueryManager(BaseTestQuery):
             ],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query2)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query2)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "metrics.loss": [
                 QueryCondSpec(ComparisonCondition(op="<=", negation=False), params=0.8)
@@ -201,9 +207,9 @@ class TestQueryManager(BaseTestQuery):
             ],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query3)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query3)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "finished_at": [
                 QueryCondSpec(
@@ -225,9 +231,9 @@ class TestQueryManager(BaseTestQuery):
         # Set to array condition
         if settings.DB_ENGINE_NAME != "sqlite":
             RunQueryManager.CONDITIONS_BY_FIELD["tags"] = ArrayCondition
-            tokenized_query = RunQueryManager.tokenize(self.query4)
-            parsed_query = RunQueryManager.parse(tokenized_query)
-            built_query = RunQueryManager.build(parsed_query)
+            tokenized_query = LegacyRunQueryManager.tokenize(self.query4)
+            parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+            built_query = LegacyRunQueryManager.build(parsed_query)
             assert built_query == {
                 "tags": [
                     QueryCondSpec(
@@ -248,9 +254,9 @@ class TestQueryManager(BaseTestQuery):
 
         # Set to different condition
         RunQueryManager.CONDITIONS_BY_FIELD["tags"] = KeysCondition
-        tokenized_query = RunQueryManager.tokenize(self.query4)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query4)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "tags": [
                 QueryCondSpec(
@@ -269,9 +275,9 @@ class TestQueryManager(BaseTestQuery):
         # Reset to original condition
         RunQueryManager.CONDITIONS_BY_FIELD["tags"] = original_condition
 
-        tokenized_query = RunQueryManager.tokenize(self.query5)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query5)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "name": [
                 QueryCondSpec(SearchCondition(op="%%", negation=False), params="foo")
@@ -287,9 +293,9 @@ class TestQueryManager(BaseTestQuery):
             ],
         }
 
-        tokenized_query = RunQueryManager.tokenize(self.query7)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query7)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
         assert built_query == {
             "metrics.loss": [
                 QueryCondSpec(SearchCondition(op="nil", negation=False), params=None)
@@ -306,15 +312,37 @@ class TestQueryManager(BaseTestQuery):
         }
 
     def test_handle(self):
-        tokenized_query = RunQueryManager.tokenize(self.query1)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
-        assert built_query == RunQueryManager.handle_query(self.query1)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query1)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
+        assert built_query == LegacyRunQueryManager.handle_query(self.query1)
 
-        tokenized_query = RunQueryManager.tokenize(self.query12)
-        parsed_query = RunQueryManager.parse(tokenized_query)
-        built_query = RunQueryManager.build(parsed_query)
-        assert built_query == RunQueryManager.handle_query(self.query12)
+        tokenized_query = LegacyRunQueryManager.tokenize(self.query12)
+        parsed_query = LegacyRunQueryManager.parse(tokenized_query)
+        built_query = LegacyRunQueryManager.build(parsed_query)
+        assert built_query == LegacyRunQueryManager.handle_query(self.query12)
+
+    def test_invalid_queries_raise_exception(self):
+        """Test that invalid queries raise PQLException."""
+        # Query with invalid field
+        with self.assertRaises(PQLException):
+            RunQueryManager.apply(query_spec="foobar:value", queryset=Run.objects)
+
+        # Query with missing colon (not a valid expression)
+        with self.assertRaises(PQLException):
+            RunQueryManager.apply(query_spec="status", queryset=Run.objects)
+
+        # Query with incomplete AND
+        with self.assertRaises(PQLException):
+            RunQueryManager.apply(query_spec="status:running AND", queryset=Run.objects)
+
+        # Query with incomplete OR
+        with self.assertRaises(PQLException):
+            RunQueryManager.apply(query_spec="status:running OR", queryset=Run.objects)
+
+        # Query with unmatched parenthesis
+        with self.assertRaises(PQLException):
+            RunQueryManager.apply(query_spec="(status:running", queryset=Run.objects)
 
     @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     @pytest.mark.flaky(max_runs=3)
