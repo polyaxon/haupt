@@ -1,3 +1,3 @@
-polyaxon==2.12.*
+polyaxon==2.13.*
 traceml==1.2.*
 hypertune==1.2.*
