@@ -30,6 +30,27 @@ def archived_condition(
     return query_backend(live_state=LiveState.LIVE)
 
 
+def is_integration_condition(
+    queryset: Any,
+    params: Union[str, Iterable],
+    negation: bool,
+    query_backend: Any,
+    timezone: Optional[str] = None,
+    request: Optional[Any] = None,
+) -> Any:
+    params = to_list(params)
+    if len(params) == 1:
+        if params[0] is None:
+            return None
+        cond = to_bool(params[0])
+        cond = not cond if negation else cond
+        if cond is True:
+            return query_backend(agent__isnull=True)
+        elif cond is False:
+            return query_backend(agent__isnull=False)
+    return None
+
+
 def independent_condition(
     params: Union[str, Iterable],
     negation: bool,
