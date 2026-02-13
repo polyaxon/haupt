@@ -1,14 +1,24 @@
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from django.conf import settings
 from django.db.models import Count, Q
 
+from haupt.common import auditor
 from haupt.common.authentication.base import is_normal_user
+from haupt.common.events.registry.run import (
+    RUN_RESTARTED_ACTOR,
+    RUN_RESUMED_ACTOR,
+    RUN_SKIPPED_ACTOR,
+    RUN_STOPPED_ACTOR,
+)
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
+from haupt.db.managers.statuses import new_run_skipped_status, new_run_stopping_status
+from haupt.orchestration import operations
 from polyaxon.schemas import (
     LifeCycle,
     ManagedBy,
+    V1CloningKind,
     V1CompiledOperation,
     V1RunKind,
     V1RunPending,
@@ -215,3 +225,132 @@ def get_stopping_pipelines_with_no_runs(queryset):
         )
         .filter(unfinished=0)
     )
+
+
+def stop_run_action(
+    run: BaseRun,
+    message: str,
+    actor_info: Optional[Dict[str, Any]] = None,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+) -> bool:
+    """
+    Stop a run with proper auditing.
+
+    Args:
+        run: The run to stop
+        message: Reason for stopping
+        actor_info: Dict identifying who/what initiated the action
+            - {"user": {"username": ..., "email": ...}} for user actions
+            - {"automation": {"uuid": ..., "name": ...}} for automation actions
+        contributor_user: Optional user to add as contributor
+
+    Returns:
+        bool: Whether the stop was successful
+    """
+    success = new_run_stopping_status(run, message=message, meta_info=actor_info)
+    if success:
+        if contributor_user:
+            add_run_contributors(run, users=[contributor_user])
+        if audit:
+            auditor.record(event_type=RUN_STOPPED_ACTOR, instance=run)
+    return success
+
+
+def skip_run_action(
+    run: BaseRun,
+    message: str,
+    actor_info: Optional[Dict[str, Any]] = None,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+) -> bool:
+    """
+    Skip a run with proper auditing.
+
+    Args:
+        run: The run to skip
+        message: Reason for skipping
+        actor_info: Dict identifying who/what initiated the action
+        contributor_user: Optional user to add as contributor
+
+    Returns:
+        bool: Whether the skip was successful
+    """
+    success = new_run_skipped_status(run, message=message, meta_info=actor_info)
+    if success:
+        if contributor_user:
+            add_run_contributors(run, users=[contributor_user])
+        if audit:
+            auditor.record(event_type=RUN_SKIPPED_ACTOR, instance=run)
+    return success
+
+
+def restart_run_action(
+    run: BaseRun,
+    actor_info: Optional[Dict[str, Any]] = None,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+    **kwargs,
+) -> BaseRun:
+    """
+    Restart a run with proper auditing.
+
+    Args:
+        run: The run to restart
+        actor_info: Dict identifying who/what initiated the action
+        contributor_user: Optional user to add as contributor
+        **kwargs: Passed to operations.restart_run (name, description, content, tags, meta_info)
+
+    Returns:
+        The new run instance
+    """
+    # Handle cache hit runs - restart the original
+    if run.cloning_kind == V1CloningKind.CACHE:
+        run = run.original
+
+    new_run = operations.restart_run(run=run, **kwargs)
+    if contributor_user:
+        add_run_contributors(new_run, users=[contributor_user])
+    if audit:
+        auditor.record(event_type=RUN_RESTARTED_ACTOR, instance=new_run)
+    return new_run
+
+
+def resume_run_action(
+    run: BaseRun,
+    actor_info: Optional[Dict[str, Any]] = None,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+    **kwargs,
+) -> BaseRun:
+    """
+    Resume a run with proper auditing.
+
+    Args:
+        run: The run to resume (must be in a final state)
+        actor_info: Dict identifying who/what initiated the action
+        contributor_user: Optional user to add as contributor
+        **kwargs: Passed to operations.resume_run (name, description, content, tags, meta_info, message)
+
+    Returns:
+        The resumed run instance
+
+    Raises:
+        ValueError: If run is not in a final state or is a cache hit
+    """
+    # Validation - must be done
+    if not LifeCycle.is_done(run.status):
+        raise ValueError(
+            f"Cannot resume run, must be in a final state. Current status: {run.status}"
+        )
+
+    # Validation - cannot resume cache hits
+    if run.cloning_kind == V1CloningKind.CACHE:
+        raise ValueError("Cannot resume cache hit runs - they were never executed")
+
+    resumed_run = operations.resume_run(run=run, **kwargs)
+    if contributor_user:
+        add_run_contributors(resumed_run, users=[contributor_user])
+    if audit:
+        auditor.record(event_type=RUN_RESUMED_ACTOR, instance=resumed_run)
+    return resumed_run

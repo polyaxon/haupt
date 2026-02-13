@@ -12,12 +12,13 @@ from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import archive_run as base_archive_run
 from haupt.db.managers.live_state import restore_run as base_restore_run
-from haupt.db.managers.runs import add_run_contributors, base_approve_run
-from haupt.db.managers.statuses import (
-    new_run_skipped_status,
-    new_run_status,
-    new_run_stopping_status,
+from haupt.db.managers.runs import (
+    add_run_contributors,
+    base_approve_run,
+    skip_run_action,
+    stop_run_action,
 )
+from haupt.db.managers.statuses import new_run_status
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.schemas import V1StatusCondition
 
@@ -75,39 +76,39 @@ def create_status(view, serializer):
 
 
 def stop_run(view, request, *args, **kwargs):
-    status_meta_info = None
+    actor_info = None
     if settings.HAS_ORG_MANAGEMENT and is_normal_user(request.user):
-        status_meta_info = {
+        actor_info = {
             "user": {
-                "username": view.request.user.username,
-                "email": view.request.user.email,
+                "username": request.user.username,
+                "email": request.user.email,
             },
         }
-    if new_run_stopping_status(
+    if stop_run_action(
         run=view.run,
         message="User requested to stop the run.",
-        meta_info=status_meta_info,
+        actor_info=actor_info,
+        contributor_user=request.user,
     ):
-        add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def skip_run(view, request, *args, **kwargs):
-    status_meta_info = None
+    actor_info = None
     if settings.HAS_ORG_MANAGEMENT and is_normal_user(request.user):
-        status_meta_info = {
+        actor_info = {
             "user": {
-                "username": view.request.user.username,
-                "email": view.request.user.email,
+                "username": request.user.username,
+                "email": request.user.email,
             },
         }
-    if new_run_skipped_status(
+    if skip_run_action(
         run=view.run,
         message="User requested to skip the run.",
-        meta_info=status_meta_info,
+        actor_info=actor_info,
+        contributor_user=request.user,
     ):
-        add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
