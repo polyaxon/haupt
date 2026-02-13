@@ -29,6 +29,16 @@ SERVICE_ACCOUNT_RESOURCE_ATTRIBUTES = (
     Attribute("sa_id"),
 )
 
+AUTOMATION_RESOURCE_ATTRIBUTES = (
+    Attribute("uuid", is_uuid=True),
+    Attribute("name"),
+    Attribute("owner.name"),
+    Attribute("owner_id"),
+    Attribute("automation_name"),
+    Attribute("automation_uuid"),
+    Attribute("automation_id"),
+)
+
 PROJECT_OWNER_ATTRIBUTES = (
     Attribute("name"),
     Attribute("owner.name"),

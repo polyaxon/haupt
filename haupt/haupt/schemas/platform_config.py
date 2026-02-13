@@ -150,6 +150,9 @@ class PlatformConfig(BaseSchemaModel):
     cron_intervals_delete_archived: Optional[int] = Field(
         alias="POLYAXON_CRON_INTERVALS_DELETE_ARCHIVED", default=60
     )
+    cron_intervals_automation_executions: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_AUTOMATION_EXECUTIONS", default=30
+    )
     cleaning_intervals_activity_logs: Optional[int] = Field(
         alias="POLYAXON_CLEANING_INTERVALS_ACTIVITY_LOGS", default=3 * 30
     )

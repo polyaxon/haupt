@@ -58,6 +58,7 @@ ui_urlpatterns = [
     r"^{}/dashboards.*/?".format(projects_urls),
     r"^{}/reports.*/?".format(projects_urls),
     r"^{}/searches.*/?".format(projects_urls),
+    r"^{}/automations.*/?".format(projects_urls),
     r"^{}/connections.*/?".format(projects_urls),
     r"^{}/integrations.*/?".format(projects_urls),
     r"^{}/cli.*/?".format(projects_urls),

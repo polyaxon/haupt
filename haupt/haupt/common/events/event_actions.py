@@ -52,6 +52,8 @@ GITLAB = "gitlab"
 BITBUCKET = "bitbucket"
 GOOGLE = "google"
 SAML = "saml"
+TESTED = "tested"
+RETRIED = "retried"
 
 
 WRITE_ACTIONS = [
