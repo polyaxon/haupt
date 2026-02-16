@@ -1,5 +1,3 @@
-version: "3.8"
-
 x-defaults: &defaults
   env_file:
   - .docker/base.env
