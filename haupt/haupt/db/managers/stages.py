@@ -3,6 +3,7 @@ from typing import List, Optional
 from clipped.utils.lists import to_list
 
 from haupt.common import auditor
+from haupt.db.managers.versions import add_version_contributors
 from polyaxon.schemas import V1StageCondition
 
 
@@ -57,5 +58,7 @@ def new_stage(
             instance=entity,
             previous_stage=previous_stage,
         )
+    if user:
+        add_version_contributors(entity, users=[user])
 
     return previous_stage

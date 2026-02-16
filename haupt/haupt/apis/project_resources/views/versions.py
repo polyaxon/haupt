@@ -52,7 +52,7 @@ from haupt.common.events.registry.model_version import (
     MODEL_VERSION_VIEWED_ACTOR,
 )
 from haupt.db.defs import Models
-from haupt.db.managers.versions import add_version_contributors
+from haupt.db.managers.versions import add_version_contributors, transfer_version_action
 from haupt.db.query_managers.project_version import ProjectVersionQueryManager
 from polyaxon.schemas import V1ProjectVersionKind
 
@@ -325,10 +325,10 @@ class ProjectVersionTransferView(VersionEndpoint, CreateEndpoint):
                 "The destination project `{}` does not exist.".format(project_name)
             )
 
-        self.version.project_id = dest_project.id
-        self.version.save(update_fields=["project_id", "updated_at"])
-        add_version_contributors(self.version, users=[request.user])
-        self.audit(request, *args, **kwargs)
+        if transfer_version_action(
+            self.version, dest_project, contributor_user=request.user
+        ):
+            self.audit(request, *args, **kwargs)
         return Response(status=status.HTTP_200_OK, data={})
 
 
