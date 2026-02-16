@@ -425,5 +425,24 @@ class TestQueryManager(BaseTestQuery):
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
+    def test_any_disables_default_filter(self):
+        # _any_ on the default-filtered field should suppress the default
+        # and produce no filter for that field
+        result_queryset = RunQueryManager.apply(
+            query_spec="created_at:_any_", queryset=Run.objects.filter()
+        )
+        expected_query = Run.objects.filter()
+        assert str(result_queryset.query) == str(expected_query.query)
+
+    def test_any_with_other_filters(self):
+        # _any_ on created_at should suppress the default, other filters apply normally
+        result_queryset = RunQueryManager.apply(
+            query_spec="created_at:_any_, status:running", queryset=Run.objects.filter()
+        )
+        expected_query = Run.objects.filter(
+            Q(status="running"),
+        )
+        assert str(result_queryset.query) == str(expected_query.query)
+
 
 del BaseTestQuery
