@@ -5,14 +5,21 @@ from django.db.models import Count, Q
 
 from haupt.common import auditor
 from haupt.common.authentication.base import is_normal_user
+from haupt.common.events.registry.archive import (
+    RUN_ARCHIVED_ACTOR,
+    RUN_RESTORED_ACTOR,
+)
 from haupt.common.events.registry.run import (
+    RUN_INVALIDATED_ACTOR,
     RUN_RESTARTED_ACTOR,
     RUN_RESUMED_ACTOR,
     RUN_SKIPPED_ACTOR,
     RUN_STOPPED_ACTOR,
+    RUN_TRANSFERRED_ACTOR,
 )
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
+from haupt.db.managers.live_state import archive_run, restore_run
 from haupt.db.managers.statuses import new_run_skipped_status, new_run_stopping_status
 from haupt.orchestration import operations
 from polyaxon.schemas import (
@@ -316,6 +323,27 @@ def restart_run_action(
     return new_run
 
 
+def transfer_run_action(
+    run: BaseRun,
+    dest_project: Models.Project,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+) -> bool:
+    if run.project_id == dest_project.id:
+        return False
+    run.project_id = dest_project.id
+    run.save(update_fields=["project_id", "updated_at"])
+    if run.has_pipeline:
+        Models.Run.all.filter(Q(pipeline=run) | Q(controller=run)).update(
+            project_id=dest_project.id
+        )
+    if contributor_user:
+        add_run_contributors(run, users=[contributor_user])
+    if audit:
+        auditor.record(event_type=RUN_TRANSFERRED_ACTOR, instance=run)
+    return True
+
+
 def resume_run_action(
     run: BaseRun,
     actor_info: Optional[Dict[str, Any]] = None,
@@ -354,3 +382,45 @@ def resume_run_action(
     if audit:
         auditor.record(event_type=RUN_RESUMED_ACTOR, instance=resumed_run)
     return resumed_run
+
+
+def invalidate_run_action(
+    run: BaseRun,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+) -> bool:
+    run.state = None
+    run.save(update_fields=["state"])
+    if contributor_user:
+        add_run_contributors(run, users=[contributor_user])
+    if audit:
+        auditor.record(event_type=RUN_INVALIDATED_ACTOR, instance=run)
+    return True
+
+
+def archive_run_action(
+    run: BaseRun,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+) -> bool:
+    success = archive_run(run)
+    if success:
+        if contributor_user:
+            add_run_contributors(run, users=[contributor_user])
+        if audit:
+            auditor.record(event_type=RUN_ARCHIVED_ACTOR, instance=run)
+    return success
+
+
+def restore_run_action(
+    run: BaseRun,
+    contributor_user: Optional[Models.User] = None,
+    audit=False,
+) -> bool:
+    success = restore_run(run)
+    if success:
+        if contributor_user:
+            add_run_contributors(run, users=[contributor_user])
+        if audit:
+            auditor.record(event_type=RUN_RESTORED_ACTOR, instance=run)
+    return success

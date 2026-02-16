@@ -5,18 +5,19 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from django.conf import settings
-from django.db.models import Q
 
 from haupt.common.authentication.base import is_normal_user
 from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
-from haupt.db.managers.live_state import archive_run as base_archive_run
-from haupt.db.managers.live_state import restore_run as base_restore_run
 from haupt.db.managers.runs import (
     add_run_contributors,
+    archive_run_action,
     base_approve_run,
+    invalidate_run_action,
+    restore_run_action,
     skip_run_action,
     stop_run_action,
+    transfer_run_action,
 )
 from haupt.db.managers.statuses import new_run_status
 from polyaxon.exceptions import PolyaxonException
@@ -147,21 +148,13 @@ def transfer_run(view, request, *args, **kwargs):
                 f"You don't have permission to transfer runs to project '{project_name}'"
             )
 
-    view.run.project_id = dest_project.id
-    view.run.save(update_fields=["project_id", "updated_at"])
-    if view.run.has_pipeline:
-        Models.Run.all.filter(Q(pipeline=view.run) | Q(controller=view.run)).update(
-            project_id=dest_project.id
-        )
-    add_run_contributors(view.run, users=[request.user])
-    view.audit(request, *args, **kwargs)
+    if transfer_run_action(view.run, dest_project, contributor_user=request.user):
+        view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def invalidate_run(view, request, *args, **kwargs):
-    view.run.state = None
-    view.run.save(update_fields=["state"])
-    add_run_contributors(view.run, users=[request.user])
+    invalidate_run_action(view.run, contributor_user=request.user)
     view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
@@ -169,14 +162,12 @@ def invalidate_run(view, request, *args, **kwargs):
 def archive_run(view, request, *args, **kwargs):
     view.run = view.get_object()
     view.audit(request, *args, **kwargs)
-    add_run_contributors(view.run, users=[request.user])
-    base_archive_run(view.run)
+    archive_run_action(view.run, contributor_user=request.user)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def restore_run(view, request, *args, **kwargs):
     view.run = view.get_object()
     view.audit(request, *args, **kwargs)
-    add_run_contributors(view.run, users=[request.user])
-    base_restore_run(view.run)
+    restore_run_action(view.run, contributor_user=request.user)
     return Response(status=status.HTTP_200_OK, data={})
