@@ -421,7 +421,7 @@ class TestQueryManager(BaseTestQuery):
             Q(outputs__loss__isnull=True),
             Q(status__isnull=False),
             # Default filter
-            Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
+            Q(created_at__gte=get_datetime_from_now(days=30).date()),
         )
         assert str(result_queryset.query) == str(expected_query.query)
 
