@@ -129,10 +129,11 @@ class TestASTQueryApply(BaseTestQuery):
             queryset=Run.objects,
         )
         # Should produce AND query with default filter
+        created_at = get_datetime_from_now(days=30).replace(microsecond=0)
         expected = Run.objects.filter(
             Q(status="running"),
             Q(duration__gt=100),
-            Q(created_at__gte=get_datetime_from_now(days=30).date().isoformat()),
+            Q(created_at__gte=created_at),
         )
         assert str(result.query) == str(expected.query)
 
@@ -143,9 +144,10 @@ class TestASTQueryApply(BaseTestQuery):
             queryset=Run.objects,
         )
         # Should produce OR query with default filter ANDed
+        created_at = get_datetime_from_now(days=30).replace(microsecond=0)
         expected = Run.objects.filter(
             Q(status="running") | Q(status="failed"),
-            Q(created_at__gte=get_datetime_from_now(days=30).date()),
+            Q(created_at__gte=created_at),
         )
         assert str(result.query) == str(expected.query)
 
@@ -155,9 +157,10 @@ class TestASTQueryApply(BaseTestQuery):
             query_spec="(status:running OR status:building) AND duration:>100",
             queryset=Run.objects,
         )
+        created_at = get_datetime_from_now(days=30).replace(microsecond=0)
         expected = Run.objects.filter(
             (Q(status="running") | Q(status="building")) & Q(duration__gt=100),
-            Q(created_at__gte=get_datetime_from_now(days=30).date()),
+            Q(created_at__gte=created_at),
         )
         assert str(result.query) == str(expected.query)
 
@@ -178,9 +181,10 @@ class TestASTQueryApply(BaseTestQuery):
             query_spec="status:running|building",
             queryset=Run.objects,
         )
+        created_at = get_datetime_from_now(days=30).replace(microsecond=0)
         expected = Run.objects.filter(
             Q(status__in=["running", "building"]),
-            Q(created_at__gte=get_datetime_from_now(days=30).date()),
+            Q(created_at__gte=created_at),
         )
         assert str(result.query) == str(expected.query)
 
@@ -190,10 +194,11 @@ class TestASTQueryApply(BaseTestQuery):
             query_spec="kind:job, (status:running | (duration:>100 AND status:succeeded))",
             queryset=Run.objects,
         )
+        created_at = get_datetime_from_now(days=30).replace(microsecond=0)
         expected = Run.objects.filter(
             Q(kind="job")
             & (Q(status="running") | (Q(duration__gt=100) & Q(status="succeeded"))),
-            Q(created_at__gte=get_datetime_from_now(days=30).date()),
+            Q(created_at__gte=created_at),
         )
         assert str(result.query) == str(expected.query)
 
