@@ -17,6 +17,9 @@ CORS_OPTIONS = r"""
     add_header 'Access-Control-Allow-Credentials' 'true' always;
     add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS,PUT,DELETE,PATCH' always;
     add_header 'Access-Control-Allow-Headers' 'X-POLYAXON-SERVICE,x-csrftoken,X-CSRF-Token,Authorization,Accept,Origin,DNT,X-Mx-ReqToken,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,Sec-Fetch-Mode,User-Agent' always;
+    add_header 'Content-Security-Policy' "frame-ancestors 'self' $http_origin" always;
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
 """  # noqa
 
 

@@ -25,6 +25,7 @@ location ~ /{plugin_name}/proxy/([-_.:\w]+)/(.*) {{
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_buffering off;
 }}
@@ -75,6 +76,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -94,6 +96,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -110,6 +113,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -128,6 +132,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -169,6 +174,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -188,6 +194,7 @@ location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
