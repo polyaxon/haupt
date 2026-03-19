@@ -22,6 +22,19 @@ class TestArtifactsTreeEndpoints(BaseTest):
             STREAMS_V1_LOCATION + "namespace/owner/project/runs/uuid/artifacts/tree"
         )
 
+    def test_get_artifacts_tree_path_traversal(self):
+        traversal_paths = [
+            "../../etc",
+            "foo/../../etc",
+        ]
+        for p in traversal_paths:
+            response = self.client.get(self.base_url + "?path=" + p)
+            assert response.status_code == 200
+            results = response.json()
+            assert results.get("error") is not None
+            assert results["files"] == {}
+            assert results["dirs"] == []
+
     def test_get_artifacts_tree_non_existing_path(self):
         response = self.client.get(self.base_url + "?path=foo")
         assert response.status_code == 200

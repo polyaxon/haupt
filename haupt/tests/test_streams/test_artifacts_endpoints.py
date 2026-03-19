@@ -23,6 +23,24 @@ class TestArtifactsEndpoints(BaseTest):
             STREAMS_V1_LOCATION + "namespace/owner/project/runs/uuid/artifacts"
         )
 
+    def test_download_artifacts_path_traversal(self):
+        traversal_paths = [
+            "../../etc/passwd",
+            "foo/../../etc/passwd",
+        ]
+        for p in traversal_paths:
+            response = self.client.get(self.base_url + "?path=" + p)
+            assert response.status_code == 400
+
+    def test_delete_artifacts_path_traversal(self):
+        traversal_paths = [
+            "../../etc/passwd",
+            "foo/../../etc/passwd",
+        ]
+        for p in traversal_paths:
+            response = self.client.delete(self.base_url + "?path=" + p)
+            assert response.status_code == 400
+
     def test_download_artifacts(self):
         filepath = os.path.join(settings.CLIENT_CONFIG.archives_root, "uuid.tar.gz")
         assert os.path.exists(filepath) is False

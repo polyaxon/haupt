@@ -24,7 +24,10 @@ async def handle_posted_data(
     filename = content_file.name
     tmp_path = "{}/{}".format(root_path, os.path.basename(filename)).rstrip("/")
     if path:
-        root_path = "{}/{}".format(root_path, path).rstrip("/")
+        normalized = os.path.normpath(path.strip("/"))
+        if normalized.startswith("..") or os.path.isabs(normalized):
+            raise ValueError("Invalid path: traversal detected")
+        root_path = "{}/{}".format(root_path, normalized).rstrip("/")
         if is_file:
             root_path = "{}/{}".format(root_path, os.path.basename(filename))
     else:

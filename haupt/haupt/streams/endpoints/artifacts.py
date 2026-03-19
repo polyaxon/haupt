@@ -1,3 +1,5 @@
+import os
+
 from typing import Dict, Optional, Union
 
 from clipped.utils.bools import to_bool
@@ -41,6 +43,13 @@ async def handle_upload(
     path = content_json.get("path", "")
     connection = content_json.get("connection")
     try:
+        clean_path(path)
+    except ValueError:
+        return HttpResponse(
+            content="Invalid path: traversal detected",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
         archived_path = await handle_posted_data(
             fs=await AppFS.get_fs(connection=connection),
             store_path=AppFS.get_fs_root_path(connection=connection),
@@ -69,7 +78,21 @@ async def handle_upload(
 
 
 def clean_path(filepath: str):
-    return filepath.strip("/")
+    filepath = filepath.strip("/")
+    if not filepath:
+        return filepath
+    normalized = os.path.normpath(filepath)
+    if normalized.startswith("..") or os.path.isabs(normalized):
+        raise ValueError("Invalid path: traversal detected")
+    return normalized
+
+
+def get_run_subpath(run_uuid: str, filepath: str) -> Optional[str]:
+    try:
+        subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
+    except ValueError:
+        return None
+    return subpath
 
 
 @transaction.non_atomic_requests
@@ -127,7 +150,12 @@ async def download_artifact(
             ),
             status=status.HTTP_400_BAD_REQUEST,
         )
-    subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
+    subpath = get_run_subpath(run_uuid, filepath)
+    if not subpath:
+        return HttpResponse(
+            content="Invalid path: traversal detected",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     archived_path = await download_file(
         fs=await AppFS.get_fs(connection=connection),
         store_path=AppFS.get_fs_root_path(connection=connection),
@@ -159,7 +187,12 @@ async def delete_artifact(request: ASGIRequest, run_uuid: str) -> HttpResponse:
             content="A `path` query param is required to delete a file",
             status=status.HTTP_400_BAD_REQUEST,
         )
-    subpath = "{}/{}".format(run_uuid, clean_path(filepath)).rstrip("/")
+    subpath = get_run_subpath(run_uuid, filepath)
+    if not subpath:
+        return HttpResponse(
+            content="Invalid path: traversal detected",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     connection = request.GET.get("connection")
     is_deleted = await delete_file_or_dir(
         fs=await AppFS.get_fs(connection=connection),
@@ -202,7 +235,12 @@ async def download_artifacts(request: ASGIRequest, run_uuid: str) -> HttpRespons
         check_path = to_bool(request.GET.get("check_file"), handle_none=True)
     path = request.GET.get("path", "")
     connection = request.GET.get("connection")
-    subpath = "{}/{}".format(run_uuid, clean_path(path)).rstrip("/")
+    subpath = get_run_subpath(run_uuid, path)
+    if not subpath:
+        return HttpResponse(
+            content="Invalid path: traversal detected",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     fs = await AppFS.get_fs(connection=connection)
     store_path = AppFS.get_fs_root_path(connection=connection)
     if check_path:
@@ -227,7 +265,12 @@ async def upload_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
 async def delete_artifacts(request: ASGIRequest, run_uuid: str) -> HttpResponse:
     path = request.GET.get("path", "")
     connection = request.GET.get("connection")
-    subpath = "{}/{}".format(run_uuid, clean_path(path)).rstrip("/")
+    subpath = get_run_subpath(run_uuid, path)
+    if not subpath:
+        return HttpResponse(
+            content="Invalid path: traversal detected",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     is_deleted = await delete_file_or_dir(
         fs=await AppFS.get_fs(connection=connection),
         store_path=AppFS.get_fs_root_path(connection=connection),
@@ -256,11 +299,17 @@ async def tree_artifacts(
     validate_methods(request, methods)
     filepath = request.GET.get("path", "")
     connection = request.GET.get("connection")
+    try:
+        cleaned_filepath = clean_path(filepath)
+    except ValueError:
+        return UJSONResponse(
+            {"files": {}, "dirs": [], "error": "Invalid path: traversal detected"},
+        )
     ls = await list_files(
         fs=await AppFS.get_fs(connection=connection),
         store_path=AppFS.get_fs_root_path(connection=connection),
         subpath=run_uuid,
-        filepath=clean_path(filepath),
+        filepath=cleaned_filepath,
         force=True,
     )
     return UJSONResponse(ls)

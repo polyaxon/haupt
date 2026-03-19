@@ -181,6 +181,45 @@ class TestArtifactEndpoints(BaseTest):
         )
         assert response.status_code == 404
 
+    def test_download_artifact_path_traversal(self):
+        traversal_paths = [
+            "../../etc/passwd",
+            "../../../etc/shadow",
+            "foo/../../etc/passwd",
+            "foo/../../../etc/passwd",
+        ]
+        for p in traversal_paths:
+            response = self.client.get(self.base_url + "?path=" + p)
+            assert response.status_code == 400
+
+        # Cloud storage paths should not be rejected as traversal
+        valid_paths = [
+            "gs://ml-datasets/foo/multidescription.json",
+            "s3://bucket/path/to/file.csv",
+            "wasb://container/blob/file.txt",
+        ]
+        for p in valid_paths:
+            response = self.client.get(self.base_url + "?path=" + p)
+            assert response.status_code != 400
+
+    def test_stream_artifact_path_traversal(self):
+        traversal_paths = [
+            "../../etc/passwd",
+            "foo/../../etc/passwd",
+        ]
+        for p in traversal_paths:
+            response = self.client.get(self.base_url + "?stream=true&path=" + p)
+            assert response.status_code == 400
+
+    def test_delete_artifact_path_traversal(self):
+        traversal_paths = [
+            "../../etc/passwd",
+            "foo/../../etc/passwd",
+        ]
+        for p in traversal_paths:
+            response = self.client.delete(self.base_url + "?path=" + p)
+            assert response.status_code == 400
+
     def test_delete_artifact_passing_path(self):
         filepath = os.path.join(self.run_path, "file1.txt")
         assert os.path.exists(filepath) is True
