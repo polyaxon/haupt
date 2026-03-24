@@ -85,7 +85,7 @@ class ProjectVersionDetailSerializer(
     run = UuidSlugRelatedField(
         slug_field="uuid",
         queryset=Models.Run.objects.select_related("project").only(
-            "id", "name", "project__id", "project__name"
+            "id", "uuid", "name", "project__id", "project__name"
         ),
         required=False,
         allow_null=True,
