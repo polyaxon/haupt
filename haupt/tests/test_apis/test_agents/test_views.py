@@ -343,9 +343,10 @@ class TestAgentCronViewV1(BaseTest):
     def test_agent_cron(self, workers_send):
         resp = self.client.post(self.url)
         assert resp.status_code == status.HTTP_200_OK
-        assert workers_send.call_count == 8
+        assert workers_send.call_count == 9
         assert {c[0][0] for c in workers_send.call_args_list} == {
             CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC_SCHEDULES,
+            CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC,
             CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS,
             CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED,
             CronsCeleryTasks.STATS_CALCULATION_PROJECTS,

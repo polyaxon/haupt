@@ -144,6 +144,9 @@ class PlatformConfig(BaseSchemaModel):
     cron_intervals_clean_support_access: Optional[int] = Field(
         alias="POLYAXON_CRON_INTERVALS_CLEAN_SUPPORT_ACCESS", default=60
     )
+    cron_intervals_clean_plans: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_CLEAN_PLANS", default=60 * 60
+    )
     cron_intervals_clean_notifications: Optional[int] = Field(
         alias="POLYAXON_CRON_INTERVALS_CLEAN_NOTIFICATIONS", default=60
     )
@@ -164,6 +167,9 @@ class PlatformConfig(BaseSchemaModel):
     )
     cleaning_intervals_deletion: Optional[int] = Field(
         alias="POLYAXON_CLEANING_INTERVALS_DELETION", default=15
+    )
+    cleaning_intervals_out_of_sync: Optional[int] = Field(
+        alias="POLYAXON_CLEANING_INTERVALS_OUT_OF_SYNC", default=120
     )
 
     internal_exchange: Optional[str] = Field(

@@ -8,7 +8,13 @@ from haupt.db.defs import Models
 from haupt.db.managers.projects import update_project_based_on_last_updated_entities
 from haupt.db.managers.runs import get_stopping_pipelines_with_no_runs
 from haupt.db.managers.statuses import bulk_new_run_status
-from polyaxon.schemas import LifeCycle, V1RunKind, V1StatusCondition, V1Statuses
+from polyaxon.schemas import (
+    LifeCycle,
+    V1RunKind,
+    V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
+)
 
 
 class CronsHeartbeatManager:
@@ -69,6 +75,26 @@ class CronsHeartbeatManager:
             Models.Run.objects.filter(updated_at__lte=last_date)
         )
         bulk_new_run_status(runs, condition)
+
+    @staticmethod
+    def _heartbeat_stale_uploads(last_date: int):
+        last_date = get_datetime_from_now(days=0, minutes=last_date)
+        condition = V1StatusCondition.get_condition(
+            type=V1Statuses.FAILED,
+            status="True",
+            reason="StaleUpload",
+            message="Run failed because the upload was not completed within the time limit.",
+        )
+        runs = Models.Run.objects.filter(
+            status__in=[V1Statuses.CREATED, V1Statuses.COMPILED],
+            pending=V1RunPending.UPLOAD,
+            updated_at__lte=last_date,
+        )
+        bulk_new_run_status(runs, condition)
+
+    @staticmethod
+    def heartbeat_out_of_sync(stale_uploads_minutes: int = 120):
+        CronsHeartbeatManager._heartbeat_stale_uploads(stale_uploads_minutes)
 
     @staticmethod
     def heartbeat_project_last_updated(

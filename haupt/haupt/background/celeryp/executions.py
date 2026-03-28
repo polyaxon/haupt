@@ -73,6 +73,7 @@ class TasksExecutions:
             CronsCeleryTasks.DELETE_IN_PROGRESS_RUNS: manager.delete_in_progress_runs,
             CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC_SCHEDULES: manager.heartbeat_out_of_sync_schedules,
             CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS: manager.heartbeat_stopping_runs,
+            CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC: manager.heartbeat_out_of_sync,
             CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED: manager.heartbeat_project_last_updated,
             CronsCeleryTasks.STATS_CALCULATION_PROJECTS: manager.stats_calculation_projects,
         }

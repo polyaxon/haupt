@@ -8,11 +8,55 @@ from haupt.common.test_cases.base import PolyaxonBaseTest
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.orchestration.crons.heartbeats import CronsHeartbeatManager
-from polyaxon.schemas import V1RunKind, V1Statuses
+from polyaxon.schemas import V1RunKind, V1RunPending, V1Statuses
 
 
 @pytest.mark.crons_mark
 class TestHeartBeatCrons(PolyaxonBaseTest):
+    def test_heartbeat_stale_uploads(self):
+        project = ProjectFactory()
+
+        # Run with pending=UPLOAD and status=CREATED (should be failed)
+        run1 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run1.status = V1Statuses.CREATED
+        run1.pending = V1RunPending.UPLOAD
+        run1.save()
+
+        # Run with pending=UPLOAD and status=COMPILED (should be failed)
+        run2 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run2.status = V1Statuses.COMPILED
+        run2.pending = V1RunPending.UPLOAD
+        run2.save()
+
+        # Run with pending=UPLOAD but status=RUNNING (should NOT be affected)
+        run3 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run3.status = V1Statuses.RUNNING
+        run3.pending = V1RunPending.UPLOAD
+        run3.save()
+
+        # Run with status=CREATED but no pending (should NOT be affected)
+        run4 = RunFactory(project=project, kind=V1RunKind.JOB)
+
+        # Run with pending=BUILD and status=CREATED (should NOT be affected)
+        run5 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run5.status = V1Statuses.CREATED
+        run5.pending = V1RunPending.BUILD
+        run5.save()
+
+        # Check with minutes=0 to catch all stale runs
+        CronsHeartbeatManager.heartbeat_out_of_sync(stale_uploads_minutes=0)
+        run1.refresh_from_db()
+        run2.refresh_from_db()
+        run3.refresh_from_db()
+        run4.refresh_from_db()
+        run5.refresh_from_db()
+
+        assert run1.status == V1Statuses.FAILED
+        assert run2.status == V1Statuses.FAILED
+        assert run3.status == V1Statuses.RUNNING
+        assert run4.status == V1Statuses.CREATED
+        assert run5.status == V1Statuses.CREATED
+
     def test_heartbeat_out_of_sync_schedules(self):
         project = ProjectFactory()
         run1 = RunFactory(project=project, kind=V1RunKind.SCHEDULE)
