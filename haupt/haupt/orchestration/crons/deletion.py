@@ -1,4 +1,4 @@
-from clipped.utils.tz import get_datetime_from_now
+from clipped.utils.tz import get_datetime_from_now, now
 
 from django.conf import settings
 from django.db.models import Count, Q
@@ -80,7 +80,9 @@ class CronsDeletionManager:
         Models.Run.all.filter(
             kind__in={V1RunKind.DAG, V1RunKind.MATRIX, V1RunKind.SCHEDULE},
             live_state=LiveState.DELETION_PROGRESSING,
-        ).exclude(status__in=LifeCycle.DONE_VALUES).update(status=V1Statuses.STOPPED)
+        ).exclude(status__in=LifeCycle.DONE_VALUES).update(
+            status=V1Statuses.STOPPED, updated_at=now()
+        )
 
     @staticmethod
     def delete_archived_runs():

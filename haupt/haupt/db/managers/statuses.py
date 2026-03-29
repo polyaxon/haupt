@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from clipped.utils.lists import to_list
+from clipped.utils.tz import now
 
 from haupt.common import auditor
 from haupt.common.events.registry.run import (
@@ -96,11 +97,13 @@ def bulk_new_entity_status(
     condition: V1StatusCondition,
     additional_fields: Optional[List[str]] = None,
 ):
+    _now = now()
     for entity in entities:
         set_entity_status(entity=entity, condition=condition)
+        entity.updated_at = _now
     additional_fields = additional_fields or []
     model_class.all.bulk_update(
-        entities, additional_fields + ["status_conditions", "status"]
+        entities, additional_fields + ["status_conditions", "status", "updated_at"]
     )
 
 
