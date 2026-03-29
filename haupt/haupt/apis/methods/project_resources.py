@@ -2,7 +2,10 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
+from clipped.utils.tz import now
+
 from django.conf import settings
+from django.db.models import Q
 
 from haupt.apis.serializers.base.tags import TagsMixin
 from haupt.common import auditor
@@ -20,6 +23,7 @@ from haupt.common.events.registry.run import (
 )
 from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import bookmark_obj
+from haupt.db.managers.live_state import run_queryset_stopping
 from haupt.db.managers.statuses import bulk_new_run_status
 from polyaxon.schemas import (
     LifeCycle,
@@ -214,13 +218,16 @@ def archive_runs(view, request, actor, *args, **kwargs):
     # Set to stopping all runs that are not ended yet
     queryset.exclude(status__in=LifeCycle.DONE_OR_IN_PROGRESS_VALUES).update(
         status=V1Statuses.STOPPING,
+        updated_at=now(),
     )
-    # Pipeline runs
-    Models.Run.objects.filter(pipeline__uuid__in=uuids).update(
-        live_state=LiveState.ARCHIVED
-    )
+    # Pipeline/controller children runs
+    children = Models.Run.objects.filter(
+        Q(pipeline__uuid__in=uuids) | Q(controller__uuid__in=uuids)
+    ).exclude(live_state=LiveState.ARCHIVED)
+    run_queryset_stopping(queryset=children)
+    children.update(live_state=LiveState.ARCHIVED, archived_at=now())
     runs = [r for r in queryset]
-    queryset.update(live_state=LiveState.ARCHIVED)
+    queryset.update(live_state=LiveState.ARCHIVED, archived_at=now())
     # For Audit
     view.set_owner()
     for run in runs:
@@ -241,12 +248,12 @@ def restore_runs(view, request, actor, *args, **kwargs):
     uuids = request.data.get("uuids", [])
     queryset = view.enrich_queryset(Models.Run.archived)
     queryset = queryset.filter(uuid__in=uuids)
-    # Restore pipeline runs
-    Models.Run.archived.filter(pipeline__uuid__in=uuids).update(
-        live_state=LiveState.LIVE
-    )
+    # Restore pipeline/controller children runs
+    Models.Run.archived.filter(
+        Q(pipeline__uuid__in=uuids) | Q(controller__uuid__in=uuids)
+    ).update(live_state=LiveState.LIVE, archived_at=None, deleted_at=None)
     runs = [r for r in queryset]
-    queryset.update(live_state=LiveState.LIVE)
+    queryset.update(live_state=LiveState.LIVE, archived_at=None, deleted_at=None)
     # For Audit
     view.set_owner()
     for run in runs:
