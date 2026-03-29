@@ -379,6 +379,41 @@ class TestProjectRunsArchiveViewV1(BaseTest):
         }
         assert auditor_record.call_count == 2
 
+    @patch("haupt.common.workers.send")
+    def test_archive_stops_pipeline_and_controller_children(self, _):
+        parent = self.objects[0]
+        pipeline_child = self.factory_class(
+            project=self.project,
+            user=self.user,
+            pipeline=parent,
+            status=V1Statuses.RUNNING,
+        )
+        controller_child = self.factory_class(
+            project=self.project,
+            user=self.user,
+            controller=parent,
+            status=V1Statuses.QUEUED,
+        )
+
+        data = {"uuids": [parent.uuid.hex]}
+        with patch("haupt.common.auditor.record"):
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+
+        parent.refresh_from_db()
+        assert parent.live_state == LiveState.ARCHIVED
+        assert parent.archived_at is not None
+
+        pipeline_child.refresh_from_db()
+        assert pipeline_child.live_state == LiveState.ARCHIVED
+        assert pipeline_child.status == V1Statuses.STOPPING
+        assert pipeline_child.archived_at is not None
+
+        controller_child.refresh_from_db()
+        assert controller_child.live_state == LiveState.ARCHIVED
+        assert controller_child.status == V1Statuses.STOPPING
+        assert controller_child.archived_at is not None
+
 
 @pytest.mark.projects_resources_mark
 class TestProjectRunsRestoreViewV1(BaseTest):
@@ -414,6 +449,39 @@ class TestProjectRunsRestoreViewV1(BaseTest):
             LiveState.ARCHIVED,
         }
         assert auditor_record.call_count == 2
+
+    @patch("haupt.common.workers.send")
+    def test_restore_includes_pipeline_and_controller_children(self, _):
+        parent = self.objects[0]
+        pipeline_child = self.factory_class(
+            project=self.project,
+            user=self.user,
+            pipeline=parent,
+            live_state=LiveState.ARCHIVED,
+        )
+        controller_child = self.factory_class(
+            project=self.project,
+            user=self.user,
+            controller=parent,
+            live_state=LiveState.ARCHIVED,
+        )
+
+        data = {"uuids": [parent.uuid.hex]}
+        with patch("haupt.common.auditor.record"):
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+
+        parent.refresh_from_db()
+        assert parent.live_state == LiveState.LIVE
+        assert parent.archived_at is None
+
+        pipeline_child.refresh_from_db()
+        assert pipeline_child.live_state == LiveState.LIVE
+        assert pipeline_child.archived_at is None
+
+        controller_child.refresh_from_db()
+        assert controller_child.live_state == LiveState.LIVE
+        assert controller_child.archived_at is None
 
 
 @pytest.mark.projects_resources_mark

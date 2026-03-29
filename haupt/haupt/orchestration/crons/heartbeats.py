@@ -93,8 +93,32 @@ class CronsHeartbeatManager:
         bulk_new_run_status(runs, condition)
 
     @staticmethod
-    def heartbeat_out_of_sync(stale_uploads_minutes: int = 120):
+    def _heartbeat_warning_runs(minutes: int):
+        last_date = get_datetime_from_now(days=0, minutes=minutes)
+        condition = V1StatusCondition.get_condition(
+            type=V1Statuses.STOPPING,
+            status="True",
+            reason="HeartbeatWarningCleanup",
+            message="Run is being stopped by heartbeat process after being in a warning state for too long.",
+        )
+        runs = Models.Run.objects.filter(
+            status__in=LifeCycle.ALL_WARNING_VALUES,
+            updated_at__lte=last_date,
+            kind__in=[
+                V1RunKind.JOB,
+                V1RunKind.SERVICE,
+                V1RunKind.TUNER,
+                V1RunKind.NOTIFIER,
+            ],
+        )
+        bulk_new_run_status(runs, condition)
+
+    @staticmethod
+    def heartbeat_out_of_sync(
+        stale_uploads_minutes: int = 120, warning_runs_minutes: int = 120
+    ):
         CronsHeartbeatManager._heartbeat_stale_uploads(stale_uploads_minutes)
+        CronsHeartbeatManager._heartbeat_warning_runs(warning_runs_minutes)
 
     @staticmethod
     def heartbeat_project_last_updated(

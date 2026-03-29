@@ -174,3 +174,52 @@ class TestHeartBeatCrons(PolyaxonBaseTest):
         assert run3.status == V1Statuses.FAILED
         assert run4.status == V1Statuses.STOPPED
         assert run5.status == V1Statuses.STOPPED
+
+    def test_heartbeat_warning_runs(self):
+        project = ProjectFactory()
+
+        # Run in WARNING status (should be stopped)
+        run1 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run1.status = V1Statuses.WARNING
+        run1.save()
+
+        # Run in UNSCHEDULABLE status (should be stopped)
+        run2 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run2.status = V1Statuses.UNSCHEDULABLE
+        run2.save()
+
+        # Run in UNKNOWN status (should be stopped)
+        run3 = RunFactory(project=project, kind=V1RunKind.SERVICE)
+        run3.status = V1Statuses.UNKNOWN
+        run3.save()
+
+        # Run in RUNNING status (should NOT be affected)
+        run4 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run4.status = V1Statuses.RUNNING
+        run4.save()
+
+        # Run in FAILED status (should NOT be affected)
+        run5 = RunFactory(project=project, kind=V1RunKind.JOB)
+        run5.status = V1Statuses.FAILED
+        run5.save()
+
+        # Run in CREATED status (should NOT be affected)
+        run6 = RunFactory(project=project, kind=V1RunKind.JOB)
+
+        # Check with minutes=0 to catch all warning runs
+        CronsHeartbeatManager.heartbeat_out_of_sync(
+            stale_uploads_minutes=999, warning_runs_minutes=0
+        )
+        run1.refresh_from_db()
+        run2.refresh_from_db()
+        run3.refresh_from_db()
+        run4.refresh_from_db()
+        run5.refresh_from_db()
+        run6.refresh_from_db()
+
+        assert run1.status == V1Statuses.STOPPING
+        assert run2.status == V1Statuses.STOPPING
+        assert run3.status == V1Statuses.STOPPING
+        assert run4.status == V1Statuses.RUNNING
+        assert run5.status == V1Statuses.FAILED
+        assert run6.status == V1Statuses.CREATED
