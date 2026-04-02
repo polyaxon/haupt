@@ -1466,6 +1466,17 @@ class SchedulingManager:
             run.confirm_delete()
 
     @staticmethod
+    def delete_in_progress_project(project_id: int):
+        # Wait until all runs are deleted to avoid CASCADE locking
+        if Models.Run.all.filter(project_id=project_id).exists():
+            return
+        try:
+            project = Models.Project.all.get(id=project_id)
+        except Models.Project.DoesNotExist:
+            return
+        project.delete()
+
+    @staticmethod
     def delete_archived_project(project_id: int):
         try:
             project = Models.Project.all.get(id=project_id)

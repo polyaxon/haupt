@@ -64,6 +64,7 @@ class TasksExecutions:
             SchedulerCeleryTasks.RUNS_WAKEUP_SCHEDULE: manager.runs_wakeup_schedule,
             SchedulerCeleryTasks.RUNS_ITERATE: manager.runs_iterate,
             SchedulerCeleryTasks.RUNS_TUNE: manager.runs_tune,
+            SchedulerCeleryTasks.DELETE_IN_PROGRESS_PROJECT: manager.delete_in_progress_project,
             SchedulerCeleryTasks.DELETE_ARCHIVED_PROJECT: manager.delete_archived_project,
             SchedulerCeleryTasks.DELETE_ARCHIVED_RUN: manager.delete_archived_run,
             CronsCeleryTasks.CRONS_HEALTH: health_task.health_task,

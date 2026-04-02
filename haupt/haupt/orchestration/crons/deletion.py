@@ -30,9 +30,15 @@ class CronsDeletionManager:
     @staticmethod
     def delete_in_progress_projects():
         last_date = get_datetime_from_now(days=conf.get(CLEANING_INTERVALS_DELETION))
-        Models.Project.all.filter(
-            live_state=LiveState.DELETION_PROGRESSING, deleted_at__lte=last_date
-        ).delete()
+        ids = Models.Project.all.filter(
+            live_state=LiveState.DELETION_PROGRESSING,
+            deleted_at__lte=last_date,
+        ).values_list("id", flat=True)
+        for project_id in ids:
+            workers.send(
+                SchedulerCeleryTasks.DELETE_IN_PROGRESS_PROJECT,
+                kwargs={"project_id": project_id},
+            )
 
     @staticmethod
     def delete_in_progress_runs():
