@@ -1,4 +1,5 @@
 import random
+from typing import List
 
 from django.db import models
 from django.utils.timezone import now
@@ -31,6 +32,7 @@ class LiveStateModel(models.Model):
         update_name: bool = False,
         set_deleted_at: bool = True,
         commit: bool = True,
+        additional_fields: List[str] = None,
     ) -> bool:
         if self.live_state == LiveState.DELETION_PROGRESSING:
             return False
@@ -45,6 +47,8 @@ class LiveStateModel(models.Model):
         if set_deleted_at:
             self.deleted_at = now()
             update_fields.append("deleted_at")
+        if additional_fields:
+            update_fields.extend(additional_fields)
         if commit:
             self.save(update_fields=update_fields)
         return True
@@ -61,7 +65,7 @@ class LiveStateModel(models.Model):
         self.save(update_fields=update_fields)
         return True
 
-    def archive(self, commit: bool = True) -> bool:
+    def archive(self, commit: bool = True, additional_fields: List[str] = None) -> bool:
         if self.live_state in {
             LiveState.ARCHIVED,
             LiveState.DELETION_PROGRESSING,
@@ -70,8 +74,11 @@ class LiveStateModel(models.Model):
 
         self.archived_at = now()
         self.live_state = LiveState.ARCHIVED
+        update_fields = ["live_state", "archived_at", "updated_at"]
+        if additional_fields:
+            update_fields.extend(additional_fields)
         if commit:
-            self.save(update_fields=["live_state", "archived_at", "updated_at"])
+            self.save(update_fields=update_fields)
         return True
 
     def restore(self) -> bool:
