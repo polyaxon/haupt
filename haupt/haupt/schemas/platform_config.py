@@ -244,7 +244,7 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_THROTTLE_RATES_IMPERSONATE", default=500
     )
     rest_throttle_rates_auth: Optional[int] = Field(
-        alias="POLYAXON_THROTTLE_RATES_AUTH", default=60
+        alias="POLYAXON_THROTTLE_RATES_AUTH", default=20
     )
     rest_throttle_rates_user: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_USER", default=240
@@ -253,10 +253,10 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_THROTTLE_RATES_AGENT", default=500
     )
     rest_throttle_rates_run_status: Optional[int] = Field(
-        alias="POLYAXON_THROTTLE_RATES_RUN_STATUS", default=1000
+        alias="POLYAXON_THROTTLE_RATES_RUN_STATUS", default=120
     )
     rest_throttle_rates_run_lineage: Optional[int] = Field(
-        alias="POLYAXON_THROTTLE_RATES_RUN_LINEAGE", default=1000
+        alias="POLYAXON_THROTTLE_RATES_RUN_LINEAGE", default=120
     )
     rest_throttle_rates_run: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_RUN", default=15
