@@ -115,7 +115,7 @@ class CronsHeartbeatManager:
 
     @staticmethod
     def heartbeat_out_of_sync(
-        stale_uploads_minutes: int = 120, warning_runs_minutes: int = 120
+        stale_uploads_minutes: int = 120, warning_runs_minutes: int = 1440
     ):
         CronsHeartbeatManager._heartbeat_stale_uploads(stale_uploads_minutes)
         CronsHeartbeatManager._heartbeat_warning_runs(warning_runs_minutes)
