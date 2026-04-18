@@ -113,7 +113,6 @@ class APIHandler:
             SchedulerCeleryTasks.RUNS_NOTIFY_DONE,
             kwargs={"run_id": event.instance_id},
             eager_kwargs={"run": event.instance},
-            countdown=2,
         )
 
     @classmethod

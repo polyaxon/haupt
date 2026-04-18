@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from haupt.common.options.registry import core, scheduler
+from haupt.common.options.registry import core
 
 
 class TestOptions(TestCase):
@@ -21,10 +21,3 @@ class TestOptions(TestCase):
         assert core.UiDefaultStreamsUrl.get_namespace() is None
         assert core.UiSingleUrl.get_key_subject() == "UI_SINGLE_URL"
         assert core.UiSingleUrl.get_namespace() is None
-
-    def test_options_scheduler(self):
-        assert scheduler.SchedulerCountdown.get_namespace() is None
-        assert (
-            scheduler.SchedulerCountdown.get_key_subject()
-            == "SCHEDULER_GLOBAL_COUNTDOWN"
-        )

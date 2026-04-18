@@ -7,7 +7,6 @@ from haupt.common.options.registry import (
     core,
     installation,
     k8s,
-    scheduler,
     stats,
 )
 
@@ -31,9 +30,6 @@ class TestConfSubscriptions(TestCase):
 
     def test_k8s_subscriptions(self):
         self._assert_options_subscriptions(k8s.OPTIONS)
-
-    def test_scheduler_subscriptions(self):
-        self._assert_options_subscriptions(scheduler.OPTIONS)
 
     def test_containers_subscriptions(self):
         self._assert_options_subscriptions(containers.OPTIONS)

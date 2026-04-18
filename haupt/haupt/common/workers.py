@@ -36,6 +36,3 @@ def send(
     return transaction.on_commit(
         lambda: app.send_task(task_name, kwargs=kwargs, **options)
     )
-    # if "countdown" not in options:
-    #     options["countdown"] = conf.get(SCHEDULER_GLOBAL_COUNTDOWN)
-    # return app.send_task(task_name, kwargs=kwargs, **options)
