@@ -1,7 +1,7 @@
 FROM polyaxon/polyaxon-base
 
 # This dockerfile is intended for dev only purposes
-LABEL maintainer="Polyaxon, Inc. <contact@polyaxon.com>"
+LABEL maintainer="Polyaxon authors <contact@polyaxon.com>"
 ENV POLYAXON_ENVIRONMENT=local
 ENV POLYAXON_SERVICE=monolith
 
