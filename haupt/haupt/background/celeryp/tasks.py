@@ -26,6 +26,7 @@ class SchedulerCeleryTasks:
     DELETE_ARCHIVED_PROJECT = "delete_archived_project"
     DELETE_ARCHIVED_RUN = "delete_archived_run"
     STATS_CALCULATION_PROJECT = "stats_calculation_project"
+    CLEAN_STATS_PROJECT = "clean_stats_project"
 
 
 class CronsCeleryTasks:
@@ -42,6 +43,7 @@ class CronsCeleryTasks:
     DELETE_IN_PROGRESS_RUNS = "delete_in_progress_runs"
 
     STATS_CALCULATION_PROJECTS = "stats_calculation_projects"
+    CLEAN_STATS_PROJECTS = "clean_stats_projects"
 
     HEARTBEAT_RUNS = "heartbeat_runs"
     HEARTBEAT_OUT_OF_SYNC_SCHEDULES = "heartbeat_out_of_sync_schedules"

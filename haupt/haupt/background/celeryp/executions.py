@@ -48,6 +48,7 @@ class TasksExecutions:
 
         cls._MAPPING = {
             SchedulerCeleryTasks.STATS_CALCULATION_PROJECT: manager.stats_calculation_project,
+            SchedulerCeleryTasks.CLEAN_STATS_PROJECT: manager.clean_stats_project,
             SchedulerCeleryTasks.SCHEDULER_HEALTH: health_task.health_task,
             SchedulerCeleryTasks.RUNS_PREPARE: manager.runs_prepare,
             SchedulerCeleryTasks.RUNS_HOOKS: manager.runs_hooks,
@@ -68,6 +69,7 @@ class TasksExecutions:
             SchedulerCeleryTasks.DELETE_ARCHIVED_PROJECT: manager.delete_archived_project,
             SchedulerCeleryTasks.DELETE_ARCHIVED_RUN: manager.delete_archived_run,
             CronsCeleryTasks.CRONS_HEALTH: health_task.health_task,
+            CronsCeleryTasks.CLEAN_STATS_PROJECTS: manager.clean_stats_projects,
             CronsCeleryTasks.DELETE_ARCHIVED_PROJECTS: manager.delete_archived_projects,
             CronsCeleryTasks.DELETE_IN_PROGRESS_PROJECTS: manager.delete_in_progress_projects,
             CronsCeleryTasks.DELETE_ARCHIVED_RUNS: manager.delete_archived_runs,

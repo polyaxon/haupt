@@ -150,6 +150,9 @@ class PlatformConfig(BaseSchemaModel):
     cron_intervals_clean_notifications: Optional[int] = Field(
         alias="POLYAXON_CRON_INTERVALS_CLEAN_NOTIFICATIONS", default=60
     )
+    cron_intervals_clean_stats: Optional[int] = Field(
+        alias="POLYAXON_CRON_INTERVALS_CLEAN_STATS", default=240
+    )
     cron_intervals_delete_archived: Optional[int] = Field(
         alias="POLYAXON_CRON_INTERVALS_DELETE_ARCHIVED", default=60
     )

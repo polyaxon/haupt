@@ -18,6 +18,7 @@ from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.db.defs import Models
 from haupt.db.managers import flows
 from haupt.db.managers.artifacts import atomic_set_artifacts
+from haupt.db.managers.cleaning import compact_owner_stats
 from haupt.db.managers.live_state import (
     delete_in_progress_project,
     delete_in_progress_run,
@@ -1486,13 +1487,26 @@ class SchedulingManager:
         delete_in_progress_project(project)
 
     @staticmethod
-    def delete_archived_run(run_id):
+    def delete_archived_run(run_id: int):
         try:
             run = Models.Run.all.get(id=run_id)
         except Models.Run.DoesNotExist:
             return
 
         delete_in_progress_run(run)
+
+    @staticmethod
+    def clean_stats_project(project_id: int):
+        try:
+            project = Models.Project.all.only("id", "latest_stats_id").get(id=project_id)
+        except Models.Project.DoesNotExist:
+            return
+        compact_owner_stats(
+            stats_model=Models.ProjectStats,
+            obj_fk="project",
+            obj_id=project_id,
+            pinned_id=project.latest_stats_id,
+        )
 
     @staticmethod
     def stats_calculation_project(project_id: int):
