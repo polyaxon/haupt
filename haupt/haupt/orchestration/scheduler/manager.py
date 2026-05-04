@@ -1463,7 +1463,10 @@ class SchedulingManager:
         if not run:
             return
 
-        if Models.Run.all.filter(pipeline_id=run_id).count() == 0:
+        if not Models.Run.all.filter(
+            Q(pipeline_id=run_id) | Q(controller_id=run_id),
+            deleted_at__isnull=True,
+        ).exists():
             run.confirm_delete()
 
     @staticmethod

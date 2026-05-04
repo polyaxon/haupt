@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+
 
 from django.conf import settings
 from django.db.models import Count, Q
@@ -212,6 +213,18 @@ def get_failed_stopped_and_all_runs(run_id: int, controller: bool = False):
             distinct=True,
         ),
     )
+
+
+def collect_pipeline_controller_ids(
+    values: Iterable[Tuple[Optional[int], Optional[int]]],
+) -> Set[int]:
+    ids = set()
+    for pipeline_id, controller_id in values:
+        if pipeline_id:
+            ids.add(pipeline_id)
+        if controller_id:
+            ids.add(controller_id)
+    return ids
 
 
 def get_stopping_pipelines_with_no_runs(queryset):

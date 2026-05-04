@@ -11,6 +11,7 @@ from haupt.common.options.registry.cleaning import (
 )
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import confirm_delete_runs
+from haupt.db.managers.runs import collect_pipeline_controller_ids
 from polyaxon.schemas import LifeCycle, LiveState, V1RunKind, V1Statuses
 
 
@@ -75,7 +76,19 @@ class CronsDeletionManager:
                 agent__isnull=True,
                 deleted_at__isnull=True,
             )
-            confirm_delete_runs(runs=runs)
+            run_values = list(
+                runs.values_list("id", "pipeline_id", "controller_id")
+            )
+            run_ids = [v[0] for v in run_values]
+            confirm_delete_runs(runs=runs, run_ids=run_ids)
+            parent_ids = collect_pipeline_controller_ids(
+                (v[1], v[2]) for v in run_values
+            )
+            for parent_id in parent_ids:
+                workers.send(
+                    SchedulerCeleryTasks.RUNS_CHECK_ORPHAN_PIPELINE,
+                    kwargs={"run_id": parent_id},
+                )
 
         last_date = get_datetime_from_now(days=1)
         Models.Run.all.filter(

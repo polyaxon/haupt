@@ -10,6 +10,7 @@ from haupt.common import workers
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import confirm_delete_runs
 from haupt.db.managers.queues import get_num_to_start
+from haupt.db.managers.runs import collect_pipeline_controller_ids
 from haupt.db.managers.statuses import bulk_new_run_status
 from haupt.db.queries.runs import STATUS_UPDATE_COLUMNS_ONLY
 from polyaxon import _operations, settings
@@ -137,7 +138,7 @@ def get_deleting_runs(
             - timedelta(seconds=dj_settings.MIN_ARTIFACTS_DELETION_TIMEDELTA),
         )
         .prefetch_related("project")
-        .values_list("uuid", "id", "pipeline_id")[:MAX_DELETE_ITEMS]
+        .values_list("uuid", "id", "pipeline_id", "controller_id")[:MAX_DELETE_ITEMS]
     )
     if deleting_runs:
         run_ids = [v[1] for v in deleting_runs]
@@ -145,11 +146,13 @@ def get_deleting_runs(
             runs=Models.Run.all.filter(id__in=run_ids),
             run_ids=run_ids,
         )
-        pipeline_ids = {v[2] for v in deleting_runs if v[2]}
-        for pipeline_id in pipeline_ids:
+        parent_ids = collect_pipeline_controller_ids(
+            (v[2], v[3]) for v in deleting_runs
+        )
+        for parent_id in parent_ids:
             workers.send(
                 SchedulerCeleryTasks.RUNS_CHECK_ORPHAN_PIPELINE,
-                kwargs={"run_id": pipeline_id},
+                kwargs={"run_id": parent_id},
             )
     paths = [run[0].hex for run in deleting_runs]
     if paths:
