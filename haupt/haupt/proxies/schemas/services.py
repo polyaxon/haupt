@@ -10,6 +10,7 @@ from polyaxon.api import (
     REWRITE_EXTERNAL_V1_LOCATION,
     REWRITE_MONITORS_V1_LOCATION,
     REWRITE_SERVICES_V1_LOCATION,
+    SANDBOX_V1_LOCATION,
     SERVICES_V1_LOCATION,
 )
 
@@ -220,8 +221,47 @@ def get_service_monitors_location_config(
     )
 
 
+SANDBOX_OPTIONS = r"""
+location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.+) {{
+    {cors}
+    auth_request     {auth_request};
+    auth_request_set $auth_status $upstream_status;
+    auth_request_set $sandbox_token $upstream_http_sandbox_token;
+    {resolver}
+    rewrite_log on;
+    rewrite ^{app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.+) /$5 break;
+    proxy_pass http://plx-operation-$4.$1.svc.{dns_custom_cluster}:9090;
+    proxy_http_version 1.1;
+    proxy_redirect     off;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Polyaxon-Sandbox-Token $sandbox_token;
+    proxy_set_header Authorization "";
+    proxy_set_header Cookie "";
+    proxy_buffering off;
+}}
+"""  # noqa
+
+
+def get_sandbox_location_config(resolver: str, cors: str):
+    return get_config(
+        options=SANDBOX_OPTIONS,
+        app=SANDBOX_V1_LOCATION,
+        auth_request=AUTH_REQUEST_V1_LOCATION,
+        resolver=resolver,
+        cors=cors,
+        dns_custom_cluster=settings.PROXIES_CONFIG.dns_custom_cluster,
+    )
+
+
 def get_services_definitions(resolver: str, cors: str, auth: str):
     return [
+        get_sandbox_location_config(resolver=resolver, cors=cors),
         get_services_location_config(
             resolver=resolver,
             cors=cors,

@@ -9,8 +9,9 @@
 
 # Haupt
 
-A service that provides:
- *Lineage metadata API
+A Polyaxon service that provides:
+
+ * Lineage metadata API
  * artifacts/metrics/series streams
  * sandbox, interactive sessions, ssh, tmux
  * API for local viewer

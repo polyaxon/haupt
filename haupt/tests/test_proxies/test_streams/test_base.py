@@ -221,6 +221,29 @@ location /k8s/ {
 }
 
 
+location ~ /sandbox/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.+) {
+    auth_request     /auth-request/v1/;
+    auth_request_set $auth_status $upstream_status;
+    auth_request_set $sandbox_token $upstream_http_sandbox_token;
+    rewrite_log on;
+    rewrite ^/sandbox/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.+) /$5 break;
+    proxy_pass http://plx-operation-$4.$1.svc.cluster.local:9090;
+    proxy_http_version 1.1;
+    proxy_redirect     off;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Polyaxon-Sandbox-Token $sandbox_token;
+    proxy_set_header Authorization "";
+    proxy_set_header Cookie "";
+    proxy_buffering off;
+}
+
+
 location ~ /services/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {
     proxy_pass http://plx-operation-$4.$1.svc.cluster.local:$5;
     proxy_http_version 1.1;
@@ -540,6 +563,30 @@ location /k8s/ {
     proxy_set_header Origin "";
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+}
+
+
+location ~ /sandbox/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.+) {
+    auth_request     /auth-request/v1/;
+    auth_request_set $auth_status $upstream_status;
+    auth_request_set $sandbox_token $upstream_http_sandbox_token;
+    resolver coredns.kube-system.svc.cluster.local valid=5s;
+    rewrite_log on;
+    rewrite ^/sandbox/v1/([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/(.+) /$5 break;
+    proxy_pass http://plx-operation-$4.$1.svc.cluster.local:9090;
+    proxy_http_version 1.1;
+    proxy_redirect     off;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
+    proxy_set_header Origin "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Polyaxon-Sandbox-Token $sandbox_token;
+    proxy_set_header Authorization "";
+    proxy_set_header Cookie "";
     proxy_buffering off;
 }
 
