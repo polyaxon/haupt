@@ -9,4 +9,10 @@
 
 # Haupt
 
-Lineage metadata API, artifacts streams, sandbox, API, and spaces for Polyaxon
+A service that provides:
+ *Lineage metadata API
+ * artifacts/metrics/series streams
+ * sandbox, interactive sessions, ssh, tmux
+ * API for local viewer
+ * Spaces and notebook services
+
