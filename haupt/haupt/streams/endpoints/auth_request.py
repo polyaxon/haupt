@@ -41,7 +41,7 @@ def _get_auth_cache_path(request_cache: str) -> str:
     return auth_cache_path
 
 
-async def _check_auth_cache(request_cache: str) -> bool:
+async def _check_auth_cache(request_cache: str) -> Optional[bool]:
     cache_path = _get_auth_cache_path(request_cache)
     if os.path.isfile(cache_path):
         try:
@@ -53,10 +53,10 @@ async def _check_auth_cache(request_cache: str) -> bool:
                     timezone=settings.CLIENT_CONFIG.timezone,
                     force_tz=True,
                 )
-                interval = 60 if last_value["response"] else 30
+                interval = 60 if last_value["response"] else 5
 
             if (now() - last_time).seconds < interval:
-                return True
+                return last_value["response"]
 
             os.remove(cache_path)
         except Exception as e:
@@ -64,7 +64,7 @@ async def _check_auth_cache(request_cache: str) -> bool:
                 "An error was raised while deleting some auth cache request %s" % e
             )
 
-    return False
+    return None
 
 
 async def _persist_auth_cache(request_cache: str, response: bool):
@@ -117,7 +117,9 @@ async def auth_request(
 
     # Check cache
     cached = await _check_auth_cache(request_cache=request_cache)
-    if cached:
+    if cached is False:
+        return HttpResponse(content="Auth request failed (cached)", status=403)
+    if cached is True:
         return HttpResponse(status=status.HTTP_200_OK)
 
     if dj_settings.POLYAXON_SERVICE == "streams":
