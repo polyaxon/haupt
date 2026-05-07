@@ -11,6 +11,8 @@ from polyaxon.api import K8S_V1_LOCATION
 
 
 def _check_exec(namespace: str, uri_path: List[str], query_params: str):
+    if len(uri_path) != 2:
+        raise ValueError("A valid k8s exec path is required")
     pod, container = uri_path
     query_params += "&container={}".format(container)
     path = "api/v1/namespaces/{namespace}/pods/{pod}/exec".format(
@@ -27,7 +29,9 @@ VALIDATION_PATHS = {
 
 def k8s_check(uri: str) -> Tuple[str, str]:
     parsed_uri = urlparse(uri)
-    uri_path = parsed_uri.path.split(K8S_V1_LOCATION)[-1].split("/")
+    if not parsed_uri.path.startswith(K8S_V1_LOCATION):
+        raise ValueError("A valid k8s path param is required")
+    uri_path = parsed_uri.path[len(K8S_V1_LOCATION) :].split("/")
     path_to_check = None
     for vpath in VALIDATION_PATHS:
         if vpath in uri_path:
