@@ -2,6 +2,7 @@ import logging
 import os
 
 from typing import Dict, Optional
+from urllib.parse import urlparse
 
 from clipped.utils.dates import DateTimeFormatter
 from clipped.utils.hashing import hash_value
@@ -26,11 +27,25 @@ from haupt.common.headers import (
     get_original_uri_header,
 )
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
+from haupt.streams.controllers.sandbox_check import sandbox_check, reverse_sandbox
 from polyaxon import settings
 from polyaxon._env_vars.keys import ENV_KEYS_PROXY_LOCAL_PORT
-from polyaxon.api import AUTH_V1_LOCATION
+from polyaxon.api import AUTH_V1_LOCATION, K8S_V1_LOCATION, SANDBOX_V1_LOCATION
 
 logger = logging.getLogger("haupt.streams.auth")
+
+URI_FAMILY_K8S = "k8s"
+URI_FAMILY_SANDBOX = "sandbox"
+URI_FAMILY_OTHER = "other"
+
+
+def _get_uri_family(uri: str) -> str:
+    path = urlparse(uri).path
+    if path.startswith(SANDBOX_V1_LOCATION):
+        return URI_FAMILY_SANDBOX
+    if path.startswith(K8S_V1_LOCATION):
+        return URI_FAMILY_K8S
+    return URI_FAMILY_OTHER
 
 
 def _get_auth_cache_path(request_cache: str) -> str:
@@ -109,20 +124,28 @@ async def auth_request(
         request_cache = hash_value(
             value={uri.split("?")[0], method, auth}, hash_length=64
         )
+        uri_family = _get_uri_family(uri)
     except Exception as exc:
         return HttpResponse(
             content="Auth request failed extracting headers: %s" % exc,
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Check cache
+    sandbox_run_uuid = None
+    if uri_family == URI_FAMILY_SANDBOX:
+        try:
+            sandbox_run_uuid = sandbox_check(uri)
+        except ValueError:
+            return HttpResponse(
+                content="A valid sandbox path param is required",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     cached = await _check_auth_cache(request_cache=request_cache)
     if cached is False:
         return HttpResponse(content="Auth request failed (cached)", status=403)
-    if cached is True:
-        return HttpResponse(status=status.HTTP_200_OK)
 
-    if dj_settings.POLYAXON_SERVICE == "streams":
+    if cached is None and dj_settings.POLYAXON_SERVICE == "streams":
         # Contact auth service
         response = await _check_auth_service(headers=request.headers)
         if response.status != 200:
@@ -131,12 +154,19 @@ async def auth_request(
                 content="Auth request failed",
                 status=status.HTTP_403_FORBIDDEN,
             )
-    try:
-        path, params = k8s_check(uri)
-    except ValueError:
         await _persist_auth_cache(request_cache=request_cache, response=True)
-        return HttpResponse(status=status.HTTP_200_OK)
-    return await reverse_k8s(path="{}?{}".format(path, params))
+
+    if uri_family == URI_FAMILY_SANDBOX:
+        return reverse_sandbox(run_uuid=sandbox_run_uuid)
+
+    if uri_family == URI_FAMILY_K8S:
+        try:
+            _path, params = k8s_check(uri)
+            return await reverse_k8s(path="{}?{}".format(_path, params))
+        except ValueError:
+            pass
+
+    return HttpResponse(status=status.HTTP_200_OK)
 
 
 URLS_RUNS_AUTH_REQUEST = ""
