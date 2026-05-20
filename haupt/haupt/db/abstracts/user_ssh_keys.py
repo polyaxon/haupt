@@ -8,8 +8,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from haupt.db.abstracts.diff import DiffModel
-from haupt.db.abstracts.uid import UuidModel
+from haupt.db.abstracts.catalogs import BaseCatalog
+from haupt.db.managers.tags import denormalize_tags
 
 
 ALLOWED_PUBLIC_KEY_TYPES = {"ssh-ed25519"}
@@ -92,10 +92,21 @@ def _format_public_key(key_type: str, key_body: str, comment: str) -> str:
 
 
 class UserSshKeyManager(models.Manager):
-    def register(self, user, public_key: str, name: Optional[str] = None):
-        name = name or None
+    def register(
+        self,
+        user,
+        public_key: str,
+        name: str,
+        description: Optional[str] = None,
+        tags=None,
+    ):
+        """Register a key. Returns (key, created)."""
+        if not name:
+            raise ValueError("SSH key name is required.")
+        user_id = user.id if user else None
         key_type, key_body, comment = normalize_public_key(public_key)
         fingerprint = fingerprint_public_key_body(key_body)
+        tags = denormalize_tags(tags)
         normalized_public_key = _format_public_key(
             key_type=key_type,
             key_body=key_body,
@@ -103,27 +114,40 @@ class UserSshKeyManager(models.Manager):
         )
         existing = self.filter(fingerprint=fingerprint).first()
         if existing:
-            if existing.user_id != user.id:
+            if existing.user_id != user_id:
                 raise UserSshKeyConflict(
                     "SSH public key is already registered to another user."
                 )
             if existing.revoked_at is None:
-                return existing
+                return existing, False
             existing.revoked_at = None
             existing.public_key = normalized_public_key
-            if name:
-                existing.name = name
+            existing.name = name
+            existing.description = description
+            existing.tags = tags
             existing.save(
-                update_fields=["revoked_at", "public_key", "name", "updated_at"]
+                update_fields=[
+                    "revoked_at",
+                    "public_key",
+                    "name",
+                    "description",
+                    "tags",
+                    "updated_at",
+                ]
             )
-            return existing
+            return existing, False
 
-        return self.create(
-            user=user,
-            name=name,
-            key_type=key_type,
-            public_key=normalized_public_key,
-            fingerprint=fingerprint,
+        return (
+            self.create(
+                user=user,
+                name=name,
+                description=description,
+                tags=tags,
+                key_type=key_type,
+                public_key=normalized_public_key,
+                fingerprint=fingerprint,
+            ),
+            True,
         )
 
     def revoke(self, user, key_uuid) -> None:
@@ -141,7 +165,7 @@ class UserSshKeyManager(models.Manager):
         key.save(update_fields=["last_used_at", "updated_at"])
 
 
-class BaseUserSshKey(UuidModel, DiffModel):
+class BaseUserSshKey(BaseCatalog):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -149,7 +173,6 @@ class BaseUserSshKey(UuidModel, DiffModel):
         null=True,
         blank=True,
     )
-    name = models.CharField(max_length=128, blank=True, null=True, default=None)
     key_type = models.CharField(max_length=32)
     public_key = models.TextField()
     fingerprint = models.CharField(max_length=64, unique=True, db_index=True)
@@ -158,7 +181,7 @@ class BaseUserSshKey(UuidModel, DiffModel):
 
     objects = UserSshKeyManager()
 
-    class Meta:
+    class Meta(BaseCatalog.Meta):
         abstract = True
         app_label = "db"
         db_table = "db_usersshkey"
