@@ -10,7 +10,6 @@ from haupt.db.abstracts.user_ssh_keys import (
     normalize_public_key,
 )
 from haupt.db.factories.users import UserFactory
-from haupt.db.managers.tags import normalize_tags
 from haupt.db.models.user_ssh_keys import UserSshKey
 
 
@@ -96,20 +95,11 @@ class TestUserSshKeyManager(TestCase):
         super().setUp()
         self.user = UserFactory()
 
-    def register(
-        self,
-        user=None,
-        public_key=PUBLIC_KEY,
-        name="laptop",
-        description=None,
-        tags=None,
-    ):
+    def register(self, user=None, public_key=PUBLIC_KEY, name=None):
         key, _ = UserSshKey.objects.register(
             user=self.user if user is None else user,
             public_key=public_key,
             name=name,
-            description=description,
-            tags=tags,
         )
         return key
 
@@ -118,40 +108,32 @@ class TestUserSshKeyManager(TestCase):
             user=self.user,
             public_key=PUBLIC_KEY,
             name="macbook-pro",
-            description="Work laptop",
-            tags=["work", "laptop"],
         )
 
         assert created is True
         assert key.user == self.user
         assert key.uuid
         assert key.name == "macbook-pro"
-        assert key.description == "Work laptop"
-        assert normalize_tags(key.tags) == ["work", "laptop"]
         assert key.key_type == "ssh-ed25519"
         assert key.public_key == PUBLIC_KEY
         assert key.fingerprint == PUBLIC_KEY_FINGERPRINT
         assert key.revoked_at is None
         assert key.last_used_at is None
 
-    def test_register_requires_name(self):
-        with self.assertRaises(ValueError):
-            UserSshKey.objects.register(
-                user=self.user, public_key=PUBLIC_KEY, name=""
-            )
+    def test_register_without_name_uses_null_name(self):
+        key, created = UserSshKey.objects.register(
+            user=self.user, public_key=PUBLIC_KEY, name=""
+        )
+
+        assert created is True
+        assert key.name is None
 
     def test_register_existing_active_key_for_same_user_is_idempotent(self):
-        key = self.register(
-            name="laptop",
-            description="Original",
-            tags=["original"],
-        )
+        key = self.register(name="laptop")
         same_key, created = UserSshKey.objects.register(
             user=self.user,
             public_key=PUBLIC_KEY,
             name="new-name",
-            description="Changed",
-            tags=["changed"],
         )
 
         assert created is False
@@ -159,8 +141,6 @@ class TestUserSshKeyManager(TestCase):
         assert UserSshKey.objects.count() == 1
         key.refresh_from_db()
         assert key.name == "laptop"
-        assert key.description == "Original"
-        assert normalize_tags(key.tags) == ["original"]
         assert key.last_used_at is None
 
     def test_register_existing_key_for_another_user_raises_conflict(self):
@@ -217,8 +197,6 @@ class TestUserSshKeyManager(TestCase):
             user=self.user,
             public_key=PUBLIC_KEY_NO_COMMENT,
             name="restored",
-            description="Restored laptop",
-            tags=["restored"],
         )
 
         assert created is False
@@ -227,8 +205,6 @@ class TestUserSshKeyManager(TestCase):
         same_key.refresh_from_db()
         assert same_key.revoked_at is None
         assert same_key.name == "restored"
-        assert same_key.description == "Restored laptop"
-        assert normalize_tags(same_key.tags) == ["restored"]
         assert same_key.public_key == PUBLIC_KEY_NO_COMMENT
 
     def test_lookup_by_fingerprint_returns_only_active_keys(self):
