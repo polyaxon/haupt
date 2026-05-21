@@ -67,9 +67,5 @@ class _Models:
     def Bookmark(self) -> Type[models.Model]:
         return self.get_db_model("Bookmark")
 
-    @cached_property
-    def UserSshKey(self) -> Type[models.Model]:
-        return self.get_db_model("UserSshKey")
-
 
 Models = _Models()

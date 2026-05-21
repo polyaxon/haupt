@@ -32,9 +32,6 @@ URLS_RUNS_STATUSES = r"^{}/{}/runs/{}/statuses/?$".format(
 URLS_RUNS_NAMESPACE = r"^{}/{}/runs/{}/namespace/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
 )
-URLS_RUNS_SSH_ACCESS_VALIDATE = r"^{}/{}/runs/{}/ssh/access/validate/?$".format(
-    OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
-)
 URLS_RUNS_ARTIFACTS_LINEAGE_LIST_V0 = r"^{}/{}/runs/{}/artifacts_lineage/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
 )

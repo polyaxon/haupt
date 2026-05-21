@@ -15,7 +15,6 @@ api_patterns = [
     re_path(
         r"", include(("haupt.apis.versions.urls", "versions"), namespace="versions")
     ),
-    re_path(r"", include(("haupt.apis.users.urls", "users"), namespace="users")),
     re_path(r"", include(("haupt.apis.agents.urls", "agents"), namespace="agents")),
     re_path(
         r"",

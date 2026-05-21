@@ -7,11 +7,6 @@ from django.http import Http404
 from haupt.apis.bookmarks.views import BookmarkCreateView, BookmarkDeleteView
 from haupt.apis.endpoints.run import RunEndpoint
 from haupt.apis.methods import runs as methods
-from haupt.apis.methods.run_ssh import (
-    build_ssh_access_validation_response,
-    validate_ssh_access_base,
-)
-from haupt.apis.serializers.run_ssh import RunSshAccessValidateSerializer
 from haupt.apis.serializers.runs import (
     RunDetailSerializer,
     RunSerializer,
@@ -346,31 +341,3 @@ class RunStatsView(RunEndpoint, RetrieveEndpoint, StatsMixin):
             groupby=self.request.query_params.get("groupby"),
             trunc=self.request.query_params.get("trunc"),
         )
-
-
-class RunSshAccessValidateView(RunEndpoint, PostEndpoint):
-    serializer_class = RunSshAccessValidateSerializer
-    queryset = Models.Run.restorable.select_related("project")
-    ALLOWED_METHODS = ["POST"]
-    ALLOWED_SERVICES = [PolyaxonServices.AGENT]
-    CHECK_SERVICE = True
-    throttle_scope = "agent"
-
-    @staticmethod
-    def validate_ssh_access(run, serializer):
-        return validate_ssh_access_base(
-            run=run,
-            fingerprint=serializer.validated_data["fingerprint"],
-        )
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        run = self.get_object()
-        key = self.validate_ssh_access(run=run, serializer=serializer)
-        if key.user_id is not None:
-            raise Http404
-
-        Models.UserSshKey.objects.touch_last_used(key)
-        return Response(build_ssh_access_validation_response(key=key))
