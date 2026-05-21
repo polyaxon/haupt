@@ -144,8 +144,11 @@ class UserSshKeyManager(models.Manager):
             key.revoked_at = timezone.now()
             key.save(update_fields=["revoked_at", "updated_at"])
 
-    def lookup_by_fingerprint(self, fingerprint: str):
-        return self.filter(fingerprint=fingerprint, revoked_at__isnull=True).first()
+    def lookup_by_fingerprint(self, fingerprint: str, query_user: bool = False):
+        query = self.filter(fingerprint=fingerprint, revoked_at__isnull=True)
+        if query_user:
+            query = query.select_related("user")
+        return query.first()
 
     def touch_last_used(self, key) -> None:
         key.last_used_at = timezone.now()

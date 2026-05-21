@@ -15,6 +15,10 @@ runs_urlpatterns = [
     re_path(runs.URLS_RUNS_APPROVE, views.RunApproveView.as_view()),
     re_path(runs.URLS_RUNS_STATUSES, views.RunStatusListView.as_view()),
     re_path(runs.URLS_RUNS_NAMESPACE, views.RunNamespaceView.as_view()),
+    re_path(
+        runs.URLS_RUNS_SSH_ACCESS_VALIDATE,
+        views.RunSshAccessValidateView.as_view(),
+    ),
     re_path(runs.URLS_RUNS_TRANSFER, views.RunTransferView.as_view()),
     re_path(runs.URLS_RUNS_INVALIDATE, views.RunInvalidateView.as_view()),
     re_path(runs.URLS_RUNS_ARCHIVE, views.RunArchiveView.as_view()),
