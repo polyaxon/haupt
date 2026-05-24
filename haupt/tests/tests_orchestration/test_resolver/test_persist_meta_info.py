@@ -9,6 +9,7 @@ from polyaxon._constants.metadata import (
     META_IS_EXTERNAL,
     META_PORTS,
     META_REWRITE_PATH,
+    META_SSH,
     META_TMUX,
     META_TTL,
 )
@@ -202,7 +203,25 @@ class TestPersistMetaInfo(TestCase):
         SchedulingResolver._persist_meta_info(self._make_resolver(run, op))
         assert META_TMUX not in run.meta_info
 
-    def test_no_plugins_skips_tmux(self):
+    def test_plugins_ssh_sets_meta(self):
+        run = self._make_run(kind=V1RunKind.SERVICE)
+        op = V1CompiledOperation.model_construct(
+            run=V1Service.model_construct(kind=V1RunKind.SERVICE),
+            plugins=V1Plugins.model_construct(ssh=True),
+        )
+        SchedulingResolver._persist_meta_info(self._make_resolver(run, op))
+        assert run.meta_info[META_SSH] is True
+
+    def test_plugins_ssh_false_skips_meta(self):
+        run = self._make_run(kind=V1RunKind.SERVICE)
+        op = V1CompiledOperation.model_construct(
+            run=V1Service.model_construct(kind=V1RunKind.SERVICE),
+            plugins=V1Plugins.model_construct(ssh=False),
+        )
+        SchedulingResolver._persist_meta_info(self._make_resolver(run, op))
+        assert META_SSH not in run.meta_info
+
+    def test_no_plugins_skips_plugin_meta(self):
         run = self._make_run(kind=V1RunKind.JOB)
         op = V1CompiledOperation.model_construct(
             run=V1Job.model_construct(kind=V1RunKind.JOB),
@@ -210,6 +229,7 @@ class TestPersistMetaInfo(TestCase):
         )
         SchedulingResolver._persist_meta_info(self._make_resolver(run, op))
         assert META_TMUX not in run.meta_info
+        assert META_SSH not in run.meta_info
 
     def test_all_flags_combined(self):
         run = self._make_run(kind=V1RunKind.MATRIX)

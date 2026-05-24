@@ -46,6 +46,7 @@ from polyaxon._constants.metadata import (
     META_IS_EXTERNAL,
     META_PORTS,
     META_REWRITE_PATH,
+    META_SSH,
     META_TMUX,
     META_TTL,
     META_UPLOAD_ARTIFACTS,
@@ -690,6 +691,9 @@ class SchedulingResolver(resolver.BaseResolver):
         # handle tmux plugin
         if self.compiled_operation.plugins and self.compiled_operation.plugins.tmux:
             self.run.meta_info[META_TMUX] = True
+        # handle ssh plugin
+        if self.compiled_operation.plugins and self.compiled_operation.plugins.ssh:
+            self.run.meta_info[META_SSH] = True
 
     def _persist_resources(self):
         if self.compiled_operation.has_pipeline:
