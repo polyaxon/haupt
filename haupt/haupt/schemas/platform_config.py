@@ -171,6 +171,9 @@ class PlatformConfig(BaseSchemaModel):
     cleaning_intervals_deletion: Optional[int] = Field(
         alias="POLYAXON_CLEANING_INTERVALS_DELETION", default=15
     )
+    cleaning_intervals_warning_runs: Optional[int] = Field(
+        alias="POLYAXON_CLEANING_INTERVALS_WARNING_RUNS", default=3
+    )
     cleaning_intervals_out_of_sync: Optional[int] = Field(
         alias="POLYAXON_CLEANING_INTERVALS_OUT_OF_SYNC", default=120
     )

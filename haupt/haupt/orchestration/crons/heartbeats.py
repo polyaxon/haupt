@@ -1,9 +1,14 @@
+from typing import Optional
+
 from clipped.utils.tz import get_datetime_from_now
 
 from django.db.models import Count, Q
 
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
-from haupt.common import workers
+from haupt.common import conf, workers
+from haupt.common.options.registry.cleaning import (
+    CLEANING_INTERVALS_WARNING_RUNS,
+)
 from haupt.db.defs import Models
 from haupt.db.managers.projects import update_project_based_on_last_updated_entities
 from haupt.db.managers.runs import get_stopping_pipelines_with_no_runs
@@ -93,8 +98,8 @@ class CronsHeartbeatManager:
         bulk_new_run_status(runs, condition)
 
     @staticmethod
-    def _heartbeat_warning_runs(minutes: int):
-        last_date = get_datetime_from_now(days=0, minutes=minutes)
+    def _heartbeat_warning_runs(days: int):
+        last_date = get_datetime_from_now(days=days)
         condition = V1StatusCondition.get_condition(
             type=V1Statuses.STOPPING,
             status="True",
@@ -115,10 +120,16 @@ class CronsHeartbeatManager:
 
     @staticmethod
     def heartbeat_out_of_sync(
-        stale_uploads_minutes: int = 120, warning_runs_minutes: int = 1440
+        stale_uploads_minutes: int = 120,
+        warning_runs_days: Optional[int] = None,
     ):
+        warning_runs_days = (
+            conf.get(CLEANING_INTERVALS_WARNING_RUNS)
+            if warning_runs_days is None
+            else warning_runs_days
+        )
         CronsHeartbeatManager._heartbeat_stale_uploads(stale_uploads_minutes)
-        CronsHeartbeatManager._heartbeat_warning_runs(warning_runs_minutes)
+        CronsHeartbeatManager._heartbeat_warning_runs(warning_runs_days)
 
     @staticmethod
     def heartbeat_project_last_updated(

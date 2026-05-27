@@ -16,6 +16,10 @@ CLEANING_INTERVALS_ARCHIVES = "{}_{}".format(
 CLEANING_INTERVALS_DELETION = "{}_{}".format(
     option_namespaces.CLEANING_INTERVALS, option_subjects.DELETION
 )
+CLEANING_INTERVALS_WARNING_RUNS = "{}_{}".format(
+    option_namespaces.CLEANING_INTERVALS,
+    option_subjects.WARNING_RUNS,
+)
 
 
 OPTIONS = {
@@ -23,6 +27,7 @@ OPTIONS = {
     CLEANING_INTERVALS_NOTIFICATIONS,
     CLEANING_INTERVALS_ARCHIVES,
     CLEANING_INTERVALS_DELETION,
+    CLEANING_INTERVALS_WARNING_RUNS,
 }
 
 
@@ -58,3 +63,9 @@ class CleaningIntervalsDeletion(CleaningIntervalsOption):
     key = CLEANING_INTERVALS_DELETION
     default = 15
     description = "A cleaning interval for archives in days"
+
+
+class CleaningIntervalsWarningRuns(CleaningIntervalsOption):
+    key = CLEANING_INTERVALS_WARNING_RUNS
+    default = 3
+    description = "A cleaning interval for warning runs auto-stop in days"

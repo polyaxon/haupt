@@ -58,3 +58,6 @@ def set_celery(
     ] = config.cleaning_intervals_notifications  # fmt: skip
     context["CLEANING_INTERVALS_ARCHIVES"] = config.cleaning_intervals_archives
     context["CLEANING_INTERVALS_DELETION"] = config.cleaning_intervals_deletion
+    context[
+        "CLEANING_INTERVALS_WARNING_RUNS"
+    ] = config.cleaning_intervals_warning_runs  # fmt: skip

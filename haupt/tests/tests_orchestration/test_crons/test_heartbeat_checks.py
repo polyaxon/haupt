@@ -206,9 +206,9 @@ class TestHeartBeatCrons(PolyaxonBaseTest):
         # Run in CREATED status (should NOT be affected)
         run6 = RunFactory(project=project, kind=V1RunKind.JOB)
 
-        # Check with minutes=0 to catch all warning runs
+        # Check with days=0 to catch all warning runs
         CronsHeartbeatManager.heartbeat_out_of_sync(
-            stale_uploads_minutes=999, warning_runs_minutes=0
+            stale_uploads_minutes=999, warning_runs_days=0
         )
         run1.refresh_from_db()
         run2.refresh_from_db()
