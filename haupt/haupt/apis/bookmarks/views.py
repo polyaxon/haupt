@@ -6,7 +6,7 @@ from django.conf import settings
 
 from haupt.common.endpoints.base import BaseEndpoint, DestroyEndpoint, PostEndpoint
 from haupt.db.defs import Models
-from haupt.db.managers.bookmarks import bookmark_obj
+from haupt.db.managers.bookmarks import bookmark_obj, get_bookmark_content_type_id
 
 
 class BookmarkCreateView(BaseEndpoint, PostEndpoint):
@@ -37,7 +37,7 @@ class BookmarkDeleteView(BaseEndpoint, DestroyEndpoint):
         bookmark = get_object_or_404(
             Models.Bookmark,
             **user_filter,
-            content_type__model=self.content_type,
+            content_type_id=get_bookmark_content_type_id(self.content_type),
             object_id=obj.id,
         )
         bookmark.enabled = False

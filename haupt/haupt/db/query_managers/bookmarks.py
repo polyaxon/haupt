@@ -3,6 +3,7 @@ from clipped.utils.bools import to_bool
 from django.conf import settings
 
 from haupt.db.defs import Models
+from haupt.db.managers.bookmarks import get_bookmark_content_type_id
 
 
 def get_bookmarks_filter(request, view):
@@ -30,7 +31,7 @@ def filter_bookmarks(queryset, request, view):
     user_filters = {"user": request.user} if settings.HAS_ORG_MANAGEMENT else {}
     bookmark_ids = Models.Bookmark.objects.filter(
         **user_filters,
-        content_type__model=bookmarked_model,
+        content_type_id=get_bookmark_content_type_id(bookmarked_model),
         enabled=True,
     ).values_list("object_id", flat=True)
 

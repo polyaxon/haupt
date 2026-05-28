@@ -6,6 +6,7 @@ from django.conf import settings
 from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.common.authentication.base import is_user
 from haupt.db.defs import Models
+from haupt.db.managers.bookmarks import get_bookmark_content_type_id
 from haupt.db.query_managers.bookmarks import filter_bookmarks, get_bookmarks_filter
 
 
@@ -31,7 +32,9 @@ class BookmarkedSerializerMixin(serializers.Serializer):
             if request:
                 return Models.Bookmark.objects.filter(
                     **user_filters,
-                    content_type__model=self.bookmarked_model,
+                    content_type_id=get_bookmark_content_type_id(
+                        self.bookmarked_model
+                    ),
                     object_id=obj.id,
                     enabled=True,
                 ).exists()
@@ -76,7 +79,9 @@ class BookmarkedListMixinView:
             )
             bookmarks = Models.Bookmark.objects.filter(
                 **user_filters,
-                content_type__model=serializer_class.bookmarked_model,
+                content_type_id=get_bookmark_content_type_id(
+                    serializer_class.bookmarked_model
+                ),
                 object_id__in=object_ids,
                 enabled=True,
             ).values_list("object_id", flat=True)
