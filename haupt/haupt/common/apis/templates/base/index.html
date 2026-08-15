@@ -9,55 +9,27 @@
       position: fixed;
       top: 35%;
       left: 50%;
+      width: 64px;
+      height: 64px;
+      transform: translate(-50%, -50%);
     }
-    .plxLoading div {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #26303D;
-      animation: plxLoading 1.2s linear infinite;
+    .plxLoading svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
-    .plxLoading div:nth-child(1) {
-      top: 8px;
-      left: 8px;
-      animation-delay: 0s;
+    .plxLoading path {
+      animation: plxLoading 1.2s ease-in-out infinite;
     }
-    .plxLoading div:nth-child(2) {
-      top: 8px;
-      left: 32px;
-      animation-delay: -0.4s;
-    }
-    .plxLoading div:nth-child(3) {
-      top: 32px;
-      left: 8px;
-      animation-delay: -0.4s;
-    }
-    .plxLoading div:nth-child(4) {
-      top: 36px;
-      left: 36px;
-      animation-delay: -0.8s;
-      width: 10px;
-      height: 10px;
-    }
-    .plxLoading div:nth-child(5) {
-      top: 56px;
-      left: 8px;
-      animation-delay: -0.8s;
-    }
-    .plxLoading div:nth-child(6) {
-      top: 60px;
-      left: 36px;
-      animation-delay: -1.2s;
-      width: 10px;
-      height: 10px;
+    .plxLoading path:nth-child(2) {
+      animation-delay: -0.6s;
     }
     @keyframes plxLoading {
       0%, 100% {
         opacity: 1;
       }
       50% {
-        opacity: 0.5;
+        opacity: 0.35;
       }
     }
   </style>
@@ -70,7 +42,14 @@
 
 <body class="plxBody">
   <div id="root" class="plxLayout">
-    <div class="plxLoading"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+    <div class="plxLoading" role="status" aria-label="Loading Polyaxon">
+      <svg viewBox="220 196 816 816" aria-hidden="true">
+        <g transform="translate(0 1254) scale(.1 -.1)">
+          <path fill="#0284C7" d="M6690 10561 c-25 -10 -252 -141 -505 -291 -253 -150 -496 -294 -540 -320 -85 -49 -866 -513 -1195 -710 -107 -64 -305 -181 -439 -260 -135 -80 -260 -160 -279 -179 -19 -19 -46 -59 -61 -90 l-26 -56 0 -2255 c0 -2081 1 -2257 17 -2285 30 -56 66 -81 389 -275 284 -170 325 -192 348 -184 18 7 27 19 32 42 4 18 7 1012 8 2207 2 1875 4 2182 17 2224 23 80 71 141 154 194 72 47 2467 1483 2817 1690 220 129 219 127 66 217 -60 34 -206 121 -325 192 -120 71 -236 135 -259 143 -57 20 -163 18 -219 -4z"/>
+          <path fill="#0F172A" d="M8050 9772 c-84 -34 -2894 -1721 -2943 -1768 -21 -19 -51 -61 -65 -92 l-27 -57 -3 -2473 -2 -2473 21 -49 c11 -26 30 -57 42 -69 40 -36 608 -371 632 -371 12 0 28 6 34 13 8 10 12 687 13 2488 l3 2474 27 46 c26 44 72 73 1122 702 1137 682 1132 679 1179 644 10 -6 21 -24 25 -39 4 -15 5 -490 2 -1056 l-5 -1029 -30 -48 c-29 -46 -67 -71 -800 -517 -423 -258 -794 -484 -824 -501 -30 -18 -68 -49 -85 -70 l-31 -39 -3 -464 c-1 -255 0 -464 3 -464 4 0 427 255 1380 833 182 110 494 299 695 419 268 161 377 232 411 268 85 89 79 -37 79 1684 0 1095 -3 1530 -11 1562 -19 76 -71 118 -329 270 -129 76 -257 150 -285 163 -65 33 -161 39 -225 13z"/>
+        </g>
+      </svg>
+    </div>
   </div>
 
   <!-- Dependencies -->
