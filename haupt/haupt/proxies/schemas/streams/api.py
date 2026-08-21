@@ -9,6 +9,7 @@ from polyaxon.api import (
     UI_V1_LOCATION,
 )
 
+
 API_OPTIONS = """
 location {path} {{
     proxy_pass http://polyaxon;

@@ -1,10 +1,8 @@
 import logging
-
 from urllib.parse import urlparse
 
-from rest_framework import status
-
 from django.http import HttpResponse
+from rest_framework import status
 
 from polyaxon._sandbox.auth import derive_sandbox_token_from_env
 from polyaxon.api import SANDBOX_V1_LOCATION

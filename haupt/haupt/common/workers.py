@@ -1,14 +1,13 @@
 import os
-
 from typing import Dict, Optional
-
-from clipped.utils.imports import import_string
 
 from django.conf import settings
 from django.db import transaction
 
+from clipped.utils.imports import import_string
 from haupt.common import conf
 from haupt.common.options.registry.core import SCHEDULER_ENABLED
+
 
 if settings.SCHEDULER_ENABLED:
     from haupt.background.celeryp.app import app

@@ -1,8 +1,7 @@
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-
 from django.conf import settings
 from django.http import Http404
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from haupt.apis.bookmarks.views import BookmarkCreateView, BookmarkDeleteView
 from haupt.apis.endpoints.run import RunEndpoint

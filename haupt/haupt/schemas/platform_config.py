@@ -9,7 +9,6 @@ from clipped.compact.pydantic import (
     validation_before,
 )
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
-
 from haupt import pkg
 from polyaxon._config.parser import ConfigParser
 from polyaxon._env_vars.keys import (
@@ -39,6 +38,7 @@ from polyaxon._env_vars.keys import (
 from polyaxon._k8s.namespace import DEFAULT_NAMESPACE
 from polyaxon._schemas.base import BaseSchemaModel
 from polyaxon.exceptions import PolyaxonSchemaError
+
 
 if TYPE_CHECKING:
     from clipped.compact.pydantic import ModelField

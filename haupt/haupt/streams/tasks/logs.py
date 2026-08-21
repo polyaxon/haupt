@@ -1,12 +1,11 @@
-import os
-
 from datetime import datetime
+import os
 from typing import List
+
+from asgiref.sync import sync_to_async
 
 from clipped.utils.json import orjson_loads
 from clipped.utils.paths import delete_path
-
-from asgiref.sync import sync_to_async
 from polyaxon import settings
 from polyaxon._fs.async_manager import (
     delete_file_or_dir,

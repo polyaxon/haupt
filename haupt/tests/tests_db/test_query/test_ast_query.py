@@ -2,17 +2,15 @@
 
 import pytest
 
-from clipped.utils.tz import get_datetime_from_now
-
 from django.db.models import Q
 
+from clipped.utils.tz import get_datetime_from_now
 from haupt.db.models.runs import Run
 from haupt.db.query_managers.run import RunQueryManager
 from polyaxon._pql.ast import AndNode, ExpressionNode, OrNode
 from polyaxon._pql.grammar import parse_query
-from tests.tests_db.test_query.base import BaseTestQuery
-
 from polyaxon._pql.manager import LegacyQueryMixin
+from tests.tests_db.test_query.base import BaseTestQuery
 
 
 class LegacyRunQueryManager(RunQueryManager, LegacyQueryMixin):

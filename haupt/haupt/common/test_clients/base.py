@@ -1,13 +1,13 @@
-import datetime
-import uuid
-
 from collections.abc import Mapping
+import datetime
 from urllib.parse import urlparse
-
-from clipped.utils.json import orjson_dumps
+import uuid
 
 from django.test import Client
 from django.test.client import FakePayload
+
+from clipped.utils.json import orjson_dumps
+
 
 CONTENT_TYPE_APPLICATION_JSON = "application/json"
 

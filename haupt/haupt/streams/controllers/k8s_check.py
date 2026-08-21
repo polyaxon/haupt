@@ -1,9 +1,8 @@
 from typing import List, Tuple
 from urllib.parse import urlparse
 
-from rest_framework import status
-
 from django.http import HttpResponse
+from rest_framework import status
 
 from polyaxon import settings
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager

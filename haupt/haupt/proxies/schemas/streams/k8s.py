@@ -3,6 +3,7 @@ from typing import Optional
 from haupt.proxies.schemas.base import get_config
 from polyaxon.api import AUTH_REQUEST_V1_LOCATION, K8S_V1_LOCATION
 
+
 K8S_LOCATION_OPTIONS = r"""
 location {app} {{
     {cors}

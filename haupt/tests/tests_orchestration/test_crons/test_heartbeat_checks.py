@@ -1,9 +1,7 @@
+from mock import patch
 import pytest
 
-from mock import patch
-
 from clipped.utils.tz import get_datetime_from_now
-
 from haupt.common.test_cases.base import PolyaxonBaseTest
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory

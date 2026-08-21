@@ -2,7 +2,6 @@ import os
 import pytest
 
 from clipped.utils.paths import create_path
-
 from polyaxon import settings
 from polyaxon._utils.test_utils import create_tmp_files, set_store
 from polyaxon.api import STREAMS_V1_LOCATION

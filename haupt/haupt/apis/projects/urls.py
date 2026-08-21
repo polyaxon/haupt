@@ -1,9 +1,9 @@
-from rest_framework.urlpatterns import format_suffix_patterns
-
 from django.urls import re_path
+from rest_framework.urlpatterns import format_suffix_patterns
 
 from haupt.apis.projects import views
 from haupt.common.apis.urls import projects
+
 
 projects_urlpatterns = [
     re_path(projects.URLS_PROJECTS_CREATE, views.ProjectCreateView.as_view()),

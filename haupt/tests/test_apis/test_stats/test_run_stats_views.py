@@ -1,6 +1,6 @@
+from datetime import timedelta
 import pytest
 
-from datetime import timedelta
 from django.utils import timezone
 from rest_framework import status
 
@@ -9,10 +9,10 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.project_stats import ProjectStats
 from haupt.db.models.runs import Run
+from polyaxon._schemas.lifecycle import V1Statuses
 from polyaxon._services.values import PolyaxonServices
 from polyaxon.api import API_V1
 from polyaxon.schemas import V1ProjectVersionKind
-from polyaxon._schemas.lifecycle import V1Statuses
 from tests.base.case import BaseTest
 
 

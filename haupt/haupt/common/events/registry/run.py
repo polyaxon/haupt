@@ -7,6 +7,7 @@ from haupt.common.events.registry.attributes import (
     PROJECT_RUN_EXECUTOR_OWNER_ATTRIBUTES,
 )
 
+
 RUN_CREATED = "{}.{}".format(event_subjects.RUN, event_actions.CREATED)
 RUN_STOPPED = "{}.{}".format(event_subjects.RUN, event_actions.STOPPED)
 RUN_SKIPPED = "{}.{}".format(event_subjects.RUN, event_actions.SKIPPED)

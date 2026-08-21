@@ -1,9 +1,9 @@
-import uuid
-
 from datetime import datetime
 from unittest import TestCase
+import uuid
 
 from dateutil.tz import UTC
+
 from haupt.common.events.event import Attribute
 
 

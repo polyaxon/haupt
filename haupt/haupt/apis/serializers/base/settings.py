@@ -1,10 +1,9 @@
 from functools import reduce
 from operator import or_
 
-from rest_framework import serializers
-
 from django.conf import settings
 from django.db.models import Q
+from rest_framework import serializers
 
 from haupt.common import conf
 from haupt.common.options.registry.k8s import K8S_NAMESPACE

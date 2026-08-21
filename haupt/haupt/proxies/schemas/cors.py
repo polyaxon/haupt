@@ -1,6 +1,7 @@
 from haupt import settings
 from haupt.proxies.schemas.base import get_config
 
+
 CORS_OPTIONS = r"""
     if ($request_method = 'OPTIONS') {{
         add_header 'Access-Control-Allow-Origin' "$http_origin" always;

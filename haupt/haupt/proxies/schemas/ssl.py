@@ -1,6 +1,7 @@
 from haupt import settings
 from haupt.proxies.schemas.base import get_config
 
+
 SSL_OPTIONS = r"""
 # SSL
 ssl_session_timeout 1d;

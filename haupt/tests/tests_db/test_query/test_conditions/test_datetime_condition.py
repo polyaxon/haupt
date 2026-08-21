@@ -1,17 +1,17 @@
 import datetime
 import pytest
 
-from clipped.utils.dates import DateTimeFormatter
-
 from django.conf import settings
 from django.db.models import Q
 
+from clipped.utils.dates import DateTimeFormatter
 from haupt.db.factories.runs import RunFactory
 from haupt.db.models.runs import Run
 from polyaxon._pql.builder import DateTimeCondition
 from polyaxon.exceptions import PQLException
 from polyaxon.schemas import ManagedBy
 from tests.tests_db.test_query.base import BaseTestQuery
+
 
 # pylint:disable=protected-access
 

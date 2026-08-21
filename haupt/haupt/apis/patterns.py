@@ -11,6 +11,7 @@ from haupt.streams.endpoints.logs import internal_logs_routes, logs_routes
 from haupt.streams.endpoints.notifications import notifications_routes
 from polyaxon.api import API_V1, AUTH_REQUEST_V1, INTERNAL_V1, STREAMS_V1
 
+
 api_patterns = [
     re_path(
         r"", include(("haupt.apis.versions.urls", "versions"), namespace="versions")

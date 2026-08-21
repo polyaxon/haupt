@@ -2,6 +2,7 @@ from haupt.common.events import event_actions, event_subjects
 from haupt.common.events.event import ActorTopEntityEvent
 from haupt.common.events.registry.attributes import PROJECT_OWNER_ATTRIBUTES
 
+
 PROJECT_CREATED_ACTOR = "{}.{}.{}".format(
     event_subjects.PROJECT, event_actions.CREATED, event_subjects.ACTOR
 )

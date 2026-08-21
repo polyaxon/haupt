@@ -1,8 +1,7 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-
-from django.conf import settings
 
 from haupt.common.endpoints.base import BaseEndpoint, DestroyEndpoint, PostEndpoint
 from haupt.db.defs import Models

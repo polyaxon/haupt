@@ -1,5 +1,4 @@
 from clipped.utils.paths import RW_R_R_PERMISSIONS
-
 from haupt import settings
 from haupt.managers.sandbox import SandboxConfigManager
 from haupt.schemas.platform_config import PlatformConfig

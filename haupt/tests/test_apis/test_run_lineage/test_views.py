@@ -1,11 +1,9 @@
 import pytest
+from unittest.mock import patch
 import uuid
 
-from unittest.mock import patch
-
-from rest_framework import status
-
 from django.db import IntegrityError
+from rest_framework import status
 
 from haupt.apis.serializers.artifacts import (
     RunArtifactNameSerializer,

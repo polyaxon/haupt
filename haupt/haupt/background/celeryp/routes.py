@@ -1,6 +1,7 @@
 from haupt.background.celeryp.queues import CeleryQueues
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 
+
 SCHEDULER_CORE_ROUTES = {
     # Scheduler health
     SchedulerCeleryTasks.SCHEDULER_HEALTH: {"queue": CeleryQueues.SCHEDULER_HEALTH},

@@ -6,6 +6,7 @@ from haupt.db.models.runs import Run
 from polyaxon._pql.builder import SearchCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
+
 # pylint:disable=protected-access
 
 

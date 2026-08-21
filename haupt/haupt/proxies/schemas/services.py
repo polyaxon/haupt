@@ -14,6 +14,7 @@ from polyaxon.api import (
     SERVICES_V1_LOCATION,
 )
 
+
 PLUGIN_OPTIONS = r"""
 location ~ /{plugin_name}/proxy/([-_.:\w]+)/(.*) {{
     {cors}

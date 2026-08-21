@@ -1,12 +1,10 @@
 import os
-
 from typing import Dict, Optional
-
-from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.http import HttpResponse
 from django.urls import path, re_path
+from rest_framework import status
 
 from haupt import settings
 from haupt.common.apis.urls import versions
@@ -15,6 +13,7 @@ from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.endpoints.base import ConfigResponse, UJSONResponse
 from polyaxon._contexts import paths as ctx_paths
 from polyaxon.schemas import V1ProjectFeature
+
 
 VIEWER_KEY = "b4242c3566df410dacec2299660d1f47"
 

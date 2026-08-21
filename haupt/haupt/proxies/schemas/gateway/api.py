@@ -16,6 +16,7 @@ from polyaxon.api import (
     UI_V1_LOCATION,
 )
 
+
 OPTIONS = r"""
 location {path} {{
     {cors}

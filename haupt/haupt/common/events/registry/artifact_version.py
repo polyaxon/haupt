@@ -1,6 +1,7 @@
 from haupt.common.events import event_actions, event_subjects
 from haupt.common.events.event import ActorEvent, Attribute
 
+
 ARTIFACT_VERSION_DELETED = "{}.{}".format(
     event_subjects.ARTIFACT_VERSION, event_actions.DELETED
 )

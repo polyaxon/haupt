@@ -1,10 +1,9 @@
-import pytest
 from faker import Faker
-
-from rest_framework.response import Response
-from rest_framework.views import APIView
+import pytest
 
 from django.test import RequestFactory, TestCase
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from haupt.common.apis.gzip import gzip
 

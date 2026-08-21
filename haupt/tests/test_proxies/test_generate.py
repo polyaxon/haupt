@@ -3,7 +3,6 @@ import pytest
 import tempfile
 
 from clipped.compact.pydantic import ValidationError
-
 from haupt import settings
 from haupt.proxies.generators import (
     generate_api_conf,

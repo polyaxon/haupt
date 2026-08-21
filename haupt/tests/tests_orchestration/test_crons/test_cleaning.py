@@ -1,7 +1,6 @@
 from datetime import timedelta
-from unittest.mock import patch
-
 import pytest
+from unittest.mock import patch
 
 from django.utils.timezone import now
 
@@ -67,16 +66,22 @@ class TestCleanStatsProject(PolyaxonBaseTest):
 
     def test_raw_tier_is_untouched(self):
         base = now() - timedelta(hours=1)
-        rows = [self._make(self.project, base + timedelta(minutes=5 * i)) for i in range(6)]
+        rows = [
+            self._make(self.project, base + timedelta(minutes=5 * i)) for i in range(6)
+        ]
 
         self._compact(self.project.id)
 
-        assert ProjectStats.objects.filter(id__in=[r.id for r in rows]).count() == len(rows)
+        assert ProjectStats.objects.filter(id__in=[r.id for r in rows]).count() == len(
+            rows
+        )
 
     def test_hourly_tier_compacts_to_one_per_hour(self):
         base = now() - timedelta(days=self.RAW_DAYS + 1)
         base = base.replace(minute=0, second=0, microsecond=0)
-        rows = [self._make(self.project, base + timedelta(minutes=5 * i)) for i in range(12)]
+        rows = [
+            self._make(self.project, base + timedelta(minutes=5 * i)) for i in range(12)
+        ]
 
         self._compact(self.project.id)
 

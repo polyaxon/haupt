@@ -1,8 +1,8 @@
 import os
 
-from clipped.utils.paths import check_or_create_path, delete_path, untar_file
-
 from asgiref.sync import sync_to_async
+
+from clipped.utils.paths import check_or_create_path, delete_path, untar_file
 from polyaxon import settings
 from polyaxon._fs.async_manager import upload_dir, upload_file
 from polyaxon._fs.types import FSSystem

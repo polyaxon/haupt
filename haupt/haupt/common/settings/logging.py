@@ -1,5 +1,4 @@
 import os
-
 from typing import Dict
 
 from haupt.schemas.platform_config import PlatformConfig

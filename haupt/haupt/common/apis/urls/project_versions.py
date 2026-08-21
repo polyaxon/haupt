@@ -4,6 +4,7 @@ from haupt.common.apis.regex import (
     VERSION_NAME_PATTERN,
 )
 
+
 URLS_PROJECT_COMPONENT_VERSIONS_LIST = r"^{}/{}/versions/component/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN
 )

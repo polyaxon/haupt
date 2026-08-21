@@ -1,10 +1,12 @@
+from django.urls import re_path
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from django.urls import re_path
-
-from haupt.apis.project_resources.views import runs as runs_views
-from haupt.apis.project_resources.views import versions as versions_views
+from haupt.apis.project_resources.views import (
+    runs as runs_views,
+    versions as versions_views,
+)
 from haupt.common.apis.urls import project_versions, projects
+
 
 projects_urlpatterns = [
     re_path(

@@ -1,7 +1,6 @@
-import uuid
-
 from collections import namedtuple
 from typing import Optional
+import uuid
 
 
 class OptionOwners(namedtuple("OptionOwners", "user project team organization")):

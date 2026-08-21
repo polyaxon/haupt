@@ -9,6 +9,7 @@ from haupt.common.options.option import (
     OptionStores,
 )
 
+
 STATS_DEFAULT_PREFIX = "{}{}{}".format(
     option_namespaces.STATS, NAMESPACE_DB_OPTION_MARKER, option_subjects.DEFAULT_PREFIX
 )

@@ -1,11 +1,10 @@
-import os
-
 from email.utils import formatdate
+import os
 from typing import Dict, Optional
 
-from clipped.utils.hashing import hash_value
-
 from django.http import FileResponse
+
+from clipped.utils.hashing import hash_value
 
 
 class FilePathResponse(FileResponse):

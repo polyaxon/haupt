@@ -1,5 +1,4 @@
 import os
-
 from typing import Optional
 
 from haupt import settings

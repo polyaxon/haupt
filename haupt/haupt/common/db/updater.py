@@ -1,7 +1,7 @@
-from clipped.decorators.memoization import memoize
-
 from django.conf import settings
 from django.db import connection
+
+from clipped.decorators.memoization import memoize
 
 
 class RawBulkUpdater:

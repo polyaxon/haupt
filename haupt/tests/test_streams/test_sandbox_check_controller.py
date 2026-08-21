@@ -1,6 +1,5 @@
-from unittest.mock import patch
-
 import pytest
+from unittest.mock import patch
 
 from rest_framework import status
 
@@ -17,9 +16,12 @@ def test_sandbox_check_extracts_run_uuid():
 
 
 def test_sandbox_check_accepts_nested_path_and_query_string():
-    assert sandbox_check(
-        "/sandbox/v1/ns/owner/project/runs/uuid/fs/read?path=/tmp/x&offset=1"
-    ) == "uuid"
+    assert (
+        sandbox_check(
+            "/sandbox/v1/ns/owner/project/runs/uuid/fs/read?path=/tmp/x&offset=1"
+        )
+        == "uuid"
+    )
     assert sandbox_check("/sandbox/v1/ns/owner/project/runs/uuid/pty/id/ws") == "uuid"
 
 

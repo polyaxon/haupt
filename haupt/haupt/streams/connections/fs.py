@@ -1,10 +1,8 @@
-import os
-
 from datetime import timedelta
+import os
 from typing import Optional
 
 from clipped.utils.tz import now
-
 from polyaxon._connections import CONNECTION_CONFIG
 from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.getters import get_artifacts_store_name

@@ -1,20 +1,19 @@
 import sqlite3
-import uuid
-
 from typing import List, Union
-
-from clipped.utils.json import orjson_dumps
-from clipped.utils.versions import compare_versions
+import uuid
 
 from django.conf import settings
 from django.test import TestCase
 from django.utils.timezone import now
 
+from clipped.utils.json import orjson_dumps
+from clipped.utils.versions import compare_versions
 from haupt.common.db import RawBulkInserter, RawBulkUpdater
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
 from polyaxon.schemas import ManagedBy, V1RunKind
+
 
 _RUN_MODEL_FIELDS = (
     "uuid",

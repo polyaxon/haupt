@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Optional
 
 from clipped.utils.lists import to_list
 from clipped.utils.tz import now
-
 from haupt.common import auditor
 from haupt.common.events.registry.run import (
     RUN_DONE,

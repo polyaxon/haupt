@@ -1,17 +1,15 @@
-import logging
-
 from datetime import datetime
 from functools import reduce
+import logging
 from operator import __or__ as OR
 from typing import Dict, List, Optional
 
-from clipped.compact.pydantic import ValidationError as PydanticValidationError
-from clipped.utils.lists import to_list
-from rest_framework.exceptions import ValidationError
-
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
+from rest_framework.exceptions import ValidationError
 
+from clipped.compact.pydantic import ValidationError as PydanticValidationError
+from clipped.utils.lists import to_list
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import workers
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
@@ -50,12 +48,12 @@ from haupt.orchestration.scheduler.resolver import SchedulingResolver
 from polyaxon._compiler import resolver
 from polyaxon._constants.metadata import (
     META_BRACKET_ITERATION,
+    META_CONCURRENCY,
     META_DESTINATION_IMAGE,
     META_HAS_EARLY_STOPPING,
     META_HAS_HOOKS,
     META_IS_HOOK,
     META_ITERATION,
-    META_CONCURRENCY,
 )
 from polyaxon._operations import get_bo_tuner, get_hyperband_tuner, get_hyperopt_tuner
 from polyaxon.exceptions import (
@@ -82,6 +80,7 @@ from polyaxon.schemas import (
     dags,
 )
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
+
 
 _logger = logging.getLogger("polyaxon.scheduler")
 
@@ -1501,7 +1500,9 @@ class SchedulingManager:
     @staticmethod
     def clean_stats_project(project_id: int):
         try:
-            project = Models.Project.all.only("id", "latest_stats_id").get(id=project_id)
+            project = Models.Project.all.only("id", "latest_stats_id").get(
+                id=project_id
+            )
         except Models.Project.DoesNotExist:
             return
         compact_owner_stats(

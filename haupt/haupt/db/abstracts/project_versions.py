@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 from haupt.common.validation.slugs import validate_slug_with_dots
 from haupt.db.abstracts.catalogs import BaseCatalog

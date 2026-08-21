@@ -1,8 +1,8 @@
 from typing import Optional
 
-from clipped.utils.imports import import_string
-
 import click
+
+from clipped.utils.imports import import_string
 
 
 @click.command()

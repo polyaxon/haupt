@@ -1,9 +1,7 @@
+from typing import List, Optional
 import uuid
 
-from typing import List, Optional
-
 from clipped.utils.lists import to_list
-
 from haupt.db.defs import Models
 from polyaxon._k8s.k8s_schemas import V1Container
 from polyaxon.schemas import V1IO, V1Cache, V1CloningKind, V1Init

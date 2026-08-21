@@ -1,13 +1,11 @@
 import os
-
 from typing import Dict, Optional, Union
 
-from rest_framework import status
-
+from aiofiles.os import stat as aio_stat
 from django.core.handlers.asgi import ASGIRequest
 from django.http import FileResponse, HttpResponse
+from rest_framework import status
 
-from aiofiles.os import stat as aio_stat
 from haupt.common.endpoints.files import FilePathResponse
 from polyaxon._services.values import PolyaxonServices
 

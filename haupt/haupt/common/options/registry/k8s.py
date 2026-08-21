@@ -1,5 +1,6 @@
 from haupt.common.options.option import Option, OptionScope, OptionStores
 
+
 K8S_NAMESPACE = "K8S_NAMESPACE"
 K8S_IN_CLUSTER = "K8S_IN_CLUSTER"
 

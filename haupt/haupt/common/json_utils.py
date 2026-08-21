@@ -1,9 +1,8 @@
 import datetime
 import decimal
-import uuid
-
 from enum import Enum
 from json import JSONEncoder, _default_decoder
+import uuid
 
 from django.utils.html import mark_safe
 from django.utils.timezone import is_aware

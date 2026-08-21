@@ -1,5 +1,6 @@
 from haupt.proxies.schemas.base import get_config
 
+
 HEALTHZ_LOCATION_OPTIONS = r"""
 location /healthz/ {{
     access_log off;

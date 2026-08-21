@@ -1,6 +1,7 @@
 from haupt.common import conf
 from haupt.common.options.registry import core
 
+
 conf.subscribe(core.Logging)
 conf.subscribe(core.Debug)
 conf.subscribe(core.Protocol)

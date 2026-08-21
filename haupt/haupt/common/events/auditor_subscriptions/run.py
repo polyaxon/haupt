@@ -1,6 +1,7 @@
 from haupt.common import auditor
 from haupt.common.events.registry import run
 
+
 auditor.subscribe(run.RunCreatedEvent)
 auditor.subscribe(run.RunSyncedActorEvent)
 auditor.subscribe(run.RunResumedEvent)

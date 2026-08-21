@@ -1,10 +1,12 @@
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.mixins import CreateModelMixin as DJRCreateModelMixin
-from rest_framework.mixins import DestroyModelMixin as DJRDestroyModelMixin
-from rest_framework.mixins import ListModelMixin as DRFListModelMixin
-from rest_framework.mixins import RetrieveModelMixin as DRFRetrieveModelMixin
-from rest_framework.mixins import UpdateModelMixin as DJRUpdateModelMixin
+from rest_framework.mixins import (
+    CreateModelMixin as DJRCreateModelMixin,
+    DestroyModelMixin as DJRDestroyModelMixin,
+    ListModelMixin as DRFListModelMixin,
+    RetrieveModelMixin as DRFRetrieveModelMixin,
+    UpdateModelMixin as DJRUpdateModelMixin,
+)
 from rest_framework.response import Response
 
 

@@ -2,7 +2,6 @@ from collections import namedtuple
 from typing import Any, Optional
 
 from clipped.utils.http import absolute_uri
-
 from haupt.common import user_system
 from haupt.common.events import event_subjects
 from polyaxon._utils.urls_utils import get_fqn_run_url, get_owner_url, get_project_url

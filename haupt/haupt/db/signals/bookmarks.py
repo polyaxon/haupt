@@ -1,8 +1,7 @@
-from clipped.decorators.signals import ignore_raw
-
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from clipped.decorators.signals import ignore_raw
 from haupt.common.content_types import ContentTypes
 from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import remove_bookmarks

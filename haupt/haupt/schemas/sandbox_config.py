@@ -1,5 +1,4 @@
 import logging
-
 from typing import Optional
 
 from clipped.compact.pydantic import (
@@ -11,7 +10,6 @@ from clipped.compact.pydantic import (
 )
 from clipped.utils.http import clean_host
 from clipped.utils.paths import check_or_create_path
-
 from polyaxon._env_vars.keys import (
     ENV_KEYS_K8S_NAMESPACE,
     ENV_KEYS_SANDBOX_DEBUG,
@@ -24,6 +22,7 @@ from polyaxon._env_vars.keys import (
 )
 from polyaxon._schemas.agent import AgentConfig
 from polyaxon._services import PolyaxonServices
+
 
 _logger = logging.getLogger("sandbox.config")
 

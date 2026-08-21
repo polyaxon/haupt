@@ -6,6 +6,7 @@ from polyaxon._pql.builder import NilCondition
 from polyaxon.schemas import V1Statuses
 from tests.tests_db.test_query.base import BaseTestQuery
 
+
 # pylint:disable=protected-access
 
 

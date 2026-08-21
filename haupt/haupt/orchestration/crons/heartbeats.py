@@ -1,9 +1,8 @@
 from typing import Optional
 
-from clipped.utils.tz import get_datetime_from_now
-
 from django.db.models import Count, Q
 
+from clipped.utils.tz import get_datetime_from_now
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import conf, workers
 from haupt.common.options.registry.cleaning import (

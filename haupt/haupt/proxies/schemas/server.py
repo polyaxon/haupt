@@ -2,6 +2,7 @@ from typing import Optional
 
 from haupt.proxies.schemas.base import clean_config, get_config
 
+
 UPSTREAM_OPTIONS = """
 upstream polyaxon {{
   server unix:{root}/web/polyaxon.sock;

@@ -1,6 +1,5 @@
-import uuid
-
 from typing import List, Optional
+import uuid
 
 from django.conf import settings
 

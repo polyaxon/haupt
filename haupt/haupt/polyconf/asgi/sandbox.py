@@ -19,6 +19,7 @@ from polyaxon._env_vars.keys import (
 )
 from polyaxon._services.values import PolyaxonServices
 
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haupt.polyconf.settings")
 os.environ.setdefault("ASGI_APPLICATION", "haupt.polyconf.asgi.sandbox.application")
 os.environ[ENV_KEYS_SERVICE] = PolyaxonServices.API

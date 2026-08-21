@@ -1,12 +1,10 @@
 import datetime
 import pytest
-
 from unittest.mock import patch
-
-from rest_framework import status
 
 from django.test import override_settings
 from django.utils.timezone import now
+from rest_framework import status
 
 from haupt.apis.serializers.runs import RunDetailSerializer
 from haupt.background.celeryp.tasks import CronsCeleryTasks

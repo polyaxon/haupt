@@ -1,14 +1,12 @@
 import pytest
+from unittest.mock import patch
 import uuid
 
-from unittest.mock import patch
+from django.conf import settings
+from rest_framework import status
 
 from clipped.utils.json import orjson_dumps
 from clipped.utils.serialization import datetime_deserialize
-from rest_framework import status
-
-from django.conf import settings
-
 from haupt.apis.serializers.artifacts import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,

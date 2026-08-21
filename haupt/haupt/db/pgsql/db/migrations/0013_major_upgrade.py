@@ -2,9 +2,8 @@ import re
 import uuid
 
 import django.contrib.postgres.fields
-import django.utils.timezone
-
 from django.db import migrations, models
+import django.utils.timezone
 
 from polyaxon import schemas
 

@@ -5,6 +5,7 @@ from haupt.common.apis.regex import (
     RUN_UUID_PATTERN,
 )
 
+
 URLS_RUNS_DETAILS = r"^{}/{}/runs/{}/?$".format(
     OWNER_NAME_PATTERN, PROJECT_NAME_PATTERN, RUN_UUID_PATTERN
 )

@@ -1,5 +1,4 @@
 import json
-
 from typing import List
 
 from django.conf import settings
@@ -8,6 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from haupt.common.db.inserter import RawBulkInserter
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
+
 
 _RUN_FIELDS = (
     "description",

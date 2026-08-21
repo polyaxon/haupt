@@ -1,11 +1,10 @@
 from typing import Dict, Optional
 
-from clipped.compact.pydantic import ValidationError as PydanticValidationError
+from django.db import IntegrityError
 from rest_framework import fields, serializers
 from rest_framework.exceptions import ValidationError
 
-from django.db import IntegrityError
-
+from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedSerializerMixin
 from haupt.apis.serializers.base.cloning import CloningMixin
 from haupt.apis.serializers.base.is_managed import IsManagedMixin

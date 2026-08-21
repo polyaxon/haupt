@@ -1,5 +1,6 @@
-from clipped.utils.bools import to_bool
 from rest_framework.pagination import LimitOffsetPagination
+
+from clipped.utils.bools import to_bool
 
 
 class PolyaxonBasePagination(LimitOffsetPagination):

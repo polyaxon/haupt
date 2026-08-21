@@ -4,6 +4,7 @@ from haupt import settings
 from haupt.proxies.schemas.base import get_config
 from haupt.proxies.schemas.urls import get_ssl_server_name, has_https
 
+
 STATIC_PROXY_OPTIONS = """
 location /static/ {{
     {cors}

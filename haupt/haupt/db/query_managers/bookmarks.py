@@ -1,7 +1,6 @@
-from clipped.utils.bools import to_bool
-
 from django.conf import settings
 
+from clipped.utils.bools import to_bool
 from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import get_bookmark_content_type_id
 

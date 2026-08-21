@@ -1,8 +1,8 @@
-from clipped.utils.tz import now
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from clipped.utils.tz import now
 from haupt import pkg
 from haupt.common import conf
 from haupt.common.options.registry.installation import ORGANIZATION_ID

@@ -1,11 +1,11 @@
-from clipped.compact.pydantic import ValidationError as PydanticValidationError
-from clipped.utils.json import orjson_loads
+from django.conf import settings
+
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
-from django.conf import settings
-
+from clipped.compact.pydantic import ValidationError as PydanticValidationError
+from clipped.utils.json import orjson_loads
 from haupt.common.authentication.base import is_normal_user
 from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models

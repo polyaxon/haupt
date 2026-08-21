@@ -1,8 +1,7 @@
 import pytest
 
-from rest_framework import status
-
 from django.conf import settings
+from rest_framework import status
 
 from haupt.apis.serializers.runs import (
     DownstreamRunEdgeSerializer,

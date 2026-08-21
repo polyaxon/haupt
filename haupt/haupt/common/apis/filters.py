@@ -1,12 +1,13 @@
-from clipped.utils.strings import strip_spaces
-from rest_framework.exceptions import ValidationError
-from rest_framework.filters import BaseFilterBackend
-from rest_framework.filters import OrderingFilter as BaseOrderingFilter
-
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import F
 from django.db.models.fields.json import KeyTransform
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import (
+    BaseFilterBackend,
+    OrderingFilter as BaseOrderingFilter,
+)
 
+from clipped.utils.strings import strip_spaces
 from haupt.common import query
 from polyaxon.exceptions import PQLException
 

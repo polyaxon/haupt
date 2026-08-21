@@ -1,6 +1,7 @@
 from haupt.common import auditor
 from haupt.common.events.registry import model_version
 
+
 auditor.subscribe(model_version.ModelVersionDeletedEvent)
 auditor.subscribe(model_version.ModelVersionCreatedActorEvent)
 auditor.subscribe(model_version.ModelVersionUpdatedActorEvent)

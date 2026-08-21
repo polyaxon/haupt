@@ -5,7 +5,6 @@ import shutil
 
 from clipped.utils.enums import get_enum_value
 from clipped.utils.paths import create_path
-
 from polyaxon import settings
 from polyaxon._utils.test_utils import set_store
 from polyaxon.api import STREAMS_V1_LOCATION

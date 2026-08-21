@@ -1,10 +1,9 @@
 import pytest
 
-from clipped.utils.tz import get_datetime_from_now
-
 from django.conf import settings
 from django.db.models import Q
 
+from clipped.utils.tz import get_datetime_from_now
 from haupt.db.models.runs import Run
 from haupt.db.query_managers.run import RunQueryManager
 from polyaxon._pql.builder import (
@@ -16,11 +15,10 @@ from polyaxon._pql.builder import (
     SearchCondition,
     ValueCondition,
 )
+from polyaxon._pql.manager import LegacyQueryMixin
 from polyaxon._pql.parser import QueryOpSpec
 from polyaxon.exceptions import PQLException
 from tests.tests_db.test_query.base import BaseTestQuery
-
-from polyaxon._pql.manager import LegacyQueryMixin
 
 
 class LegacyRunQueryManager(RunQueryManager, LegacyQueryMixin):

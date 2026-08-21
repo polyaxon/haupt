@@ -1,9 +1,7 @@
 import sys
-
 from typing import List
 
 from clipped.formatting import Printer
-
 from haupt.managers.sandbox import SandboxConfigManager
 from haupt.settings import set_sandbox_config
 from polyaxon._cli.config import set_home_path

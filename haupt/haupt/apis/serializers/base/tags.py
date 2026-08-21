@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional
 
 from clipped.utils.lists import to_list
-
 from haupt.db.managers.tags import denormalize_tags, normalize_tags
 
 

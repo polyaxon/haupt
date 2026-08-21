@@ -2,6 +2,7 @@ import logging
 
 from celery import Task
 
+
 _logger = logging.getLogger("haupt.tasks")
 
 

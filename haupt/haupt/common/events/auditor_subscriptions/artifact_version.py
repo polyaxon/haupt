@@ -1,6 +1,7 @@
 from haupt.common import auditor
 from haupt.common.events.registry import artifact_version
 
+
 auditor.subscribe(artifact_version.ArtifactVersionDeletedEvent)
 auditor.subscribe(artifact_version.ArtifactVersionCreatedActorEvent)
 auditor.subscribe(artifact_version.ArtifactVersionUpdatedActorEvent)

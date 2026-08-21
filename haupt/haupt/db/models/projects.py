@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.core.validators import validate_slug
 from django.db import models
-from django.conf import settings
 
 from haupt.common.validation.blacklist import validate_blacklist_name
 from haupt.db.abstracts.catalogs import BaseLiveStateCatalog

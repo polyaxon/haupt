@@ -1,5 +1,4 @@
 import os
-
 from unittest import TestCase
 
 from haupt.schemas.platform_config import PlatformConfig

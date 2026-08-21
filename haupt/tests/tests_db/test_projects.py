@@ -1,12 +1,10 @@
 from datetime import timedelta
 import pytest
 
-from clipped.utils.tz import get_datetime_from_now
-
 from django.test import TestCase
 from django.utils.timezone import now
 
-
+from clipped.utils.tz import get_datetime_from_now
 from haupt.db.factories.projects import ProjectFactory, ProjectVersionFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.deleted import ArchivedManager, LiveManager
@@ -280,8 +278,9 @@ class TestProjectModel(TestCase):
 
     def test_collect_entity_run_resources_with_rolling_stats(self):
         """Test that resources field includes rolling stats for cpu, memory, gpu, cost"""
-        from django.utils.timezone import now
         from datetime import timedelta
+
+        from django.utils.timezone import now
 
         # Test empty resources
         run_stats = collect_entity_run_stats(project=self.project)

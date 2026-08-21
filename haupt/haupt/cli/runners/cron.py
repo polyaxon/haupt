@@ -3,6 +3,8 @@ import logging
 import threading
 import time
 
+from urllib3.exceptions import HTTPError
+
 from haupt.streams.connections.fs import AppFS
 from polyaxon._constants.globals import DEFAULT, NO_AUTH
 from polyaxon._fs.fs import get_sync_default_fs
@@ -11,7 +13,7 @@ from polyaxon._fs.utils import get_store_path
 from polyaxon._schemas.client import ClientConfig
 from polyaxon.client import PolyaxonClient
 from polyaxon.exceptions import ApiException
-from urllib3.exceptions import HTTPError
+
 
 _logger = logging.getLogger("haupt.cli.cron")
 

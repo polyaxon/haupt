@@ -1,5 +1,6 @@
 from haupt.proxies.schemas.base import get_config
 
+
 OPTIONS = """
 client_max_body_size        0;
 client_body_buffer_size     50m;

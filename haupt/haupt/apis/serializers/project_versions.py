@@ -1,9 +1,8 @@
-from rest_framework import fields, serializers
-from rest_framework.exceptions import ValidationError
-
 from django.conf import settings
 from django.db import IntegrityError
 from django.db.models import Count
+from rest_framework import fields, serializers
+from rest_framework.exceptions import ValidationError
 
 from haupt.apis.serializers.artifacts import (
     RunArtifactBackwardCompatibleSerializer,

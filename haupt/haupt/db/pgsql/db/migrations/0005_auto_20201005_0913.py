@@ -1,5 +1,4 @@
 import django.core.serializers.json
-
 from django.db import migrations, models
 
 

@@ -1,20 +1,19 @@
 import logging
-
 from typing import Dict, Optional
-
-from clipped.utils.json import orjson_loads
-from rest_framework import status
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
+from rest_framework import status
 
+from clipped.utils.json import orjson_loads
 from haupt.common.endpoints.validation import validate_methods
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.notification import notify_run
 from polyaxon import settings
 from polyaxon.schemas import V1StatusCondition
+
 
 logger = logging.getLogger("haupt.streams.notifications")
 

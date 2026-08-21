@@ -1,8 +1,7 @@
-from clipped.utils.tz import get_datetime_from_now, now
-
 from django.conf import settings
 from django.db.models import Count, Q
 
+from clipped.utils.tz import get_datetime_from_now, now
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import conf, workers
 from haupt.common.options.registry.cleaning import (
@@ -76,9 +75,7 @@ class CronsDeletionManager:
                 agent__isnull=True,
                 deleted_at__isnull=True,
             )
-            run_values = list(
-                runs.values_list("id", "pipeline_id", "controller_id")
-            )
+            run_values = list(runs.values_list("id", "pipeline_id", "controller_id"))
             run_ids = [v[0] for v in run_values]
             confirm_delete_runs(runs=runs, run_ids=run_ids)
             parent_ids = collect_pipeline_controller_ids(

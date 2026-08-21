@@ -1,5 +1,6 @@
 from haupt.proxies.schemas.base import get_config
 
+
 OPTIONS = """
 charset utf-8;
 """

@@ -1,5 +1,5 @@
-from hashlib import md5 as _md5
-from hashlib import sha1 as _sha1
+from hashlib import md5 as _md5, sha1 as _sha1
+
 
 try:
     from django.utils.encoding import force_bytes

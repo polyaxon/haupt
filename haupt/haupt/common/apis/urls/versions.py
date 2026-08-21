@@ -1,5 +1,6 @@
 from haupt.common.apis.regex import INSTALLATION_PATTERN, NAME_PATTERN, VERSION_PATTERN
 
+
 URLS_VERSIONS_INSTALLED = r"^installation/?$"
 URLS_VERSIONS_LOG_HANDLER = r"^log_handler/?$"
 URLS_VERSIONS_COMPATIBILITY = r"^compatibility/{}/{}/{}/?$".format(

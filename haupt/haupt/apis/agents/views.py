@@ -1,9 +1,8 @@
-from clipped.utils.bools import to_bool
+from django.http import HttpRequest
 from rest_framework import status
 from rest_framework.response import Response
 
-from django.http import HttpRequest
-
+from clipped.utils.bools import to_bool
 from haupt.apis.serializers.runs import RunDetailSerializer
 from haupt.common.apis.regex import OWNER_NAME_KEY, RUN_UUID_KEY, UUID_KEY
 from haupt.common.endpoints.base import BaseEndpoint, PostEndpoint, RetrieveEndpoint

@@ -1,9 +1,7 @@
 import os
-
 from typing import Optional
 
 from clipped.utils.bools import to_bool
-
 from haupt.cli.runners.base import start_app
 from polyaxon._env_vars.keys import (
     ENV_KEYS_PROXY_GATEWAY_CONCURRENCY,

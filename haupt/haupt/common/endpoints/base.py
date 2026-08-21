@@ -1,12 +1,11 @@
 from typing import Optional
 
-from clipped.utils.versions import clean_version_for_check
+from django.conf import settings
+from django.http import HttpRequest, HttpResponse
 from rest_framework import exceptions
 from rest_framework.generics import GenericAPIView
 
-from django.conf import settings
-from django.http import HttpRequest, HttpResponse
-
+from clipped.utils.versions import clean_version_for_check
 from haupt.common import auditor, user_system
 from haupt.common.apis.gzip import gzip
 from haupt.common.apis.regex import OWNER_NAME_KEY, PROJECT_NAME_KEY, UUID_KEY

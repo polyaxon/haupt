@@ -1,6 +1,6 @@
-from clipped.decorators.memoization import memoize
-
 from django.db import connection
+
+from clipped.decorators.memoization import memoize
 
 
 class RawBulkInserter:

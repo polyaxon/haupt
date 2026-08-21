@@ -1,12 +1,11 @@
 from collections import namedtuple
-from typing import Any, Tuple
 from datetime import timedelta, timezone
-
-from rest_framework.exceptions import ValidationError
+from typing import Any, Tuple
 
 from django.db.models import Avg, Count, F, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.utils.timezone import now
+from rest_framework.exceptions import ValidationError
 
 from clipped.utils.dates import DateTimeFormatter
 from haupt.db.defs import Models
@@ -14,6 +13,7 @@ from haupt.db.query_managers.bookmarks import filter_bookmarks
 from haupt.db.query_managers.run import RunsOfflineFilter
 from polyaxon.exceptions import PQLException
 from polyaxon.schemas import LifeCycle
+
 
 AGGREGATE_MAP = {
     "avg": Avg,

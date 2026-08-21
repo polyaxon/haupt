@@ -4,6 +4,7 @@ from haupt.common.apis.regex import (
     TEAM_NAME_PATTERN,
 )
 
+
 # Projects
 URLS_TEAMS_PROJECTS_CREATE = r"^{}/{}/projects/create/?$".format(
     OWNER_NAME_PATTERN, TEAM_NAME_PATTERN

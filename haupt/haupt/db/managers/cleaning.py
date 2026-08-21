@@ -1,10 +1,10 @@
 from datetime import timezone as _timezone
 from typing import Optional
 
-from clipped.utils.tz import get_datetime_from_now
-
 from django.db.models import Max
 from django.db.models.functions import TruncDay, TruncHour
+
+from clipped.utils.tz import get_datetime_from_now
 
 
 def compact_owner_stats(

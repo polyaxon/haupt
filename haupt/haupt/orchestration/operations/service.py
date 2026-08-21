@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 from clipped.utils.enums import get_enum_value
 from clipped.utils.lists import to_list
-
 from haupt.common.service_interface import Service
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models

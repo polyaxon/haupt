@@ -1,17 +1,16 @@
 import re
 import uuid
 
+from django.conf import settings
 import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.contrib.postgres.fields
 import django.contrib.postgres.fields.jsonb
 import django.core.serializers.json
 import django.core.validators
+from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-
-from django.conf import settings
-from django.db import migrations, models
 
 import haupt.common.validation.blacklist
 

@@ -1,9 +1,8 @@
 from typing import Any, Optional, Tuple
 
+from django.http import HttpRequest
 from rest_framework import HTTP_HEADER_ENCODING, exceptions
 from rest_framework.authentication import get_authorization_header
-
-from django.http import HttpRequest
 
 from haupt.common import conf
 from haupt.common.authentication.base import BaseUser, PolyaxonAuthentication

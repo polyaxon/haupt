@@ -9,6 +9,7 @@ from polyaxon.api import (
     UI_V1_LOCATION,
 )
 
+
 UWSGI_OPTIONS = """
 location {path} {{
     include     /etc/nginx/uwsgi_params;

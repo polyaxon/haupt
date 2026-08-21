@@ -8,6 +8,7 @@ from haupt.proxies.schemas.urls import (
 )
 from polyaxon.api import AUTH_REQUEST_V1_LOCATION, AUTH_V1_LOCATION
 
+
 AUTH_OPTIONS = r"""
     auth_request     {auth_api};
     auth_request_set $auth_status $upstream_status;

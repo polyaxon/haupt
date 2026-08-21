@@ -1,6 +1,7 @@
 from haupt import settings
 from haupt.proxies.schemas.base import get_config
 
+
 OPTIONS = """
 error_log {root}/error.log {level};
 """

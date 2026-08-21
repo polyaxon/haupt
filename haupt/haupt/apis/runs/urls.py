@@ -1,9 +1,9 @@
-from rest_framework.urlpatterns import format_suffix_patterns
-
 from django.urls import re_path
+from rest_framework.urlpatterns import format_suffix_patterns
 
 from haupt.apis.runs import views
 from haupt.common.apis.urls import runs
+
 
 runs_urlpatterns = [
     re_path(runs.URLS_RUNS_DETAILS, views.RunDetailView.as_view()),

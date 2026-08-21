@@ -1,7 +1,6 @@
 import copy
 
 from clipped.utils.imports import import_string
-
 from haupt.common.auditor.manager import event_manager
 from haupt.common.events.event import Event
 from haupt.common.events.event_service import EventService

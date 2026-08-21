@@ -5,6 +5,7 @@ from haupt.common.events.registry.attributes import (
     PROJECT_RESOURCE_OWNER_ATTRIBUTES,
 )
 
+
 PROJECT_ARCHIVED_ACTOR = "{}.{}.{}".format(
     event_subjects.PROJECT, event_actions.ARCHIVED, event_subjects.ACTOR
 )

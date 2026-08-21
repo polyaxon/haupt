@@ -1,6 +1,7 @@
 from haupt.common.options import option_namespaces, option_subjects
 from haupt.common.options.option import Option, OptionScope, OptionStores
 
+
 CLEANING_INTERVALS_ACTIVITY_LOGS = "{}_{}".format(
     option_namespaces.CLEANING_INTERVALS,
     option_subjects.ACTIVITY_LOGS,

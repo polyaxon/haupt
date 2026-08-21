@@ -1,6 +1,5 @@
-import pytest
-
 from mock import MagicMock, mock, patch
+import pytest
 
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.runs import RunFactory

@@ -1,6 +1,7 @@
 from haupt import settings
 from haupt.proxies.schemas.base import get_config
 
+
 SSL_REDIRECT_OPTIONS = r"""
 server {{
     listen 80;

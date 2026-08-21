@@ -7,6 +7,7 @@ from polyaxon._auxiliaries import (
     get_default_sidecar_container,
 )
 
+
 INIT_CONTAINER = "{}_{}".format(option_namespaces.INIT, option_subjects.CONTAINER)
 
 SIDECAR_CONTAINER = "{}_{}".format(

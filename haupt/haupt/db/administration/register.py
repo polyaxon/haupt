@@ -6,6 +6,7 @@ from haupt.db.administration.projects import ProjectAdmin
 from haupt.db.administration.runs import RunLightAdmin
 from haupt.db.defs import Models
 
+
 site.register(Models.User, UserAdmin)
 site.register(Models.Artifact, ArtifactAdmin)
 site.register(Models.ArtifactLineage, ArtifactLineageAdmin)

@@ -1,6 +1,7 @@
 from haupt.common.events.registry import run
 from haupt.orchestration import executor
 
+
 executor.subscribe(run.RunCreatedEvent)
 executor.subscribe(run.RunResumedActorEvent)
 executor.subscribe(run.RunStoppedActorEvent)

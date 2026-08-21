@@ -4,6 +4,7 @@ from django.db import models
 
 from polyaxon.schemas import V1RunEdgeKind, V1Statuses
 
+
 if settings.DB_ENGINE_NAME == "sqlite":
     ArrayField = None
 else:

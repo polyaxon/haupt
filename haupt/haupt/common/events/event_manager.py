@@ -1,7 +1,6 @@
 from typing import List, Tuple
 
 from clipped.manager_interface import ManagerInterface
-
 from haupt.common.events import event_actions
 from haupt.common.events.event import Event
 

@@ -1,9 +1,8 @@
-from clipped.decorators.signals import ignore_raw, ignore_updates_pre
-
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 
+from clipped.decorators.signals import ignore_raw, ignore_updates_pre
 from haupt.db.defs import Models
 
 

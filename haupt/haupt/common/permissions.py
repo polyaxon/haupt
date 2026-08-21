@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
-from clipped.utils.imports import import_string
-
 from django.conf import settings
+
+from clipped.utils.imports import import_string
 
 
 class PermissionMapping:

@@ -6,6 +6,7 @@ from haupt.db.models.artifacts import ArtifactLineage
 from polyaxon._pql.builder import BoolCondition
 from tests.tests_db.test_query.base import BaseTestQuery
 
+
 # pylint:disable=protected-access
 
 

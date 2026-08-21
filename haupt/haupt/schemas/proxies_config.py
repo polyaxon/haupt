@@ -3,7 +3,6 @@ from typing_extensions import Literal
 
 from clipped.compact.pydantic import Field
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
-
 from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.keys import (
     ENV_KEYS_ARCHIVES_ROOT,

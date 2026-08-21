@@ -1,5 +1,4 @@
 import logging
-
 from typing import List, Optional
 
 from haupt.schemas.platform_config import PlatformConfig

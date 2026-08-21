@@ -1,8 +1,7 @@
-from clipped.utils.bools import to_bool
+from django.conf import settings
 from rest_framework import serializers
 
-from django.conf import settings
-
+from clipped.utils.bools import to_bool
 from haupt.common.apis.filters import OrderingFilter, QueryFilter
 from haupt.common.authentication.base import is_user
 from haupt.db.defs import Models
@@ -32,9 +31,7 @@ class BookmarkedSerializerMixin(serializers.Serializer):
             if request:
                 return Models.Bookmark.objects.filter(
                     **user_filters,
-                    content_type_id=get_bookmark_content_type_id(
-                        self.bookmarked_model
-                    ),
+                    content_type_id=get_bookmark_content_type_id(self.bookmarked_model),
                     object_id=obj.id,
                     enabled=True,
                 ).exists()

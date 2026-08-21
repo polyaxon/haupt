@@ -1,8 +1,7 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-
-from django.conf import settings
 
 from clipped.utils.bools import to_bool
 from haupt.apis.bookmarks.views import BookmarkCreateView, BookmarkDeleteView
@@ -10,8 +9,8 @@ from haupt.apis.endpoints.project import ProjectEndpoint
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedListMixinView
 from haupt.apis.serializers.project_stats import (
     ProjectStatsSerializer,
-    get_stats,
     RealTimeStats,
+    get_stats,
 )
 from haupt.apis.serializers.projects import (
     BookmarkedProjectSerializer,

@@ -1,5 +1,6 @@
 from haupt.proxies.schemas.base import get_config
 
+
 OPTIONS = """
 location = /favicon.ico {{
     rewrite ^ /static/images/favicon.ico;

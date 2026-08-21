@@ -1,11 +1,10 @@
-from clipped.utils.versions import compare_versions
+from django.conf import settings
+from django.http import Http404
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from django.conf import settings
-from django.http import Http404
-
+from clipped.utils.versions import compare_versions
 from haupt.apis.endpoints.project import VersionEndpoint, VersionListEndpoint
 from haupt.apis.methods import entity_stages as methods
 from haupt.apis.serializers.project_versions import (
@@ -55,6 +54,7 @@ from haupt.db.defs import Models
 from haupt.db.managers.versions import add_version_contributors, transfer_version_action
 from haupt.db.query_managers.project_version import ProjectVersionQueryManager
 from polyaxon.schemas import V1ProjectVersionKind
+
 
 ADDITIONAL_SELECT_RELATED = ["project__owner"] if settings.HAS_ORG_MANAGEMENT else []
 

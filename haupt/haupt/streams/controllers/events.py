@@ -1,13 +1,11 @@
 import logging
 import os
-
 from typing import Dict, List, Optional, Set
 
-from clipped.utils.json import orjson_loads
-
 import aiofiles
-
 from asgiref.sync import sync_to_async
+
+from clipped.utils.json import orjson_loads
 from polyaxon._fs.async_manager import (
     download_file,
     download_files,
@@ -17,6 +15,7 @@ from polyaxon._fs.async_manager import (
 from polyaxon._fs.types import FSSystem
 from traceml.artifacts import V1ArtifactKind
 from traceml.events import V1Events, get_event_path, get_resource_path
+
 
 logger = logging.getLogger("haupt.streams.events")
 

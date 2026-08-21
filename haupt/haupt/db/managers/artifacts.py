@@ -1,9 +1,8 @@
-import time
-import uuid
-
 from functools import reduce
 from operator import or_
+import time
 from typing import Any, Dict, List, Set
+import uuid
 
 from django.conf import settings
 from django.db import IntegrityError, transaction

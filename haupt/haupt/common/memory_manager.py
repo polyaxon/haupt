@@ -1,6 +1,5 @@
-import datetime
-
 from collections import namedtuple
+import datetime
 from datetime import timedelta
 from typing import Any, Optional
 

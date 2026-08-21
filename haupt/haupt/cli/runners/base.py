@@ -1,15 +1,14 @@
 import logging
 import os
-
 from typing import Optional
-
-from clipped.utils.workers import get_core_workers
 
 import uvicorn
 
+from clipped.utils.workers import get_core_workers
 from haupt.cli.runners.cron import start_cron
 from haupt.cli.runners.manage import migrate
 from polyaxon._env_vars.keys import ENV_KEYS_PROXY_LOCAL_PORT
+
 
 _logger = logging.getLogger("haupt.cli")
 

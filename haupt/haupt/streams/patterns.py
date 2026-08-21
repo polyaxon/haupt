@@ -14,6 +14,7 @@ from haupt.streams.endpoints.notifications import notifications_routes
 from haupt.streams.endpoints.viewer import viewer_routes
 from polyaxon.api import API_V1, AUTH_REQUEST_V1, INTERNAL_V1, STREAMS_V1
 
+
 is_viewer = settings.SANDBOX_CONFIG and settings.SANDBOX_CONFIG.is_viewer
 
 streams_routes = (

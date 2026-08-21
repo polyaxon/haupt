@@ -7,6 +7,7 @@ from polyaxon._pql.builder import ComparisonCondition
 from polyaxon.schemas import ManagedBy
 from tests.tests_db.test_query.base import BaseTestQuery
 
+
 # pylint:disable=protected-access
 
 

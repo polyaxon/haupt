@@ -1,6 +1,5 @@
-import pytest
-
 from mock import mock
+import pytest
 
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status

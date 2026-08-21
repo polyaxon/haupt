@@ -1,5 +1,6 @@
 from haupt.common.options.option import Option, OptionScope, OptionStores
 
+
 LOGGING = "LOGGING"
 DEBUG = "DEBUG"
 PROTOCOL = "PROTOCOL"

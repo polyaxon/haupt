@@ -1,9 +1,8 @@
-from clipped.decorators.signals import ignore_raw, ignore_updates
-from rest_framework.exceptions import ValidationError
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from rest_framework.exceptions import ValidationError
 
+from clipped.decorators.signals import ignore_raw, ignore_updates
 from haupt.common import auditor
 from haupt.common.events.registry.run import RUN_CREATED
 from haupt.db.defs import Models

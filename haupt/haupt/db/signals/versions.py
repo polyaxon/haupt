@@ -1,9 +1,8 @@
-from clipped.decorators.signals import ignore_raw, ignore_updates_pre
-from clipped.utils.enums import get_enum_value
-
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 
+from clipped.decorators.signals import ignore_raw, ignore_updates_pre
+from clipped.utils.enums import get_enum_value
 from haupt.db.defs import Models
 from polyaxon._constants.metadata import META_IS_PROMOTED
 from polyaxon.schemas import V1StageCondition, V1Stages

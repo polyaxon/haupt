@@ -1,12 +1,12 @@
 from typing import Type
 
-from clipped.decorators.cached_property import cached_property
-
 from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
+
+from clipped.decorators.cached_property import cached_property
 
 
 class _Models:

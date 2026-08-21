@@ -1,9 +1,9 @@
-from rest_framework.urlpatterns import format_suffix_patterns
-
 from django.urls import re_path
+from rest_framework.urlpatterns import format_suffix_patterns
 
 from haupt.apis.run_lineage import views
 from haupt.common.apis.urls import runs
+
 
 run_lineages_urlpatterns = [
     re_path(

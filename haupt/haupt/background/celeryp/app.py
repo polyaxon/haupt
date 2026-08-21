@@ -1,6 +1,6 @@
 from celery import Celery, states
-
 from django.apps import apps
+
 
 STATES = states
 

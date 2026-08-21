@@ -1,19 +1,17 @@
-import uuid
-
 from datetime import datetime, timedelta
 from functools import reduce
 from operator import or_
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-
-from clipped.config.patch_strategy import PatchStrategy
-from clipped.utils.bools import to_bool
-from clipped.utils.lists import to_list
-from clipped._vendor.croniter import croniter
+import uuid
 
 from django.conf import settings
 from django.db.models import Count, Q
 from django.utils.timezone import now
 
+from clipped._vendor.croniter import croniter
+from clipped.config.patch_strategy import PatchStrategy
+from clipped.utils.bools import to_bool
+from clipped.utils.lists import to_list
 from haupt.common.db.runs import bulk_create_runs
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
 from haupt.db.abstracts.project_versions import BaseProjectVersion
@@ -51,10 +49,12 @@ from polyaxon._constants.metadata import (
     META_TTL,
     META_UPLOAD_ARTIFACTS,
 )
-from polyaxon._contexts import keys as ctx_keys
-from polyaxon._contexts import paths as ctx_paths
-from polyaxon._contexts import refs as ctx_refs
-from polyaxon._contexts import sections as ctx_sections
+from polyaxon._contexts import (
+    keys as ctx_keys,
+    paths as ctx_paths,
+    refs as ctx_refs,
+    sections as ctx_sections,
+)
 from polyaxon._env_vars.getters import get_versioned_entity_info
 from polyaxon._polyaxonfile import CompiledOperationSpecification
 from polyaxon._polyaxonfile.manager import (

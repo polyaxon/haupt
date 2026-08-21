@@ -1,5 +1,4 @@
 import pytest
-
 from unittest.mock import patch
 
 from haupt.common.test_cases.base import PolyaxonBaseTest

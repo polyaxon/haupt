@@ -1,6 +1,5 @@
-from rest_framework.exceptions import ValidationError
-
 from django.test import TestCase
+from rest_framework.exceptions import ValidationError
 
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory

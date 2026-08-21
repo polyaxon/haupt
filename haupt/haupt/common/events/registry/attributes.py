@@ -1,5 +1,6 @@
 from haupt.common.events.event import Attribute
 
+
 OWNER_ATTRIBUTES = (Attribute("id"), Attribute("name"))
 
 OWNER_RESOURCE_ATTRIBUTES = (

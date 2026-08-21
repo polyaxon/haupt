@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator
 from django.utils.regex_helper import _lazy_re_compile
 
+
 try:
     from django.utils.safestring import mark_safe
 except ImportError:

@@ -3,6 +3,7 @@ import itertools
 
 from clipped.utils.imports import import_string
 
+
 try:
     from django.utils.functional import LazyObject, empty  # pylint:disable=import-error
 except ImportError:

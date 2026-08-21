@@ -4,6 +4,7 @@ from django.conf import settings
 
 from haupt.db.defs import Models
 
+
 artifacts_names = Models.ArtifactLineage.objects.prefetch_related("artifact").only(
     "artifact__id", "artifact__name"
 )
