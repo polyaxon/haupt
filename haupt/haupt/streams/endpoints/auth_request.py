@@ -1,25 +1,22 @@
 import logging
 import os
-
 from typing import Dict, Optional
 from urllib.parse import urlparse
+
+import aiofiles
+import aiohttp
+from django.conf import settings as dj_settings
+from django.core.handlers.asgi import ASGIRequest
+from django.db import transaction
+from django.http import HttpResponse
+from django.urls import path
+from rest_framework import status
 
 from clipped.utils.dates import DateTimeFormatter
 from clipped.utils.hashing import hash_value
 from clipped.utils.json import orjson_dumps, orjson_loads
 from clipped.utils.paths import check_or_create_path
 from clipped.utils.tz import now
-from rest_framework import status
-
-from django.conf import settings as dj_settings
-from django.core.handlers.asgi import ASGIRequest
-from django.db import transaction
-from django.http import HttpResponse
-from django.urls import path
-
-import aiofiles
-import aiohttp
-
 from haupt.common.endpoints.validation import validate_methods
 from haupt.common.headers import (
     get_authorization_header,
@@ -27,10 +24,11 @@ from haupt.common.headers import (
     get_original_uri_header,
 )
 from haupt.streams.controllers.k8s_check import k8s_check, reverse_k8s
-from haupt.streams.controllers.sandbox_check import sandbox_check, reverse_sandbox
+from haupt.streams.controllers.sandbox_check import reverse_sandbox, sandbox_check
 from polyaxon import settings
 from polyaxon._env_vars.keys import ENV_KEYS_PROXY_LOCAL_PORT
 from polyaxon.api import AUTH_V1_LOCATION, K8S_V1_LOCATION, SANDBOX_V1_LOCATION
+
 
 logger = logging.getLogger("haupt.streams.auth")
 
@@ -90,12 +88,16 @@ async def _persist_auth_cache(request_cache: str, response: bool):
 
 
 async def _check_auth_service(headers: Dict):
+    auth_headers = {
+        key: value for key, value in headers.items() if key.lower() != "accept"
+    }
+    auth_headers["Accept"] = "application/json"
     async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(
             "http://localhost:{}{}".format(
                 os.environ[ENV_KEYS_PROXY_LOCAL_PORT], AUTH_V1_LOCATION
             ),
-            headers=headers,
+            headers=auth_headers,
         ) as resp:
             return resp
 

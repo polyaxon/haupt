@@ -1,8 +1,6 @@
 import asyncio
-
-from unittest.mock import patch
-
 import pytest
+from unittest.mock import patch
 
 from django.http import HttpResponse
 from django.test import RequestFactory
@@ -10,7 +8,10 @@ from rest_framework import status
 
 from haupt.streams.endpoints import auth_request as auth_request_module
 from polyaxon import settings
-from polyaxon._env_vars.keys import ENV_KEYS_SECRET_INTERNAL_TOKEN
+from polyaxon._env_vars.keys import (
+    ENV_KEYS_PROXY_LOCAL_PORT,
+    ENV_KEYS_SECRET_INTERNAL_TOKEN,
+)
 from polyaxon._sandbox.auth import derive_sandbox_token
 from polyaxon._utils.test_utils import patch_settings
 
@@ -37,6 +38,16 @@ class AuthResponse:
 
 class AuthDeniedResponse:
     status = status.HTTP_403_FORBIDDEN
+
+
+class AuthResponseContext:
+    status = status.HTTP_200_OK
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
 
 
 def make_auth_request(
@@ -77,6 +88,44 @@ def test_uri_family_uses_path_not_query_string():
         )
         == auth_request_module.URI_FAMILY_OTHER
     )
+
+
+def test_check_auth_service_requests_json(monkeypatch):
+    captured = {}
+
+    class ClientSession:
+        def __init__(self, **kwargs):
+            captured["session_kwargs"] = kwargs
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        def get(self, url, headers):
+            captured["url"] = url
+            captured["headers"] = headers
+            return AuthResponseContext()
+
+    monkeypatch.setattr(auth_request_module.aiohttp, "ClientSession", ClientSession)
+    monkeypatch.setenv(ENV_KEYS_PROXY_LOCAL_PORT, "8000")
+
+    response = asyncio.run(
+        auth_request_module._check_auth_service(
+            {"Accept": "text/event-stream", "Authorization": "token abc"}
+        )
+    )
+
+    assert response.status == status.HTTP_200_OK
+    assert captured == {
+        "session_kwargs": {"trust_env": True},
+        "url": "http://localhost:8000/auth/v1/",
+        "headers": {
+            "Authorization": "token abc",
+            "Accept": "application/json",
+        },
+    }
 
 
 def test_auth_request_rejects_cached_deny(monkeypatch):
@@ -218,9 +267,7 @@ def test_auth_request_sandbox_cached_allow_returns_token(monkeypatch):
         auth_request_module, "_persist_auth_cache", fail_persist_auth_cache
     )
 
-    with patch.dict(
-        "os.environ", {ENV_KEYS_SECRET_INTERNAL_TOKEN: "internal-token"}
-    ):
+    with patch.dict("os.environ", {ENV_KEYS_SECRET_INTERNAL_TOKEN: "internal-token"}):
         response = asyncio.run(
             auth_request_module.auth_request(
                 make_auth_request(uri="/sandbox/v1/ns/owner/project/runs/uuid/ping")
@@ -249,9 +296,7 @@ def test_auth_request_sandbox_cache_miss_persists_allow_and_returns_token(monkey
     monkeypatch.setattr(auth_request_module, "_check_auth_service", check_auth_service)
     monkeypatch.setattr(auth_request_module, "_persist_auth_cache", persist_auth_cache)
 
-    with patch.dict(
-        "os.environ", {ENV_KEYS_SECRET_INTERNAL_TOKEN: "internal-token"}
-    ):
+    with patch.dict("os.environ", {ENV_KEYS_SECRET_INTERNAL_TOKEN: "internal-token"}):
         response = asyncio.run(
             auth_request_module.auth_request(
                 make_auth_request(uri="/sandbox/v1/ns/owner/project/runs/uuid/ping")
