@@ -9,12 +9,6 @@ def set_celery(
     context["CELERY_TASK_TRACK_STARTED"] = config.celery_task_track_started
     context["CELERY_BROKER_POOL_LIMIT"] = config.celery_broker_pool_limit
     context["CELERY_BROKER_BACKEND"] = config.broker_backend
-    confirm_publish = config.celery_confirm_publish
-    context["CELERY_CONFIRM_PUBLISH"] = confirm_publish
-    if config.is_rabbitmq_broker and confirm_publish:
-        # see https://github.com/celery/celery/issues/5410 for details
-        context["CELERY_BROKER_TRANSPORT_OPTIONS"] = {"confirm_publish": True}
-
     context["CELERY_BROKER_URL"] = config.get_broker_url()
 
     context["INTERNAL_EXCHANGE"] = config.internal_exchange

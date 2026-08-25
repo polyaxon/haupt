@@ -90,29 +90,17 @@ class PlatformConfig(BaseSchemaModel):
     artifacts_root: Optional[str] = Field(alias=ENV_KEYS_ARTIFACTS_ROOT, default=None)
     archives_root: Optional[str] = Field(alias=ENV_KEYS_ARCHIVES_ROOT, default=None)
     max_concurrency: Optional[int] = Field(alias=ENV_KEYS_MAX_CONCURRENCY, default=50)
-    broker_backend: Optional[Literal["redis", "rabbitmq"]] = Field(
+    broker_backend: Optional[Literal["redis"]] = Field(
         alias="POLYAXON_BROKER_BACKEND", default=None
     )
     celery_redis_broker_url: Optional[str] = Field(
         alias="POLYAXON_REDIS_CELERY_BROKER_URL", default=None
     )
-    celery_amqp_broker_url: Optional[str] = Field(
-        alias="POLYAXON_AMQP_URL", default=None
-    )
-    celery_amqp_user: Optional[str] = Field(
-        alias="POLYAXON_RABBITMQ_USER", default=None
-    )
-    celery_amqp_password: Optional[str] = Field(
-        alias="POLYAXON_RABBITMQ_PASSWORD", default=None
-    )  # secret
     celery_task_track_started: Optional[bool] = Field(
         alias="POLYAXON_CELERY_TASK_TRACK_STARTED", default=True
     )
     celery_broker_pool_limit: Optional[int] = Field(
         alias="POLYAXON_CELERY_BROKER_POOL_LIMIT", default=100
-    )
-    celery_confirm_publish: Optional[bool] = Field(
-        alias="POLYAXON_CELERY_CONFIRM_PUBLISH", default=True
     )
     celery_result_backend: Optional[str] = Field(
         alias="POLYAXON_REDIS_CELERY_RESULT_BACKEND_URL", default=None
@@ -453,10 +441,6 @@ class PlatformConfig(BaseSchemaModel):
     def is_redis_broker(self):
         return self.broker_backend == "redis"
 
-    @property
-    def is_rabbitmq_broker(self):
-        return self.broker_backend == "rabbitmq"
-
     def get_redis_url(self, redis_url) -> str:
         if self.redis_password:
             redis_url = ":{}@{}".format(self.redis_password, redis_url)
@@ -465,12 +449,3 @@ class PlatformConfig(BaseSchemaModel):
     def get_broker_url(self) -> str:
         if self.is_redis_broker:
             return self.get_redis_url(self.celery_redis_broker_url)
-        if self.is_rabbitmq_broker:
-            if self.celery_amqp_user and self.celery_amqp_password:
-                return "amqp://{user}:{password}@{url}".format(
-                    user=self.celery_amqp_user,
-                    password=self.celery_amqp_password,
-                    url=self.celery_amqp_broker_url,
-                )
-
-            return "amqp://{url}".format(url=self.celery_amqp_broker_url)
