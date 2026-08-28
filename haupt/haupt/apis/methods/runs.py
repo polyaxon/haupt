@@ -1,5 +1,5 @@
 from django.conf import settings
-
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -9,17 +9,16 @@ from clipped.utils.json import orjson_loads
 from haupt.common.authentication.base import is_normal_user
 from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
-from haupt.db.managers.runs import (
-    add_run_contributors,
-    archive_run_action,
-    base_approve_run,
-    invalidate_run_action,
-    restore_run_action,
-    skip_run_action,
-    stop_run_action,
-    transfer_run_action,
+from haupt.db.managers.live_state import (
+    archive_run as base_archive_run,
+    restore_run as base_restore_run,
 )
-from haupt.db.managers.statuses import new_run_status
+from haupt.db.managers.runs import add_run_contributors, base_approve_run
+from haupt.db.managers.statuses import (
+    new_run_skipped_status,
+    new_run_status,
+    new_run_stopping_status,
+)
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.schemas import V1StatusCondition
 
@@ -77,39 +76,39 @@ def create_status(view, serializer):
 
 
 def stop_run(view, request, *args, **kwargs):
-    actor_info = None
+    status_meta_info = None
     if settings.HAS_ORG_MANAGEMENT and is_normal_user(request.user):
-        actor_info = {
+        status_meta_info = {
             "user": {
-                "username": request.user.username,
-                "email": request.user.email,
+                "username": view.request.user.username,
+                "email": view.request.user.email,
             },
         }
-    if stop_run_action(
+    if new_run_stopping_status(
         run=view.run,
         message="User requested to stop the run.",
-        actor_info=actor_info,
-        contributor_user=request.user,
+        meta_info=status_meta_info,
     ):
+        add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def skip_run(view, request, *args, **kwargs):
-    actor_info = None
+    status_meta_info = None
     if settings.HAS_ORG_MANAGEMENT and is_normal_user(request.user):
-        actor_info = {
+        status_meta_info = {
             "user": {
-                "username": request.user.username,
-                "email": request.user.email,
+                "username": view.request.user.username,
+                "email": view.request.user.email,
             },
         }
-    if skip_run_action(
+    if new_run_skipped_status(
         run=view.run,
         message="User requested to skip the run.",
-        actor_info=actor_info,
-        contributor_user=request.user,
+        meta_info=status_meta_info,
     ):
+        add_run_contributors(view.run, users=[request.user])
         view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
@@ -148,13 +147,21 @@ def transfer_run(view, request, *args, **kwargs):
                 f"You don't have permission to transfer runs to project '{project_name}'"
             )
 
-    if transfer_run_action(view.run, dest_project, contributor_user=request.user):
-        view.audit(request, *args, **kwargs)
+    view.run.project_id = dest_project.id
+    view.run.save(update_fields=["project_id", "updated_at"])
+    if view.run.has_pipeline:
+        Models.Run.all.filter(Q(pipeline=view.run) | Q(controller=view.run)).update(
+            project_id=dest_project.id
+        )
+    add_run_contributors(view.run, users=[request.user])
+    view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def invalidate_run(view, request, *args, **kwargs):
-    invalidate_run_action(view.run, contributor_user=request.user)
+    view.run.state = None
+    view.run.save(update_fields=["state"])
+    add_run_contributors(view.run, users=[request.user])
     view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})
 
@@ -162,12 +169,14 @@ def invalidate_run(view, request, *args, **kwargs):
 def archive_run(view, request, *args, **kwargs):
     view.run = view.get_object()
     view.audit(request, *args, **kwargs)
-    archive_run_action(view.run, contributor_user=request.user)
+    add_run_contributors(view.run, users=[request.user])
+    base_archive_run(view.run)
     return Response(status=status.HTTP_200_OK, data={})
 
 
 def restore_run(view, request, *args, **kwargs):
     view.run = view.get_object()
     view.audit(request, *args, **kwargs)
-    restore_run_action(view.run, contributor_user=request.user)
+    add_run_contributors(view.run, users=[request.user])
+    base_restore_run(view.run)
     return Response(status=status.HTTP_200_OK, data={})

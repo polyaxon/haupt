@@ -4,6 +4,7 @@ from django.conf import settings
 
 from haupt.common.authentication.base import is_normal_user
 from haupt.db.managers.stages import new_stage
+from haupt.db.managers.versions import add_version_contributors
 from polyaxon.schemas import V1StageCondition
 
 
@@ -32,3 +33,4 @@ def create_stage(view, serializer, event_type: Optional[str] = None):
         condition=condition,
         event_type=event_type,
     )
+    add_version_contributors(view.version, users=[view.request.user])
