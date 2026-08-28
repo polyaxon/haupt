@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from clipped.utils.lists import to_list
 from haupt.db.defs import Models
-from polyaxon._flow import V1RunEdgeKind
+from polyaxon._flow.run.enums import V1RunEdgeKind
 from polyaxon._sdk.schemas.v1_run_edges_graph import V1RunEdgesGraph
 from traceml.artifacts import V1RunArtifact, V1RunArtifacts
 
