@@ -5,5 +5,5 @@ uvloop==0.22.1
 
 kubernetes_asyncio>=28.2.1
 nbconvert>=6.5.0
-pandas<=2.2.3
+pandas<3
 pyarrow<22.1
