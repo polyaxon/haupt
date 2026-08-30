@@ -55,7 +55,7 @@ from polyaxon._constants.metadata import (
     META_IS_HOOK,
     META_ITERATION,
 )
-from polyaxon._operations import get_bo_tuner, get_hyperband_tuner, get_hyperopt_tuner
+from polyaxon._operations import get_bo_tuner, get_hyperband_tuner, get_tpe_tuner
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
     PolyaxonException,
@@ -732,8 +732,8 @@ class SchedulingManager:
                 )
             except ValueError:
                 pass
-        elif run.runtime == V1MatrixKind.HYPEROPT:
-            op = get_hyperopt_tuner(
+        elif run.runtime == V1MatrixKind.TPE:
+            op = get_tpe_tuner(
                 tuner=compiled_operation.matrix.tuner,
                 join=cls.RESOLVER._get_pipeline_join(
                     pipeline=run_uuid, metric=compiled_operation.matrix.metric
