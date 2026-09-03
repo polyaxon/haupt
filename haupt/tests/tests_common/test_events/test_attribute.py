@@ -15,7 +15,7 @@ class TestAttribute(TestCase):
     def test_props(self):
         attr = Attribute(name="test")
         assert attr.name == "test"
-        assert attr.attr_type == str
+        assert attr.attr_type is str
         assert attr.is_datetime is False
         assert attr.is_uuid is False
         assert attr.is_required is True
