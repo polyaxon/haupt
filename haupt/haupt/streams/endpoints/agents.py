@@ -15,6 +15,10 @@ from haupt.common.endpoints.files import FilePathResponse
 from haupt.common.endpoints.validation import validate_internal_auth, validate_methods
 from haupt.polyconf.config_manager import PLATFORM_CONFIG
 from haupt.streams.connections.fs import AppFS
+from haupt.streams.controllers.connection_check import (
+    check_default_agent_connections,
+    check_named_agent_connection,
+)
 from haupt.streams.controllers.logs import get_archived_agent_logs
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.op_spec import download_agent_spec, upload_agent_spec
@@ -206,7 +210,31 @@ async def get_agent_logs(
     return UJSONResponse(data)
 
 
+@transaction.non_atomic_requests
+async def check_agent_connection(
+    request: ASGIRequest,
+    namespace: str,
+    owner: str,
+    agent_uuid: str,
+    methods: Optional[Dict] = None,
+) -> UJSONResponse:
+    validate_methods(request, methods)
+    body = orjson_loads(request.body) if request.body else {}
+    connection = body.get("connection")
+    if connection:
+        data = await check_named_agent_connection(connection_name=connection)
+    else:
+        data = await check_default_agent_connections(
+            namespace=namespace,
+            agent_uuid=agent_uuid,
+        )
+    return UJSONResponse(data=data, status=status.HTTP_200_OK)
+
+
 URLS_AGENTS_COLLECT = "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/collect"
+URLS_AGENTS_CONNECTION_CHECK = (
+    "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/connections_check"
+)
 URLS_AGENTS_K8S_INSPECT = (
     "<str:namespace>/<str:owner>/agents/<str:agent_uuid>/k8s_inspect"
 )
@@ -226,6 +254,12 @@ internal_agent_routes = [
     ),
 ]
 agent_routes = [
+    path(
+        URLS_AGENTS_CONNECTION_CHECK,
+        check_agent_connection,
+        name="check_agent_connection",
+        kwargs=dict(methods=["POST"]),
+    ),
     path(
         URLS_AGENTS_K8S_INSPECT,
         k8s_inspect_agent,
