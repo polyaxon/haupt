@@ -13,6 +13,7 @@ from polyaxon._connections import V1Connection, V1ConnectionKind
 from polyaxon._fs.async_manager import ensure_async_execution
 from polyaxon._fs.utils import get_store_path
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
+from polyaxon._schemas.lifecycle import V1ProjectFeature
 
 
 logger = logging.getLogger("haupt.streams.connection_checks")
@@ -171,23 +172,13 @@ def _log_check_exception(
     connection_name: str,
     check_name: str,
     category: str,
-    exception: Exception,
 ) -> None:
     logger.error(
-        "Agent connection check failed: connection=%s check=%s category=%s "
-        "exception=%s\nTraceback:\n%s",
+        "Agent connection check failed: connection=%s check=%s category=%s\n%s",
         connection_name,
         check_name,
         category,
-        exception.__class__.__name__,
-        _format_traceback(exception.__traceback__),
-    )
-
-
-def _format_traceback(tb) -> str:
-    return "".join(
-        '  File "{}", line {}, in {}\n'.format(frame.filename, frame.lineno, frame.name)
-        for frame in traceback.extract_tb(tb)
+        traceback.format_exc(),
     )
 
 
@@ -251,8 +242,7 @@ def _get_mount_path_failure(exception: Exception) -> Tuple[str, str, List[str]]:
                 "mounted in the streams pod."
             ),
             [
-                "Mount the default artifacts store into the streams pod at its "
-                "configured mount path.",
+                "Add this connection to mountConnections for the agent deployment.",
                 "Check that the streams pod has the expected volume mount.",
             ],
         )
@@ -266,11 +256,12 @@ def _get_mount_path_failure(exception: Exception) -> Tuple[str, str, List[str]]:
 async def _check_artifacts_store_access(fs, store_path: str, agent_uuid: str) -> None:
     payload = "polyaxon-agent-connection-check:{}".format(uuid4().hex).encode()
     subpath = ".agents/{}/checks/{}.txt".format(agent_uuid, uuid4().hex)
-    path = get_store_path(store_path=store_path, subpath=subpath)
+    path = get_store_path(
+        store_path=store_path, subpath=subpath, entity=V1ProjectFeature.RUNTIME
+    )
     is_async = getattr(fs, "async_impl", False)
-    cleanup_required = False
+    created = False
     try:
-        cleanup_required = True
         await ensure_async_execution(
             fs=fs,
             fct="pipe",
@@ -278,6 +269,7 @@ async def _check_artifacts_store_access(fs, store_path: str, agent_uuid: str) ->
             path=path,
             value=payload,
         )
+        created = True
         data = await ensure_async_execution(
             fs=fs, fct="cat", is_async=is_async, path=path
         )
@@ -292,9 +284,9 @@ async def _check_artifacts_store_access(fs, store_path: str, agent_uuid: str) ->
             path=path,
             recursive=False,
         )
-        cleanup_required = False
+        created = False
     finally:
-        if cleanup_required:
+        if created:
             try:
                 await ensure_async_execution(
                     fs=fs,
@@ -303,12 +295,11 @@ async def _check_artifacts_store_access(fs, store_path: str, agent_uuid: str) ->
                     path=path,
                     recursive=False,
                 )
-            except Exception as e:
+            except Exception:
                 logger.warning(
-                    "Agent connection check cleanup failed: connection_path=%s exception=%s\n%s",
+                    "Agent connection check cleanup failed: connection_path=%s\n%s",
                     path,
-                    e.__class__.__name__,
-                    _format_traceback(e.__traceback__),
+                    traceback.format_exc(),
                 )
 
 
@@ -327,19 +318,6 @@ async def _check_artifacts_store(
     try:
         fs = await AppFS.get_fs(connection=connection_name)
         store_path = AppFS.get_fs_root_path(connection=connection_name)
-    except Exception as e:
-        _log_check_exception(connection_name, "initialize", CATEGORY_STORAGE, e)
-        check = _failed_check(
-            name="initialize",
-            category=CATEGORY_STORAGE,
-            code="artifacts_store_initialization_failed",
-            message="Could not initialize the configured artifacts store.",
-            connection_kind=kind,
-            exception=e,
-        )
-        return _result(connection_data, [check])
-
-    try:
         if connection.is_mount:
             _check_mount_artifact_store_root(store_path=store_path)
         await _check_artifacts_store_access(
@@ -347,7 +325,7 @@ async def _check_artifacts_store(
         )
     except (MountPathMissingError, MountPathNotMountedError, MountPathCheckError) as e:
         code, message, hints = _get_mount_path_failure(e)
-        _log_check_exception(connection_name, "mount_path", CATEGORY_STORAGE, e)
+        _log_check_exception(connection_name, "mount_path", CATEGORY_STORAGE)
         check = _failed_check(
             name="mount_path",
             category=CATEGORY_STORAGE,
@@ -358,7 +336,7 @@ async def _check_artifacts_store(
             hints=hints,
         )
     except Exception as e:
-        _log_check_exception(connection_name, "access", CATEGORY_STORAGE, e)
+        _log_check_exception(connection_name, "access", CATEGORY_STORAGE)
         check = _failed_check(
             name="access",
             category=CATEGORY_STORAGE,
@@ -397,9 +375,7 @@ async def _check_kubernetes_connection(namespace: str) -> Tuple[Dict, int]:
         try:
             await manager.setup()
         except Exception as e:
-            _log_check_exception(
-                AGENT_KUBERNETES_CHECK, "setup", CATEGORY_KUBERNETES, e
-            )
+            _log_check_exception(AGENT_KUBERNETES_CHECK, "setup", CATEGORY_KUBERNETES)
             return (
                 _result(
                     connection_data,
@@ -431,7 +407,7 @@ async def _check_kubernetes_connection(namespace: str) -> Tuple[Dict, int]:
             await manager.list_pods(namespace=namespace, reraise=True, limit=1)
         except Exception as e:
             _log_check_exception(
-                AGENT_KUBERNETES_CHECK, "list_pods", CATEGORY_KUBERNETES, e
+                AGENT_KUBERNETES_CHECK, "list_pods", CATEGORY_KUBERNETES
             )
             checks.append(
                 _failed_check(
@@ -456,11 +432,10 @@ async def _check_kubernetes_connection(namespace: str) -> Tuple[Dict, int]:
     finally:
         try:
             await manager.close()
-        except Exception as e:
+        except Exception:
             logger.warning(
-                "Agent connection check Kubernetes client close failed: exception=%s\n%s",
-                e.__class__.__name__,
-                _format_traceback(e.__traceback__),
+                "Agent connection check Kubernetes client close failed:\n%s",
+                traceback.format_exc(),
             )
 
 

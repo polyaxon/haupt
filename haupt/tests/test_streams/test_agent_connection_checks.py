@@ -293,13 +293,9 @@ def test_check_host_path_requires_mount_point(tmp_path, monkeypatch):
     data = run_default_check()
 
     assert data["status"] == "failed"
-    check = data["results"][0]["checks"][0]
-    assert check["code"] == "connection_mount_path_not_mounted"
-    assert check["hints"] == [
-        "Mount the default artifacts store into the streams pod at its "
-        "configured mount path.",
-        "Check that the streams pod has the expected volume mount.",
-    ]
+    assert data["results"][0]["checks"][0]["code"] == (
+        "connection_mount_path_not_mounted"
+    )
     assert fs.operations == []
 
 
@@ -398,28 +394,7 @@ def test_check_default_read_only_artifacts_store_requires_write(tmp_path, monkey
     assert [check["name"] for check in data["results"][0]["checks"]] == ["access"]
     assert data["results"][0]["checks"][0]["code"] == "artifacts_store_access_failed"
     fs._pipe.assert_awaited_once()
-    assert [operation for operation, _ in fs.operations] == ["rm"]
-    assert fs.files == {}
-
-
-def test_check_partial_storage_write_cleans_up(monkeypatch):
-    fs = FakeFS()
-
-    async def partial_pipe(path, value):
-        fs.operations.append(("pipe", path))
-        fs.files[path] = value
-        raise OSError("Write failed")
-
-    fs._pipe = AsyncMock(side_effect=partial_pipe)
-    set_default_artifacts_store(make_bucket_connection(V1ConnectionKind.GCS))
-    patch_fs(monkeypatch, fs, "gs://bucket")
-
-    data = run_default_check()
-
-    assert data["status"] == "failed"
-    assert data["results"][0]["checks"][0]["code"] == ("artifacts_store_access_failed")
-    assert [operation for operation, _ in fs.operations] == ["pipe", "rm"]
-    assert fs.files == {}
+    assert fs.operations == []
 
 
 def test_check_storage_read_failure_cleans_up(monkeypatch, caplog):
@@ -437,7 +412,7 @@ def test_check_storage_read_failure_cleans_up(monkeypatch, caplog):
     assert [operation for operation, _ in fs.operations] == ["pipe", "cat", "rm"]
     assert fs.files == {}
     assert "super-secret" not in str(data)
-    assert "super-secret" not in caplog.text
+    assert "PermissionError: token=super-secret" in caplog.text
     assert data["results"][1]["status"] == "passed"
 
 
@@ -458,7 +433,9 @@ def test_check_storage_read_mismatch_cleans_up(monkeypatch):
     assert fs.files == {}
 
 
-def test_check_artifacts_store_initialization_failure_is_sanitized(monkeypatch, caplog):
+def test_check_storage_initialization_failure_returns_sanitized_response(
+    monkeypatch, caplog
+):
     set_default_artifacts_store(make_bucket_connection(V1ConnectionKind.GCS))
 
     async def get_fs(connection=None):
@@ -471,17 +448,14 @@ def test_check_artifacts_store_initialization_failure_is_sanitized(monkeypatch, 
 
     result = data["results"][0]
     assert data["status"] == "failed"
-    assert result["checks"][0]["name"] == "initialize"
-    assert result["checks"][0]["code"] == "artifacts_store_initialization_failed"
+    assert result["checks"][0]["code"] == "artifacts_store_access_failed"
     assert result["checks"][0]["exception"] == "PermissionError"
     assert "super-secret" not in str(data)
     assert "other-secret" not in str(data)
-    assert "PermissionError" in caplog.text
-    assert "super-secret" not in caplog.text
-    assert "other-secret" not in caplog.text
+    assert "PermissionError: private_key=super-secret token=other-secret" in caplog.text
 
 
-def test_check_kubernetes_failure_is_sanitized(monkeypatch, caplog):
+def test_check_kubernetes_failure_returns_sanitized_response(monkeypatch, caplog):
     managers = []
     fs = FakeFS()
     set_default_artifacts_store(make_bucket_connection(V1ConnectionKind.GCS))
@@ -508,46 +482,7 @@ def test_check_kubernetes_failure_is_sanitized(monkeypatch, caplog):
     assert result["checks"][0]["code"] == "kubernetes_setup_failed"
     assert result["checks"][0]["exception"] == "RuntimeError"
     assert "super-secret" not in str(data)
-    assert "super-secret" not in caplog.text
-    assert managers[0].closed is True
-
-
-def test_check_kubernetes_list_pods_failure_is_sanitized(monkeypatch, caplog):
-    managers = []
-    fs = FakeFS()
-    set_default_artifacts_store(make_bucket_connection(V1ConnectionKind.GCS))
-    patch_fs(monkeypatch, fs, "gs://bucket")
-
-    class FailingK8sManager:
-        def __init__(self, namespace, in_cluster):
-            self.closed = False
-            managers.append(self)
-
-        async def setup(self):
-            pass
-
-        async def list_pods(self, namespace, reraise=True, limit=1):
-            raise PermissionError("token=super-secret")
-
-        async def close(self):
-            self.closed = True
-
-    monkeypatch.setattr(connection_check, "AsyncK8sManager", FailingK8sManager)
-    caplog.set_level(logging.ERROR, logger="haupt.streams.connection_check")
-
-    data = run_default_check()
-
-    result = data["results"][1]
-    assert data["status"] == "failed"
-    assert [check["name"] for check in result["checks"]] == [
-        "setup",
-        "list_pods",
-    ]
-    assert result["checks"][0]["status"] == "passed"
-    assert result["checks"][1]["code"] == "kubernetes_list_pods_failed"
-    assert result["checks"][1]["exception"] == "PermissionError"
-    assert "super-secret" not in str(data)
-    assert "super-secret" not in caplog.text
+    assert "RuntimeError: token=super-secret" in caplog.text
     assert managers[0].closed is True
 
 

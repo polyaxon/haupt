@@ -1,4 +1,5 @@
 import logging
+import traceback
 from typing import Dict, List, Optional, Union
 
 from django.core.handlers.asgi import ASGIRequest
@@ -54,8 +55,30 @@ async def collect_agent_data(
             data={"errors": errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    fs = await AppFS.get_fs()
-    store_path = AppFS.get_fs_root_path()
+    try:
+        fs = await AppFS.get_fs()
+        store_path = AppFS.get_fs_root_path()
+    except Exception as e:
+        _logger.error(
+            "Agent data collection failed: "
+            "code=artifacts_store_initialization_failed category=storage\n%s",
+            traceback.format_exc(),
+        )
+        return UJSONResponse(
+            data={
+                "errors": {
+                    "code": "artifacts_store_initialization_failed",
+                    "category": "storage",
+                    "message": "Could not initialize the configured artifacts store.",
+                    "exception": e.__class__.__name__,
+                    "hints": [
+                        "Check the default artifacts store configuration and "
+                        "credentials available to the streams pod."
+                    ],
+                }
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     # Cleanup archives
     if store_path != settings.AGENT_CONFIG.local_root:
