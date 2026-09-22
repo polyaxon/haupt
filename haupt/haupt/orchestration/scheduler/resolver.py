@@ -551,7 +551,7 @@ class SchedulingResolver(resolver.BaseResolver):
                 if edge_k not in params:
                     params[edge_k] = {}
                 params[edge_k]["value"] = param_values.get(edge_k)
-                if current_param.context_only:
+                if current_param.context_only is not None:
                     params[edge_k]["contextOnly"] = current_param.context_only
                 if current_param.connection:
                     params[edge_k]["connection"] = current_param.connection
@@ -597,10 +597,12 @@ class SchedulingResolver(resolver.BaseResolver):
         self._resolve_matrix_params()
 
     def resolve_io(self):
-        if self.compiled_operation.inputs:
-            self.run.inputs = {
-                io.name: io.value for io in self.compiled_operation.inputs
-            }
+        inputs = {io.name: io.value for io in self.compiled_operation.contexts or []}
+        inputs.update(
+            {io.name: io.value for io in self.compiled_operation.inputs or []}
+        )
+        if inputs:
+            self.run.inputs = inputs
         if self.compiled_operation.outputs:
             self.run.outputs = {
                 io.name: io.value for io in self.compiled_operation.outputs
