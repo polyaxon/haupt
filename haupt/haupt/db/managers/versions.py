@@ -6,7 +6,6 @@ from django.conf import settings
 from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.projects import Owner
 from haupt.db.defs import Models
-from polyaxon.pkg import SCHEMA_VERSION
 from polyaxon.schemas import V1Component
 
 
@@ -31,5 +30,4 @@ def get_component_version_state(
 ) -> Optional[uuid.UUID]:
     """A string representation that is used to create hash version"""
     component.kind = "component"
-    component.version = SCHEMA_VERSION
     return uuid.uuid5(Owner.uuid, component.to_json())

@@ -1,5 +1,6 @@
 import pytest
 
+from clipped.utils.json import orjson_dumps, orjson_loads
 from haupt.apis.serializers.runs import (
     OfflineRunSerializer,
     OperationCreateSerializer,
@@ -133,6 +134,31 @@ class TestOperationCreateSerializer(BaseTestRunSerializer):
 
         for k, v in data.items():
             assert getattr(obj1, k) == v
+
+    def test_create_with_optional_polyaxonfile_version(self):
+        for version in (None, 0.4):
+            with self.subTest(version=version):
+                content = {
+                    "kind": "operation",
+                    "component": {
+                        "run": {"kind": "job", "container": {"image": "busybox:1.36"}}
+                    },
+                }
+                if version is not None:
+                    content["version"] = version
+                serializer = self.serializer_class(
+                    data={"content": orjson_dumps(content)}
+                )
+
+                assert serializer.is_valid(), serializer.errors
+                run = serializer.save(project=self.project, user=self.user)
+
+                raw_content = orjson_loads(run.raw_content)
+                compiled_content = orjson_loads(run.content)
+                assert raw_content.get("version") == version
+                assert compiled_content.get("version") == version
+                assert ("version" in raw_content) == (version is not None)
+                assert ("version" in compiled_content) == (version is not None)
 
 
 @pytest.mark.projects_resources_mark

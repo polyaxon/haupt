@@ -117,6 +117,7 @@ def get_deleting_runs(
     max_budget: int,
     managed_by: Optional[ManagedBy] = ManagedBy.AGENT,
     agent_filters: Optional[Dict] = None,
+    include_version: bool = False,
 ) -> Tuple[List[str], List[Tuple[str, str, str, str, str]], bool]:
     agent_filters = agent_filters or {}
     values = []
@@ -170,7 +171,7 @@ def get_deleting_runs(
                 get_run_instance(owner_name, "agent", agent_id),
                 V1RunKind.JOB,
                 "cleaner",
-                op.to_json(include_version=True),
+                op.to_json(include_version=include_version),
                 None,
             )
         )

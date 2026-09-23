@@ -294,7 +294,7 @@ class TestAgentStateViewV1(BaseTest):
                     environment=V1Environment(),
                     connection=settings.AGENT_CONFIG.artifacts_store,
                     paths=[run5.uuid.hex, run6.uuid.hex],
-                ).to_json(include_version=True),
+                ).to_json(),
                 None,
             ),
             (

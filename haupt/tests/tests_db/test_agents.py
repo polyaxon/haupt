@@ -11,6 +11,7 @@ from haupt.db.managers.agents import (
     get_agent_state,
     get_annotated_controllers,
     get_annotated_pipelines,
+    get_queued_runs,
     get_runs_by_controller,
     get_runs_by_pipeline,
 )
@@ -23,6 +24,26 @@ from polyaxon.schemas import LiveState, ManagedBy, V1Environment, V1RunKind, V1S
 
 
 class TestAgentState(TestCase):
+    @override_settings(MAX_CONCURRENCY=1)
+    def test_queued_content_is_unchanged(self):
+        project = ProjectFactory()
+        content = '{"kind":"compiled_operation"}'
+        run = RunFactory(
+            project=project,
+            kind=V1RunKind.JOB,
+            managed_by=ManagedBy.AGENT,
+            status=V1Statuses.QUEUED,
+            raw_content="content",
+            content=content,
+        )
+
+        queued_runs, _ = get_queued_runs()
+
+        assert len(queued_runs) == 1
+        assert queued_runs[0][3] == content
+        run.refresh_from_db()
+        assert run.content == content
+
     @override_settings(MIN_ARTIFACTS_DELETION_TIMEDELTA=-60)
     def test_get_agent_state(self):
         project = ProjectFactory()
@@ -328,7 +349,7 @@ class TestAgentState(TestCase):
                     environment=V1Environment(),
                     connection=agent_config.artifacts_store,
                     paths=[run5.uuid.hex, run6.uuid.hex],
-                ).to_json(include_version=True),
+                ).to_json(),
                 None,
             ),
             (

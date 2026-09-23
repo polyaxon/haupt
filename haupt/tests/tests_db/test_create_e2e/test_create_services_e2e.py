@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
+from haupt.db.managers.versions import get_component_version_state
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from polyaxon._polyaxonfile import (
@@ -9,7 +10,7 @@ from polyaxon._polyaxonfile import (
     OperationSpecification,
 )
 from polyaxon._utils.fixtures import get_fxt_service, get_fxt_service_with_inputs
-from polyaxon.schemas import V1RunKind
+from polyaxon.schemas import V1Component, V1RunKind
 
 
 class TestCreateServices(TestCase):
@@ -17,6 +18,19 @@ class TestCreateServices(TestCase):
         super().setUp()
         self.user = UserFactory()
         self.project = ProjectFactory()
+
+    def test_component_state_preserves_optional_version(self):
+        component = V1Component.read(
+            {"run": {"kind": V1RunKind.JOB, "container": {"image": "test"}}}
+        )
+
+        versionless_state = get_component_version_state(component)
+        assert component.version is None
+
+        component.version = 0.4
+        versioned_state = get_component_version_state(component)
+        assert component.version == 0.4
+        assert versioned_state != versionless_state
 
     def test_create_run_with_service_spec(self):
         count = Run.objects.count()
