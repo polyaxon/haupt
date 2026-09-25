@@ -27,6 +27,14 @@ from haupt.db.models.artifacts import Artifact, ArtifactLineage
 from haupt.db.models.bookmarks import Bookmark
 from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
+from haupt.orchestration.scheduler.manager import SchedulingManager
+from polyaxon import settings as polyaxon_settings
+from polyaxon._connections import V1BucketConnection, V1Connection, V1ConnectionKind
+from polyaxon._polyaxonfile import (
+    CompiledOperationSpecification,
+    OperationSpecification,
+)
+from polyaxon._schemas.agent import AgentConfig
 from polyaxon.api import API_V1
 from polyaxon.schemas import (
     LiveState,
@@ -2647,6 +2655,47 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert last_run.managed_by == ManagedBy.AGENT
         assert last_run.pending == V1RunPending.UPLOAD
         assert last_run.meta_info == {"test": "works"}
+
+    def test_create_legacy_component_operation_through_prepare(self):
+        content = {
+            "version": 1.1,
+            "kind": "operation",
+            "params": {"image": {"value": "busybox:1.36"}},
+            "component": {
+                "inputs": [{"name": "image", "type": "str"}],
+                "run": {
+                    "kind": V1RunKind.JOB,
+                    "container": {"image": "{{ image }}"},
+                },
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(content)})
+
+        assert response.status_code == status.HTTP_201_CREATED
+        run = Run.objects.get(project=self.project)
+        raw = OperationSpecification.read(run.raw_content)
+        assert raw.component.run.container.image == "{{ image }}"
+        assert raw.params["image"].value == "busybox:1.36"
+        compiled = CompiledOperationSpecification.read(run.content)
+        assert compiled.run.kind == V1RunKind.JOB
+        assert compiled.run.container.image == "{{ image }}"
+
+        agent_config = AgentConfig(
+            namespace="foo",
+            artifacts_store=V1Connection(
+                name="moo",
+                kind=V1ConnectionKind.GCS,
+                schema_=V1BucketConnection(bucket="gs//:foo"),
+            ),
+        )
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        compiled = CompiledOperationSpecification.read(run.content)
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert run.inputs == {"image": "busybox:1.36"}
+        assert compiled.run.container.image == "busybox:1.36"
 
 
 @pytest.mark.projects_resources_mark
