@@ -40,6 +40,7 @@ from polyaxon.schemas import (
     LiveState,
     ManagedBy,
     V1CloningKind,
+    V1MatrixKind,
     V1RunKind,
     V1RunPending,
     V1Statuses,
@@ -2696,6 +2697,82 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert run.status == V1Statuses.COMPILED, run.status_conditions
         assert run.inputs == {"image": "busybox:1.36"}
         assert compiled.run.container.image == "busybox:1.36"
+
+    def test_create_legacy_grid_matrix_through_prepare(self):
+        content = {
+            "version": 1.1,
+            "kind": "operation",
+            "strictParams": True,
+            "params": {"message": {"value": "fallback", "contextOnly": True}},
+            "matrix": {
+                "kind": V1MatrixKind.GRID,
+                "params": {
+                    "count": {"kind": "choice", "value": [1, 2]},
+                    "message": {"kind": "choice", "value": ["hello"]},
+                },
+            },
+            "component": {
+                "inputs": [{"name": "count", "type": "int"}],
+                "run": {
+                    "kind": V1RunKind.JOB,
+                    "container": {
+                        "image": "busybox:1.36",
+                        "command": ["sh", "-c"],
+                        "args": 'echo "count={{ count }} message={{ message }}"',
+                    },
+                },
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(content)})
+
+        assert response.status_code == status.HTTP_201_CREATED
+        run = Run.objects.get(project=self.project)
+        raw = OperationSpecification.read(run.raw_content)
+        assert raw.matrix.kind == V1MatrixKind.GRID
+        assert raw.strict_params is True
+        assert raw.params["message"].context_only is True
+        assert raw.component.run.container.image == "busybox:1.36"
+
+        agent_config = AgentConfig(
+            namespace="foo",
+            artifacts_store=V1Connection(
+                name="moo",
+                kind=V1ConnectionKind.GCS,
+                schema_=V1BucketConnection(bucket="gs//:foo"),
+            ),
+        )
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+            run.refresh_from_db()
+            assert run.status == V1Statuses.COMPILED, run.status_conditions
+            compiled = CompiledOperationSpecification.read(run.content)
+            assert compiled.matrix.kind == V1MatrixKind.GRID
+            children = list(run.pipeline_runs.order_by("id"))
+            assert len(children) == 2
+            assert {child.inputs["count"] for child in children} == {1, 2}
+
+            for child in children:
+                child_raw = OperationSpecification.read(child.raw_content)
+                child_compiled = CompiledOperationSpecification.read(child.content)
+                assert child_raw.matrix is None
+                assert child_raw.strict_params is True
+                assert child_raw.params["count"].value == child.inputs["count"]
+                assert child_raw.params["message"].value == "hello"
+                assert child_raw.params["message"].context_only is True
+                assert child_compiled.strict_params is True
+
+                SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+                child.refresh_from_db()
+                assert child.status == V1Statuses.COMPILED, child.status_conditions
+                child_compiled = CompiledOperationSpecification.read(child.content)
+                assert child_compiled.inputs[0].value == child.inputs["count"]
+                assert child_compiled.contexts[0].name == "message"
+                assert child_compiled.contexts[0].value == "hello"
+                assert child_compiled.run.container.args == (
+                    'echo "count={} message=hello"'.format(child.inputs["count"])
+                )
 
 
 @pytest.mark.projects_resources_mark
