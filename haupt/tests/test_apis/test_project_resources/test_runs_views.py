@@ -1,3 +1,4 @@
+from datetime import timedelta
 import pytest
 from unittest.mock import patch
 import uuid
@@ -7,6 +8,7 @@ from rest_framework import status
 
 from clipped.utils.json import orjson_dumps
 from clipped.utils.serialization import datetime_deserialize
+from clipped.utils.tz import now
 from haupt.apis.serializers.artifacts import (
     RunArtifactLightSerializer,
     RunArtifactSerializer,
@@ -2773,6 +2775,109 @@ class TestProjectRunsCreateViewV1(BaseTest):
                 assert child_compiled.run.container.args == (
                     'echo "count={} message=hello"'.format(child.inputs["count"])
                 )
+
+    def test_create_legacy_schedule_and_next_run_through_prepare(self):
+        start_at = (now() + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        content = {
+            "version": 1.1,
+            "kind": "operation",
+            "strictParams": True,
+            "cache": {"disable": True},
+            "params": {
+                "image": {"value": "busybox:1.36"},
+                "message": {"value": "hello", "contextOnly": True},
+            },
+            "schedule": {
+                "kind": "cron",
+                "cron": "0 0 * * *",
+                "startAt": start_at.isoformat(),
+                "maxRuns": 2,
+            },
+            "component": {
+                "inputs": [{"name": "image", "type": "str"}],
+                "run": {
+                    "kind": V1RunKind.JOB,
+                    "container": {
+                        "image": "{{ image }}",
+                        "command": ["sh", "-c"],
+                        "args": 'echo "{{ message }}"',
+                    },
+                },
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(content)})
+
+        assert response.status_code == status.HTTP_201_CREATED
+        run = Run.objects.get(project=self.project)
+        raw = OperationSpecification.read(run.raw_content)
+        assert raw.schedule.kind == "cron"
+        assert raw.strict_params is True
+        assert raw.component.run.container.image == "{{ image }}"
+
+        agent_config = AgentConfig(
+            namespace="foo",
+            artifacts_store=V1Connection(
+                name="moo",
+                kind=V1ConnectionKind.GCS,
+                schema_=V1BucketConnection(bucket="gs//:foo"),
+            ),
+        )
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+            run.refresh_from_db()
+            assert run.status == V1Statuses.COMPILED, run.status_conditions
+            assert run.kind == V1RunKind.SCHEDULE
+            parent_compiled = CompiledOperationSpecification.read(run.content)
+            assert parent_compiled.schedule.kind == "cron"
+            assert parent_compiled.strict_params is True
+            assert run.pipeline_runs.count() == 1
+            first = run.pipeline_runs.get()
+            assert first.schedule_at == start_at
+
+            first_raw = OperationSpecification.read(first.raw_content)
+            first_compiled = CompiledOperationSpecification.read(first.content)
+            assert first_raw.schedule is None
+            assert first_raw.strict_params is True
+            assert first_raw.params["message"].context_only is True
+            assert first_raw.component.run.container.image == "{{ image }}"
+            assert first_compiled.strict_params is True
+
+            SchedulingManager.runs_prepare(run_id=first.id, start=False)
+
+            first.refresh_from_db()
+            assert first.status == V1Statuses.COMPILED, first.status_conditions
+            assert first.inputs == {"image": "busybox:1.36", "message": "hello"}
+            first_compiled = CompiledOperationSpecification.read(first.content)
+            assert first_compiled.run.container.image == "busybox:1.36"
+            assert first_compiled.contexts[0].value == "hello"
+
+            parent_content = run.content
+            SchedulingManager._start_schedule_based_on_run(first, depends_on_past=False)
+
+            run.refresh_from_db()
+            assert run.content == parent_content
+            assert run.pipeline_runs.count() == 2
+            second = run.pipeline_runs.order_by("schedule_at").last()
+            assert second.schedule_at == start_at + timedelta(days=1)
+            second_raw = OperationSpecification.read(second.raw_content)
+            second_compiled = CompiledOperationSpecification.read(second.content)
+            assert second_raw.schedule is None
+            assert second_raw.strict_params is True
+            assert second_raw.params["message"].context_only is True
+            assert second_raw.component.run.container.image == "{{ image }}"
+            assert second_compiled.strict_params is True
+
+            SchedulingManager.runs_prepare(run_id=second.id, start=False)
+
+            second.refresh_from_db()
+            assert second.status == V1Statuses.COMPILED, second.status_conditions
+            assert second.inputs == first.inputs
+            second_compiled = CompiledOperationSpecification.read(second.content)
+            assert second_compiled.run.container.image == "busybox:1.36"
+            assert second_compiled.contexts[0].value == "hello"
 
 
 @pytest.mark.projects_resources_mark
