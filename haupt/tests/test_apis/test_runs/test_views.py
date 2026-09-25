@@ -15,7 +15,10 @@ from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from polyaxon._constants.metadata import META_RECOMPILE
-from polyaxon._polyaxonfile import OperationSpecification
+from polyaxon._polyaxonfile import (
+    CompiledOperationSpecification,
+    OperationSpecification,
+)
 from polyaxon.api import API_V1
 from polyaxon.schemas import (
     LiveState,
@@ -343,6 +346,39 @@ class TestRestartRunViewV1(BaseRerunRunApi):
         assert last_experiment.is_copy is False
         assert last_experiment.is_resume is False
         assert last_experiment.original == self.object
+        assert OperationSpecification.read(last_experiment.raw_content).trigger is None
+        assert (
+            CompiledOperationSpecification.read(last_experiment.content).trigger
+            == "all_succeeded"
+        )
+
+    def test_restart_override_does_not_change_source_for_next_restart(self):
+        data = {"content": '{"runPatch": {"container": {"image": "debug:v2"}}}'}
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(self.url + "restart/", data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        first = self.queryset.last()
+        first_raw = OperationSpecification.read(first.raw_content)
+        first_compiled = CompiledOperationSpecification.read(first.content)
+        assert first_raw.component.run.container.image == "{{ image }}"
+        assert first_raw.run_patch is None
+        assert first_compiled.run.container.image == "debug:v2"
+
+        first_url = "/{}/{}/{}/runs/{}/restart/".format(
+            API_V1, self.user.username, self.project.name, first.uuid.hex
+        )
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(first_url, {})
+
+        assert response.status_code == status.HTTP_201_CREATED
+        second = self.queryset.last()
+        second_raw = OperationSpecification.read(second.raw_content)
+        second_compiled = CompiledOperationSpecification.read(second.content)
+        assert second.original == first
+        assert second_raw.component.run.container.image == "{{ image }}"
+        assert second_raw.run_patch is None
+        assert second_compiled.run.container.image == "{{ image }}"
 
     def test_restart_patch_wrong_config_raises(self):
         data = {"content": "sdf"}
@@ -363,7 +399,9 @@ class TestRestartRunViewV1(BaseRerunRunApi):
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_restart_recompile_config(self):
-        data = {"content": self.object.raw_content, "meta_info": {META_RECOMPILE: True}}
+        replacement = OperationSpecification.read(self.object.raw_content)
+        replacement.component.run.container.image = "replacement:v3"
+        data = {"content": replacement.to_json(), "meta_info": {META_RECOMPILE: True}}
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "restart/", data)
         assert resp.status_code == status.HTTP_201_CREATED
@@ -379,6 +417,18 @@ class TestRestartRunViewV1(BaseRerunRunApi):
         assert last_experiment.is_copy is False
         assert last_experiment.is_resume is False
         assert last_experiment.original == self.object
+        assert (
+            OperationSpecification.read(
+                last_experiment.raw_content
+            ).component.run.container.image
+            == "replacement:v3"
+        )
+        assert (
+            CompiledOperationSpecification.read(
+                last_experiment.content
+            ).run.container.image
+            == "replacement:v3"
+        )
 
 
 @pytest.mark.run_mark
@@ -431,6 +481,11 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         assert last_experiment.is_copy is False
         assert last_experiment.is_resume is True
         assert last_experiment.original is None
+        assert OperationSpecification.read(last_experiment.raw_content).trigger is None
+        assert (
+            CompiledOperationSpecification.read(last_experiment.content).trigger
+            == "all_succeeded"
+        )
 
     def test_resume_patch_wrong_config_raises(self):
         data = {"content": "d"}
@@ -452,7 +507,9 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_resume_recompile_config(self):
-        data = {"content": self.object.raw_content, "meta_info": {META_RECOMPILE: True}}
+        replacement = OperationSpecification.read(self.object.raw_content)
+        replacement.component.run.container.image = "replacement:v3"
+        data = {"content": replacement.to_json(), "meta_info": {META_RECOMPILE: True}}
         with patch("haupt.common.workers.send") as workers_send:
             resp = self.client.post(self.url + "resume/", data)
 
@@ -469,6 +526,18 @@ class TestResumeRunViewV1(BaseRerunRunApi):
         assert last_experiment.is_copy is False
         assert last_experiment.is_resume is True
         assert last_experiment.original is None
+        assert (
+            OperationSpecification.read(
+                last_experiment.raw_content
+            ).component.run.container.image
+            == "replacement:v3"
+        )
+        assert (
+            CompiledOperationSpecification.read(
+                last_experiment.content
+            ).run.container.image
+            == "replacement:v3"
+        )
 
     def test_resume_undone_run(self):
         new_run_status(
@@ -529,6 +598,11 @@ class TestCopyRunViewV1(BaseRerunRunApi):
         assert last_experiment.is_copy is True
         assert last_experiment.is_resume is False
         assert last_experiment.original == self.object
+        assert OperationSpecification.read(last_experiment.raw_content).trigger is None
+        assert (
+            CompiledOperationSpecification.read(last_experiment.content).trigger
+            == "all_succeeded"
+        )
 
     def test_resume_patch_wrong_config_raises(self):
         data = {"content": "sdf"}
