@@ -14,11 +14,15 @@ from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
+from haupt.orchestration.scheduler.manager import SchedulingManager
+from polyaxon import settings as polyaxon_settings
+from polyaxon._connections import V1BucketConnection, V1Connection, V1ConnectionKind
 from polyaxon._constants.metadata import META_RECOMPILE
 from polyaxon._polyaxonfile import (
     CompiledOperationSpecification,
     OperationSpecification,
 )
+from polyaxon._schemas.agent import AgentConfig
 from polyaxon.api import API_V1
 from polyaxon.schemas import (
     LiveState,
@@ -613,6 +617,166 @@ class TestCopyRunViewV1(BaseRerunRunApi):
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
         assert workers_send.call_count == 0
         assert self.queryset.count() == 1
+
+
+@pytest.mark.run_mark
+class TestLegacyRerunPreparationV1(BaseRerunRunApi):
+    def setUp(self):
+        super().setUp()
+        self.object.delete()
+        spec = OperationSpecification.read(
+            {
+                "version": 1.1,
+                "kind": "operation",
+                "params": {"image": {"value": "busybox:1.36"}},
+                "component": {
+                    "inputs": [{"name": "image", "type": "str"}],
+                    "run": {
+                        "kind": V1RunKind.JOB,
+                        "container": {"image": "{{ image }}"},
+                    },
+                },
+            }
+        )
+        self.object = operations.init_and_save_run(
+            project_id=self.project.id, op_spec=spec, user_id=self.user.id
+        )
+        self.base_component_state = self.object.component_state
+        self.url = "/{}/{}/{}/runs/{}/".format(
+            API_V1, self.user.username, self.project.name, self.object.uuid.hex
+        )
+
+    def _post(self, run, action, data):
+        url = "/{}/{}/{}/runs/{}/{}/".format(
+            API_V1, self.user.username, self.project.name, run.uuid.hex, action
+        )
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(url, data)
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        if action == "resume":
+            return Run.objects.get(id=run.id)
+        return Run.objects.last()
+
+    def _assert_saved(
+        self, run, source_image, compiled_image, param_image, input_image=None
+    ):
+        source = OperationSpecification.read(run.raw_content)
+        compiled = CompiledOperationSpecification.read(run.content)
+        assert source.component.run.container.image == source_image
+        assert source.params["image"].value == param_image
+        assert compiled.run.container.image == compiled_image
+        assert run.params["image"]["value"] == param_image
+        assert run.inputs == {"image": input_image or param_image}
+        assert run.component_state == self.base_component_state
+
+    def _prepare(self, run, image, param_image):
+        agent_config = AgentConfig(
+            namespace="rerun-test",
+            artifacts_store=V1Connection(
+                name="artifacts",
+                kind=V1ConnectionKind.GCS,
+                schema_=V1BucketConnection(bucket="gs//:foo"),
+            ),
+        )
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert run.inputs == {"image": param_image}
+        assert (
+            CompiledOperationSpecification.read(run.content).run.container.image
+            == image
+        )
+
+    def test_restart_override_then_restart_uses_saved_source(self):
+        first = self._post(
+            self.object,
+            "restart",
+            {"content": {"runPatch": {"container": {"image": "debug:v2"}}}},
+        )
+        self._assert_saved(first, "{{ image }}", "debug:v2", "busybox:1.36")
+        self._prepare(first, "debug:v2", "busybox:1.36")
+
+        second = self._post(first, "restart", {})
+        assert second.original_id == first.id
+        self._assert_saved(second, "{{ image }}", "{{ image }}", "busybox:1.36")
+        self._prepare(second, "busybox:1.36", "busybox:1.36")
+
+    def test_resume_override_then_recompile_updates_same_run(self):
+        new_run_status(
+            self.object,
+            condition=V1StatusCondition.get_condition(
+                type=V1Statuses.STOPPED, status=True
+            ),
+        )
+        resumed = self._post(
+            self.object,
+            "resume",
+            {"content": {"runPatch": {"container": {"image": "debug:v2"}}}},
+        )
+        assert resumed.id == self.object.id
+        self._assert_saved(resumed, "{{ image }}", "debug:v2", "busybox:1.36")
+        self._prepare(resumed, "debug:v2", "busybox:1.36")
+
+        new_run_status(
+            resumed,
+            condition=V1StatusCondition.get_condition(
+                type=V1Statuses.STOPPED, status=True
+            ),
+            force=True,
+        )
+        replacement = OperationSpecification.read(resumed.raw_content)
+        replacement.params["image"].value = "new-input:v3"
+        replacement.component.run.container.image = "replacement:v3"
+        resumed = self._post(
+            resumed,
+            "resume",
+            {"content": replacement.to_json(), "meta_info": {META_RECOMPILE: True}},
+        )
+        self._assert_saved(
+            resumed,
+            "replacement:v3",
+            "replacement:v3",
+            "new-input:v3",
+            input_image="busybox:1.36",
+        )
+        self._prepare(resumed, "replacement:v3", "new-input:v3")
+
+    def test_copy_override_then_copy_and_recompile(self):
+        first = self._post(
+            self.object,
+            "copy",
+            {"content": {"runPatch": {"container": {"image": "debug:v2"}}}},
+        )
+        self._assert_saved(first, "{{ image }}", "debug:v2", "busybox:1.36")
+        self._prepare(first, "debug:v2", "busybox:1.36")
+
+        second = self._post(first, "copy", {})
+        assert second.original_id == first.id
+        self._assert_saved(second, "{{ image }}", "{{ image }}", "busybox:1.36")
+        self._prepare(second, "busybox:1.36", "busybox:1.36")
+
+        replacement = OperationSpecification.read(self.object.raw_content)
+        replacement.params["image"].value = "new-input:v3"
+        replacement.component.run.container.image = "replacement:v3"
+        third = self._post(
+            self.object,
+            "copy",
+            {"content": replacement.to_json(), "meta_info": {META_RECOMPILE: True}},
+        )
+        self._assert_saved(third, "replacement:v3", "replacement:v3", "new-input:v3")
+        self._prepare(third, "replacement:v3", "new-input:v3")
+
+    def test_copy_recompile_requires_full_operation(self):
+        response = self.client.post(
+            self.url + "copy/",
+            {
+                "content": {"trigger": "all_succeeded"},
+                "meta_info": {META_RECOMPILE: True},
+            },
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Run.objects.count() == 1
 
 
 @pytest.mark.run_mark
