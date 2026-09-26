@@ -26,10 +26,12 @@ class TestCreateServices(TestCase):
 
         versionless_state = get_component_version_state(component)
         assert component.version is None
+        assert str(versionless_state) == "4de9f1f8-06b5-54dd-b723-3737aeee69d2"
 
         component.version = 0.4
         versioned_state = get_component_version_state(component)
         assert component.version == 0.4
+        assert str(versioned_state) == "18bbe3c5-bfc4-5721-94f9-cf16e712c676"
         assert versioned_state != versionless_state
 
     def test_create_run_with_service_spec(self):
