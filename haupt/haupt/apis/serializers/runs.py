@@ -18,7 +18,6 @@ from haupt.apis.serializers.base.user_mixin import UserMixin
 from haupt.db.defs import Models
 from haupt.db.managers.runs import create_run
 from haupt.orchestration import operations
-from polyaxon._polyaxonfile import OperationSpecification
 from polyaxon.exceptions import PolyaxonException
 from polyaxon.schemas import ManagedBy, V1RunEdgeKind, V1RunPending
 
@@ -463,19 +462,10 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
 
         if is_managed or content:
             try:
-                op_spec = OperationSpecification.read(content)
-            except Exception as e:
-                raise ValidationError(e)
-            if op_spec.is_template():
-                raise ValidationError(
-                    "Received a template polyaxonfile, "
-                    "Please customize the specification or disable the template."
-                )
-            try:
                 return operations.init_and_save_run(
                     project_id=project_id,
                     user_id=user.id if user else None,
-                    op_spec=op_spec,
+                    op_spec=content,
                     name=name,
                     description=description,
                     tags=tags,

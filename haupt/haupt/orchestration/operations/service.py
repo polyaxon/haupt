@@ -19,8 +19,12 @@ from polyaxon._constants.metadata import (
     META_RECOMPILE,
     META_UPLOAD_ARTIFACTS,
 )
+from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._polyaxonfile import OperationSpecification
+from polyaxon._polyaxonfile.manager.operations import compose_polyaxonfile
+from polyaxon._polyaxonfile.specs import read_polyaxonfile
 from polyaxon._schemas.types import V1ArtifactsType
+from polyaxon.exceptions import PolyaxonSchemaError
 from polyaxon.schemas import (
     ManagedBy,
     V1CloningKind,
@@ -64,7 +68,14 @@ class OperationsService(Service):
     )
 
     @staticmethod
-    def set_spec(spec: V1Operation, **kwargs) -> Tuple[V1Operation, Dict]:
+    def set_spec(
+        spec: Union[str, Dict, V1Polyaxonfile], **kwargs
+    ) -> Tuple[V1Polyaxonfile, Dict]:
+        if not isinstance(spec, V1Polyaxonfile):
+            try:
+                spec = read_polyaxonfile(spec)
+            except Exception as e:
+                raise PolyaxonSchemaError(str(e)) from e
         kwargs["raw_content"] = spec.to_json()
         return spec, kwargs
 
@@ -211,7 +222,7 @@ class OperationsService(Service):
         self,
         project_id: int,
         user_id: int,
-        op_spec: V1Operation = None,
+        op_spec: Optional[Union[str, Dict, V1Polyaxonfile]] = None,
         compiled_operation: V1CompiledOperation = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -230,6 +241,11 @@ class OperationsService(Service):
     ) -> OperationInitSpec:
         if op_spec:
             op_spec, kwargs = self.set_spec(op_spec, **kwargs)
+            if op_spec.is_template():
+                raise PolyaxonSchemaError(
+                    "Received a template polyaxonfile, "
+                    "Please customize the specification or disable the template."
+                )
         if op_spec:
             if not compiled_operation or override:
                 compiled_operation = OperationSpecification.compile_operation(
@@ -237,7 +253,7 @@ class OperationsService(Service):
                     override=override,
                     use_override_patch_strategy=use_override_patch_strategy,
                 )
-            params = op_spec.params
+            params = compose_polyaxonfile(op_spec).params
 
         params = params or {}
         inputs = {p: pv.value for p, pv in params.items() if pv.is_literal}
@@ -316,7 +332,7 @@ class OperationsService(Service):
         self,
         project_id: int,
         user_id: int,
-        op_spec: V1Operation = None,
+        op_spec: Optional[Union[str, Dict, V1Polyaxonfile]] = None,
         compiled_operation: V1CompiledOperation = None,
         name: Optional[str] = None,
         description: Optional[str] = None,

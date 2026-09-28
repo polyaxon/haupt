@@ -50,6 +50,7 @@ from haupt.common.events.registry.model_version import (
     MODEL_VERSION_UPDATED_ACTOR,
     MODEL_VERSION_VIEWED_ACTOR,
 )
+from haupt.common.user_system import USER_SYSTEM_ID, USER_SYSTEM_NAME
 from haupt.db.defs import Models
 from haupt.db.managers.versions import add_version_contributors
 from haupt.db.query_managers.project_version import ProjectVersionQueryManager
@@ -78,15 +79,20 @@ class ProjectVersionListView(VersionListEndpoint, ListEndpoint, CreateEndpoint):
     EVENTS_TYPE = None
 
     def perform_create(self, serializer):
-        instance = serializer.save(project=self.project, user=self.request.user)
+        user = self.request.user if settings.HAS_ORG_MANAGEMENT else None
+        instance = serializer.save(project=self.project, user=user)
         if not self.EVENTS_TYPE:
             return
         add_version_contributors(instance, users=[self.request.user])
         auditor.record(
             event_type=self.EVENTS_TYPE,
             instance=instance,
-            actor_id=self.request.user.id,
-            actor_name=self.request.user.username,
+            actor_id=self.request.user.id
+            if settings.HAS_ORG_MANAGEMENT
+            else USER_SYSTEM_ID,
+            actor_name=self.request.user.username
+            if settings.HAS_ORG_MANAGEMENT
+            else USER_SYSTEM_NAME,
             owner_id=self.project.owner_id,
             owner_name=self.owner_name,
             hub_name=self.project_name,

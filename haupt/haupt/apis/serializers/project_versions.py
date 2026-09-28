@@ -17,7 +17,7 @@ from haupt.db.defs import Models
 from haupt.db.managers.versions import get_component_version_state
 from polyaxon._config.spec import ConfigSpec
 from polyaxon._constants.metadata import META_IS_PROMOTED
-from polyaxon._polyaxonfile import ComponentSpecification
+from polyaxon._polyaxonfile.specs import read_polyaxonfile
 from polyaxon.schemas import V1ProjectVersionKind
 
 
@@ -146,7 +146,7 @@ class ProjectVersionDetailSerializer(
                     "the `content` is required to create a component version."
                 )
             try:
-                return ComponentSpecification.read(content)
+                return read_polyaxonfile(content)
             except Exception as e:
                 raise serializers.ValidationError(e)
         else:
@@ -215,7 +215,7 @@ class ProjectVersionDetailSerializer(
         content = validated_data.get("content")
         if content:
             json_content = self.validated_content(instance.kind, content)
-            if kind == V1ProjectVersionKind.COMPONENT:
+            if instance.kind == V1ProjectVersionKind.COMPONENT:
                 validated_data["state"] = get_component_version_state(
                     component=json_content
                 )

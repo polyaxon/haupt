@@ -9,6 +9,7 @@ from polyaxon._polyaxonfile import (
     CompiledOperationSpecification,
     OperationSpecification,
 )
+from polyaxon._polyaxonfile.specs import read_polyaxonfile
 from polyaxon._utils.fixtures import get_fxt_service, get_fxt_service_with_inputs
 from polyaxon.schemas import V1Component, V1RunKind
 
@@ -33,6 +34,20 @@ class TestCreateServices(TestCase):
         assert component.version == 0.4
         assert str(versioned_state) == "18bbe3c5-bfc4-5721-94f9-cf16e712c676"
         assert versioned_state != versionless_state
+
+    def test_shared_component_state_preserves_authored_kind(self):
+        for kind in (None, "component", "operation"):
+            with self.subTest(kind=kind):
+                source = {"run": {"kind": "job", "container": {"image": "test"}}}
+                if kind:
+                    source["kind"] = kind
+                spec = read_polyaxonfile(source)
+
+                state = get_component_version_state(spec)
+
+                assert str(state) == "4de9f1f8-06b5-54dd-b723-3737aeee69d2"
+                assert spec.kind == kind
+                assert spec.to_dict() == source
 
     def test_create_run_with_service_spec(self):
         count = Run.objects.count()

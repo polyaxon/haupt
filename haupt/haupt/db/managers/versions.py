@@ -6,6 +6,7 @@ from django.conf import settings
 from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.projects import Owner
 from haupt.db.defs import Models
+from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon.schemas import V1Component
 
 
@@ -26,8 +27,9 @@ def add_version_contributors(
 
 
 def get_component_version_state(
-    component: V1Component,
+    component: V1Polyaxonfile,
 ) -> Optional[uuid.UUID]:
     """A string representation that is used to create hash version"""
-    component.kind = "component"
+    # Keep legacy hashes without changing the authored kind.
+    component = V1Component.read({**component.to_dict(), "kind": "component"})
     return uuid.uuid5(Owner.uuid, component.to_json())
