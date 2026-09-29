@@ -920,7 +920,9 @@ class TestSharedRerunPreparationV1(BaseTest):
 
                 assert rerun.raw_content == raw_content
                 assert rerun.params == params
-                assert read_polyaxonfile(rerun.raw_content).to_dict().get("kind") == kind
+                assert (
+                    read_polyaxonfile(rerun.raw_content).to_dict().get("kind") == kind
+                )
                 compiled = CompiledOperationSpecification.read(rerun.content)
                 assert compiled.run.container.image == "{{ image }}"
                 assert compiled.run.container.args == ["echo {{ count }} {{ message }}"]
@@ -1117,7 +1119,9 @@ class TestSharedRerunPreparationV1(BaseTest):
                         url, {**replacement, "meta_info": {META_RECOMPILE: True}}
                     )
 
-                assert response.status_code == status.HTTP_400_BAD_REQUEST, response.data
+                assert response.status_code == status.HTTP_400_BAD_REQUEST, (
+                    response.data
+                )
                 if not replacement.get("content"):
                     assert "Recompile requires a complete Polyaxonfile" in str(
                         response.data

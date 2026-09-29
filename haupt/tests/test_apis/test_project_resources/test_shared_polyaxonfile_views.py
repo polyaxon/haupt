@@ -8,6 +8,7 @@ from clipped.utils.json import orjson_dumps
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.managers.versions import get_component_version_state
 from haupt.db.models.project_versions import ProjectVersion
+from haupt.db.models.run_edges import RunEdge
 from haupt.db.models.runs import Run
 from haupt.orchestration.scheduler.manager import SchedulingManager
 from polyaxon import settings as polyaxon_settings
@@ -35,6 +36,255 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 schema_=V1BucketConnection(bucket="gs//:foo"),
             ),
         )
+
+    def test_shared_dag_creates_children_and_edges_through_prepare(self):
+        for kind in (None, "component", "operation"):
+            with self.subTest(kind=kind):
+                job = {
+                    "kind": "job",
+                    "container": {
+                        "image": "busybox:1.36",
+                        "command": ["sh", "-c"],
+                        "args": ["echo {{ count }}"],
+                        "resources": {"limits": {"nvidia.com/gpu": 1}},
+                    },
+                }
+                template = {
+                    "kind": "operation",
+                    "name": "template",
+                    "inputs": [
+                        {"name": "count", "type": "int"},
+                        {"name": "result", "type": "int"},
+                    ],
+                    "params": {
+                        "count": 3,
+                        "result": {"ref": "ops.producer", "value": "outputs.result"},
+                    },
+                    "dependencies": ["not-a-node"],
+                    "trigger": "all_failed",
+                    "conditions": "{{ False }}",
+                    "skipOnUpstreamSkip": True,
+                    "schedule": {"kind": "cron", "cron": "0 * * * *"},
+                    "run": job,
+                }
+                source = {
+                    "cache": {"disable": True},
+                    "run": {
+                        "kind": "dag",
+                        "components": [
+                            template,
+                            {"name": "unused", "run": job},
+                        ],
+                        "operations": [
+                            {
+                                "kind": "component",
+                                "name": "producer",
+                                "params": {"count": 3},
+                                "outputs": [
+                                    {"name": "result", "type": "int", "value": 7}
+                                ],
+                                "run": job,
+                            },
+                            {
+                                "kind": "operation",
+                                "name": "consumer",
+                                "dagRef": "template",
+                                "params": {"count": 5},
+                                "dependencies": ["producer"],
+                                "trigger": "all_succeeded",
+                                "conditions": "{{ True }}",
+                                "skipOnUpstreamSkip": False,
+                                "events": [
+                                    {
+                                        "ref": "ops.producer",
+                                        "kinds": ["run_status_succeeded"],
+                                    }
+                                ],
+                            },
+                            {
+                                "name": "embedded",
+                                "component": {"params": {"count": 4}, "run": job},
+                            },
+                        ],
+                    },
+                }
+                if kind:
+                    source["kind"] = kind
+                response = self.client.post(self.url, {"content": orjson_dumps(source)})
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                run = Run.objects.get(uuid=response.data["uuid"])
+                raw_content = run.raw_content
+                assert read_polyaxonfile(raw_content).kind == kind
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+                run.refresh_from_db()
+                assert run.status == V1Statuses.COMPILED, run.status_conditions
+                assert run.raw_content == raw_content
+                children = {child.name: child for child in run.pipeline_runs.all()}
+                assert set(children) == {"producer", "consumer", "embedded"}
+                for name, child in children.items():
+                    child_source = read_polyaxonfile(child.raw_content)
+                    compiled = CompiledOperationSpecification.read(child.content)
+                    assert child_source.name == name
+                    assert compiled.name == name
+                    assert compiled.run.container.image == "busybox:1.36"
+                    assert (
+                        compiled.run.container.resources["limits"]["nvidia.com/gpu"]
+                        == 1
+                    )
+                    assert child.pipeline_id == run.id
+                    assert child.controller_id == run.id
+                    assert child.is_job
+                    assert compiled.schedule is None
+                    assert compiled.cache.disable is True
+                producer_source = read_polyaxonfile(children["producer"].raw_content)
+                assert producer_source.kind == "component"
+                assert read_polyaxonfile(children["embedded"].raw_content).kind is None
+                assert children["embedded"].params["count"] == {"value": 4}
+
+                consumer = children["consumer"]
+                consumer_source = read_polyaxonfile(consumer.raw_content)
+                consumer_compiled = CompiledOperationSpecification.read(
+                    consumer.content
+                )
+                assert consumer_source.dag_ref == "template"
+                assert consumer_source.component.schedule is not None
+                assert consumer_source.component.dependencies == ["not-a-node"]
+                assert consumer.params["count"] == {"value": 5}
+                assert consumer.params["result"] == {
+                    "ref": "ops.producer",
+                    "value": "outputs.result",
+                }
+                assert consumer_compiled.dependencies == ["producer"]
+                assert consumer_compiled.trigger == "all_succeeded"
+                assert consumer_compiled.conditions == "{{ True }}"
+                assert consumer_compiled.skip_on_upstream_skip is False
+                edge = RunEdge.objects.get(downstream=consumer)
+                assert edge.upstream_id == children["producer"].id
+                assert edge.kind == "dag"
+                assert edge.values == {"result": "outputs.result"}
+                assert edge.statuses == [V1Statuses.SUCCEEDED]
+                assert RunEdge.objects.filter(downstream__pipeline=run).count() == 1
+
+                producer = children["producer"]
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=producer.id, start=False)
+
+                producer.refresh_from_db()
+                assert producer.status == V1Statuses.COMPILED, (
+                    producer.status_conditions
+                )
+                assert producer.original_id is None
+                assert producer.inputs == {"count": 3}
+                assert producer.outputs == {"result": 7}
+                assert producer.gpu == 1
+                assert CompiledOperationSpecification.read(
+                    producer.content
+                ).run.container.args == ["echo 3"]
+
+    def test_shared_dag_creates_nested_dag_and_inherits_node_matrix(self):
+        source = {
+            "kind": "component",
+            "run": {
+                "kind": "dag",
+                "components": [
+                    {
+                        "kind": "operation",
+                        "name": "search-template",
+                        "inputs": [{"name": "seed", "type": "int"}],
+                        "params": {"message": "hello"},
+                        "matrix": {
+                            "kind": "grid",
+                            "params": {"seed": {"kind": "choice", "value": [1, 2]}},
+                        },
+                        "run": {"kind": "job", "container": {"image": "busybox:1.36"}},
+                    }
+                ],
+                "operations": [
+                    {"name": "search", "dagRef": "search-template"},
+                    {
+                        "name": "nested",
+                        "run": {
+                            "kind": "dag",
+                            "operations": [
+                                {
+                                    "kind": "component",
+                                    "name": "leaf",
+                                    "params": {"count": 3},
+                                    "run": {
+                                        "kind": "job",
+                                        "container": {
+                                            "image": "busybox:1.36",
+                                            "args": ["echo {{ count }}"],
+                                        },
+                                    },
+                                }
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        children = {child.name: child for child in run.pipeline_runs.all()}
+        assert set(children) == {"search", "nested"}
+        search = children["search"]
+        assert search.is_matrix
+        assert search.params == {"message": {"value": "hello"}}
+        search_compiled = CompiledOperationSpecification.read(search.content)
+        assert search_compiled.matrix.kind == "grid"
+        nested = children["nested"]
+        assert nested.is_dag
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=nested.id, start=False)
+
+        nested.refresh_from_db()
+        assert nested.status == V1Statuses.COMPILED, nested.status_conditions
+        leaf = nested.pipeline_runs.get()
+        assert leaf.name == "leaf"
+        assert leaf.controller_id == run.id
+        assert leaf.pipeline_id == nested.id
+        assert read_polyaxonfile(leaf.raw_content).kind == "component"
+        assert leaf.params == {"count": {"value": 3}}
+        leaf_compiled = CompiledOperationSpecification.read(leaf.content)
+        assert leaf_compiled.run.container.image == "busybox:1.36"
+
+    def test_shared_dag_rejects_node_schedule_without_creating_children(self):
+        source = {
+            "run": {
+                "kind": "dag",
+                "operations": [
+                    {
+                        "name": "train",
+                        "schedule": {"kind": "cron", "cron": "0 * * * *"},
+                        "run": {"kind": "job", "container": {"image": "busybox:1.36"}},
+                    }
+                ],
+            }
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.FAILED
+        assert "train" in run.status_conditions[-1]["message"]
+        assert "cannot define a schedule" in run.status_conditions[-1]["message"]
+        assert not run.pipeline_runs.exists()
 
     def test_shared_jobs_and_services_through_prepare(self):
         for runtime in (V1RunKind.JOB, V1RunKind.SERVICE):

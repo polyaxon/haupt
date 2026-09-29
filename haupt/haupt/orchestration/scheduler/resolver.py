@@ -787,10 +787,11 @@ class SchedulingResolver(resolver.BaseResolver):
         def get_upstream_op_params(op_dag_spec: DagOpSpec):
             if not op_dag_spec.upstream:
                 return []
+            effective_op = run_config.get_effective_op(op_dag_spec.op.name)
             upstream_op_params_by_names = ops_params.get_upstream_op_params_by_names(
-                params=op_dag_spec.op.params
+                params=effective_op.params
             )
-            statuses_by_refs = op_dag_spec.op.get_upstream_statuses_events(
+            statuses_by_refs = effective_op.get_upstream_statuses_events(
                 op_dag_spec.upstream
             )
             for op_upstream in op_dag_spec.upstream:
@@ -1009,6 +1010,7 @@ class SchedulingResolver(resolver.BaseResolver):
                     controller_id=run.controller_id or run.id,
                     managed_by=run.managed_by,
                     override=pipeline_override,
+                    is_dag_node=True,
                     supported_owners={run.project.owner.name},
                     component_state=component_state,
                     meta_info=meta_info,
@@ -1020,9 +1022,8 @@ class SchedulingResolver(resolver.BaseResolver):
                 # Add events trigger flags
                 if run_config.dag[op_spec.name].downstream:
                     for downstream_op in run_config.dag[op_spec.name].downstream:
-                        if run_config.dag[downstream_op].op.has_events_for_upstream(
-                            op_spec.name
-                        ):
+                        downstream_spec = run_config.get_effective_op(downstream_op)
+                        if downstream_spec.has_events_for_upstream(op_spec.name):
                             runs_by_names[op_name].instance.meta_info[
                                 META_HAS_DOWNSTREAM_EVENTS_TRIGGER
                             ] = True
@@ -1041,7 +1042,7 @@ class SchedulingResolver(resolver.BaseResolver):
                     has_schedules = True
 
                 # Setting tags by op names
-                tags = op_spec.tags or op_spec.definition.tags
+                tags = runs_by_names[op_name].instance.tags
                 if tags:
                     tags_by_names[op_name] = tags
 

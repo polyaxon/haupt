@@ -237,6 +237,7 @@ class OperationsService(Service):
         pending: Optional[str] = None,
         meta_info: Optional[Dict] = None,
         supported_kinds: Set[str] = None,
+        is_dag_node: bool = False,
         **kwargs,
     ) -> OperationInitSpec:
         if op_spec:
@@ -248,12 +249,16 @@ class OperationsService(Service):
                 )
         if op_spec:
             if not compiled_operation or override:
-                compiled_operation = OperationSpecification.compile_operation(
-                    op_spec,
-                    override=override,
-                    use_override_patch_strategy=use_override_patch_strategy,
+                compiled_operation, params = (
+                    OperationSpecification.compile_operation_with_params(
+                        op_spec,
+                        override=override,
+                        use_override_patch_strategy=use_override_patch_strategy,
+                        is_dag_node=is_dag_node,
+                    )
                 )
-            params = compose_polyaxonfile(op_spec).params
+            else:
+                params = compose_polyaxonfile(op_spec, is_dag_node=is_dag_node).params
 
         params = params or {}
         inputs = {p: pv.value for p, pv in params.items() if pv.is_literal}
