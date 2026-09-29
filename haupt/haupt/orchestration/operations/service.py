@@ -392,7 +392,7 @@ class OperationsService(Service):
             op_spec = V1Operation.read(content)
             content = None
         else:
-            op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
+            op_spec = read_polyaxonfile(run.raw_content)
         instance = self.init_run(
             project_id=run.project_id,
             user_id=user_id or run.user_id,
@@ -452,7 +452,7 @@ class OperationsService(Service):
             op_spec = V1Operation.read(content)
             content = None
         else:
-            op_spec = V1Operation.read(run.raw_content)  # TODO: Use constructor
+            op_spec = read_polyaxonfile(run.raw_content)
         original_meta_info = run.meta_info or {}
         original_uuid = run.uuid.hex
         upload_artifacts = original_meta_info.get(META_UPLOAD_ARTIFACTS)

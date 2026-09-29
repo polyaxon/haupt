@@ -1,8 +1,10 @@
+from itertools import product
 import pytest
 from unittest.mock import patch
 
 from rest_framework import status
 
+from clipped.utils.json import orjson_dumps
 from haupt.apis.serializers.runs import (
     RunDetailSerializer,
     RunSerializer,
@@ -22,6 +24,7 @@ from polyaxon._polyaxonfile import (
     CompiledOperationSpecification,
     OperationSpecification,
 )
+from polyaxon._polyaxonfile.specs import read_polyaxonfile
 from polyaxon._schemas.agent import AgentConfig
 from polyaxon.api import API_V1
 from polyaxon.schemas import (
@@ -777,6 +780,157 @@ class TestLegacyRerunPreparationV1(BaseRerunRunApi):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert Run.objects.count() == 1
+
+
+@pytest.mark.run_mark
+class TestSharedRerunPreparationV1(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.project = ProjectFactory()
+        self.url = "/{}/{}/{}/runs/".format(
+            API_V1, self.user.username, self.project.name
+        )
+        self.agent_config = AgentConfig(
+            namespace="shared-rerun-test",
+            artifacts_store=V1Connection(
+                name="artifacts",
+                kind=V1ConnectionKind.GCS,
+                schema_=V1BucketConnection(bucket="gs//:foo"),
+            ),
+        )
+
+    def _create(self, source):
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        return Run.objects.get(uuid=response.data["uuid"])
+
+    def _rerun(self, run, action):
+        if action == "resume":
+            new_run_status(
+                run,
+                condition=V1StatusCondition.get_condition(
+                    type=V1Statuses.STOPPED, status=True
+                ),
+                force=True,
+            )
+        count = Run.objects.count()
+        url = "{}{}/{}/".format(self.url, run.uuid.hex, action)
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(url, {})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        rerun = Run.objects.get(uuid=response.data["uuid"])
+        if action == "resume":
+            assert Run.objects.count() == count
+            assert rerun.id == run.id
+            assert rerun.is_resume is True
+        else:
+            assert Run.objects.count() == count + 1
+            assert rerun.id != run.id
+            assert rerun.original_id == run.id
+            assert rerun.cloning_kind == action
+        return rerun
+
+    def _prepare(self, run, runtime, count):
+        compiled = CompiledOperationSpecification.read(run.content)
+        assert compiled.strict_params is True
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert run.kind == runtime
+        assert run.runtime == runtime
+        assert run.inputs == {
+            "image": "busybox:1.36",
+            "count": count,
+            "message": "hello",
+        }
+        assert run.outputs == {"result": 7}
+        assert run.gpu == 1
+        compiled = CompiledOperationSpecification.read(run.content)
+        assert compiled.strict_params is None
+        assert "strictParams" not in compiled.to_dict()
+        assert compiled.run.kind == runtime
+        assert compiled.run.container.image == "busybox:1.36"
+        assert compiled.run.container.command == ["sh", "-c"]
+        assert compiled.run.container.args == ["echo {} hello".format(count)]
+        assert compiled.contexts[0].name == "message"
+        assert compiled.contexts[0].value == "hello"
+        if runtime == V1RunKind.SERVICE:
+            assert compiled.run.ports == [8080]
+
+    def _check_rerun(self, action):
+        for kind, runtime, embedded in product(
+            (None, "component", "operation"),
+            (V1RunKind.JOB, V1RunKind.SERVICE),
+            (False, True),
+        ):
+            with self.subTest(kind=kind, runtime=runtime, embedded=embedded):
+                source = {
+                    "version": 1.1,
+                    "strictParams": True,
+                    "inputs": [
+                        {"name": "image", "type": "str"},
+                        {"name": "count", "type": "int"},
+                    ],
+                    "outputs": [{"name": "result", "type": "int", "value": 7}],
+                    "params": {
+                        "image": "busybox:1.36",
+                        "count": 3,
+                        "message": {"value": "hello", "contextOnly": True},
+                    },
+                    "run": {
+                        "kind": runtime,
+                        "container": {
+                            "image": "{{ image }}",
+                            "command": ["sh", "-c"],
+                            "args": ["echo {{ count }} {{ message }}"],
+                            "resources": {"limits": {"nvidia.com/gpu": 1}},
+                        },
+                    },
+                }
+                if runtime == V1RunKind.SERVICE:
+                    source["run"]["ports"] = [8080]
+                if embedded:
+                    source = {
+                        "component": {"kind": "operation", **source},
+                        "params": {"count": 5},
+                    }
+                if kind:
+                    source["kind"] = kind
+                count = 5 if embedded else 3
+                original = self._create(source)
+                raw_content = original.raw_content
+                assert read_polyaxonfile(raw_content).to_dict() == (
+                    read_polyaxonfile(source).to_dict()
+                )
+                self._prepare(original, runtime, count)
+                prepared_content = original.content
+                params = original.params
+
+                rerun = self._rerun(original, action)
+
+                assert rerun.raw_content == raw_content
+                assert rerun.params == params
+                assert read_polyaxonfile(rerun.raw_content).to_dict().get("kind") == kind
+                compiled = CompiledOperationSpecification.read(rerun.content)
+                assert compiled.run.container.image == "{{ image }}"
+                assert compiled.run.container.args == ["echo {{ count }} {{ message }}"]
+                self._prepare(rerun, runtime, count)
+                assert rerun.raw_content == raw_content
+                original.refresh_from_db()
+                assert original.raw_content == raw_content
+                if action != "resume":
+                    assert original.content == prepared_content
+
+    def test_restart_shared_source_through_prepare(self):
+        self._check_rerun("restart")
+
+    def test_resume_shared_source_through_prepare(self):
+        self._check_rerun("resume")
+
+    def test_copy_shared_source_through_prepare(self):
+        self._check_rerun("copy")
 
 
 @pytest.mark.run_mark
