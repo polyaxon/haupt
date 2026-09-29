@@ -1,10 +1,12 @@
 from copy import deepcopy
+from datetime import timedelta
 import pytest
 from unittest.mock import patch
 
 from rest_framework import status
 
 from clipped.utils.json import orjson_dumps
+from clipped.utils.tz import now
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
@@ -38,6 +40,402 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 schema_=V1BucketConnection(bucket="gs//:foo"),
             ),
         )
+
+    def test_shared_schedules_create_first_next_and_restarted_runs(self):
+        start_at = (now() + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        for kind, runtime in (
+            (None, V1RunKind.JOB),
+            ("component", V1RunKind.JOB),
+            ("operation", V1RunKind.SERVICE),
+            ("embedded", V1RunKind.JOB),
+        ):
+            with self.subTest(kind=kind, runtime=runtime):
+                source = {
+                    "strictParams": True,
+                    "cache": {"disable": True},
+                    "inputs": [{"name": "count", "type": "int"}],
+                    "outputs": [{"name": "result", "type": "str", "value": "done"}],
+                    "params": {
+                        "count": 3,
+                        "run_id": {
+                            "value": "{{ globals.uuid }}",
+                            "contextOnly": True,
+                            "toEnv": "RUN_ID",
+                        },
+                    },
+                    "schedule": {
+                        "kind": "cron",
+                        "cron": "0 0 * * *",
+                        "startAt": start_at.isoformat(),
+                        "maxRuns": 2,
+                    },
+                    "run": {
+                        "kind": runtime,
+                        "container": {
+                            "image": "busybox:1.36",
+                            "command": ["sh", "-c"],
+                            "args": ["echo {{ count }} {{ run_id }}"],
+                            "resources": {"limits": {"nvidia.com/gpu": 1}},
+                        },
+                    },
+                }
+                if runtime == V1RunKind.SERVICE:
+                    source["run"]["ports"] = [8080]
+                if kind == "embedded":
+                    source = {
+                        "kind": "operation",
+                        "component": {"kind": "component", **source},
+                    }
+                elif kind:
+                    source["kind"] = kind
+                response = self.client.post(self.url, {"content": orjson_dumps(source)})
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                run = Run.objects.get(uuid=response.data["uuid"])
+                raw_content = run.raw_content
+                assert run.kind == V1RunKind.SCHEDULE
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+                run.refresh_from_db()
+                assert run.status == V1Statuses.COMPILED, run.status_conditions
+                parent_content = run.content
+                parent = CompiledOperationSpecification.read(parent_content)
+                assert parent.strict_params is True
+                assert parent.contexts[0].value == run.uuid.hex
+                assert run.pipeline_runs.count() == 1
+                first = run.pipeline_runs.get()
+                for index in range(2):
+                    if index:
+                        SchedulingManager._start_schedule_based_on_run(
+                            first, depends_on_past=False
+                        )
+                    assert run.pipeline_runs.count() == index + 1
+                    child = run.pipeline_runs.order_by("schedule_at").last()
+                    child_raw_content = child.raw_content
+                    child_source = read_polyaxonfile(child_raw_content)
+                    layer = child_source.component or child_source
+                    assert child.schedule_at == start_at + timedelta(days=index)
+                    assert child.kind == runtime
+                    assert child.pipeline_id == run.id
+                    assert child.component_state == run.component_state
+                    assert child_source.kind == (
+                        "operation" if kind == "embedded" else kind
+                    )
+                    assert child_source.schedule is None
+                    assert layer.schedule is None
+                    assert layer.params["run_id"].value == "{{ globals.uuid }}"
+                    compiled = CompiledOperationSpecification.read(child.content)
+                    assert compiled.schedule is None
+                    assert compiled.strict_params is True
+                    assert compiled.run == parent.run
+
+                    with patch.object(
+                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    ):
+                        SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+                    child.refresh_from_db()
+                    assert child.status == V1Statuses.COMPILED, child.status_conditions
+                    assert child.raw_content == child_raw_content
+                    assert child.inputs == {"count": 3, "run_id": child.uuid.hex}
+                    assert child.outputs == {"result": "done"}
+                    assert not child.pipeline_runs.exists()
+                    compiled = CompiledOperationSpecification.read(child.content)
+                    assert compiled.strict_params is None
+                    assert compiled.contexts[0].to_env == "RUN_ID"
+                    assert compiled.run.container.args == [f"echo 3 {child.uuid.hex}"]
+                    assert (
+                        compiled.run.container.resources["limits"]["nvidia.com/gpu"]
+                        == 1
+                    )
+                    if runtime == V1RunKind.SERVICE:
+                        assert compiled.run.ports == [8080]
+
+                with patch("haupt.common.workers.send"):
+                    response = self.client.post(
+                        f"{self.url}{first.uuid.hex}/restart/", {}
+                    )
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                restarted = Run.objects.get(uuid=response.data["uuid"])
+                assert restarted.original_id == first.id
+                assert restarted.pipeline_id is None
+                assert restarted.kind == runtime
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=restarted.id, start=False)
+
+                restarted.refresh_from_db()
+                assert restarted.status == V1Statuses.COMPILED, (
+                    restarted.status_conditions
+                )
+                assert restarted.inputs == {"count": 3, "run_id": restarted.uuid.hex}
+                assert not restarted.pipeline_runs.exists()
+                compiled = CompiledOperationSpecification.read(restarted.content)
+                assert compiled.schedule is None
+                assert compiled.run.container.args == [f"echo 3 {restarted.uuid.hex}"]
+
+                SchedulingManager._start_schedule_based_on_run(
+                    child, depends_on_past=False
+                )
+                run.refresh_from_db()
+                assert run.status == V1Statuses.SUCCEEDED
+                assert run.pipeline_runs.count() == 2
+                assert run.raw_content == raw_content
+                assert run.content == parent_content
+
+    def test_shared_schedule_keeps_inherited_matrix_and_approval(self):
+        start_at = (now() + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        source = {
+            "kind": "component",
+            "strictParams": True,
+            "isApproved": True,
+            "cache": {"disable": True},
+            "inputs": [{"name": "count", "type": "int"}],
+            "params": {
+                "count": 0,
+                "message": {
+                    "value": "hello",
+                    "contextOnly": True,
+                    "toEnv": "MESSAGE",
+                },
+            },
+            "schedule": {
+                "kind": "cron",
+                "cron": "0 0 * * *",
+                "startAt": start_at.isoformat(),
+                "maxRuns": 2,
+            },
+            "matrix": {
+                "kind": "grid",
+                "params": {"count": {"kind": "choice", "value": [1, 2]}},
+            },
+            "run": {
+                "kind": "job",
+                "container": {
+                    "image": "busybox:1.36",
+                    "command": ["sh", "-c"],
+                    "args": ["echo {{ count }} {{ message }}"],
+                    "resources": {"limits": {"nvidia.com/gpu": 1}},
+                },
+            },
+        }
+        source = {"kind": "operation", "component": source}
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        raw_content = run.raw_content
+        assert run.kind == V1RunKind.SCHEDULE
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        parent_content = run.content
+        parent = CompiledOperationSpecification.read(parent_content)
+        assert parent.matrix.kind == "grid"
+        assert run.pipeline_runs.count() == 1
+        first = run.pipeline_runs.get()
+        for index in range(2):
+            if index:
+                SchedulingManager._start_schedule_based_on_run(
+                    first, depends_on_past=False
+                )
+            assert run.pipeline_runs.count() == index + 1
+            occurrence = run.pipeline_runs.order_by("schedule_at").last()
+            occurrence_raw = occurrence.raw_content
+            assert occurrence.kind == V1RunKind.MATRIX
+            assert occurrence.schedule_at == start_at + timedelta(days=index)
+            assert occurrence.component_state == run.component_state
+            source = read_polyaxonfile(occurrence_raw)
+            assert source.schedule is None
+            assert source.component.schedule is None
+            assert source.component.matrix.kind == "grid"
+            assert source.component.is_approved is True
+            compiled = CompiledOperationSpecification.read(occurrence.content)
+            assert compiled.schedule is None
+            assert compiled.strict_params is True
+            assert compiled.is_approved is True
+            assert compiled.run == parent.run
+
+            with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                SchedulingManager.runs_prepare(run_id=occurrence.id, start=False)
+
+            occurrence.refresh_from_db()
+            assert occurrence.status == V1Statuses.COMPILED, (
+                occurrence.status_conditions
+            )
+            assert occurrence.raw_content == occurrence_raw
+            jobs = list(occurrence.pipeline_runs.order_by("id"))
+            assert len(jobs) == 2
+            assert {job.inputs["count"] for job in jobs} == {1, 2}
+            for job in jobs:
+                count = job.inputs["count"]
+                job_source = read_polyaxonfile(job.raw_content)
+                assert job.kind == V1RunKind.JOB
+                assert job_source.schedule is None
+                assert job_source.matrix is None
+                assert job_source.is_approved is None
+                assert job_source.component.schedule is None
+                assert job_source.component.matrix is None
+                assert job_source.component.is_approved is None
+                assert job_source.params["message"].context_only is True
+                assert job_source.params["message"].to_env == "MESSAGE"
+                compiled = CompiledOperationSpecification.read(job.content)
+                assert compiled.strict_params is True
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=job.id, start=False)
+
+                job.refresh_from_db()
+                assert job.status == V1Statuses.COMPILED, job.status_conditions
+                assert job.inputs == {"count": count, "message": "hello"}
+                assert not job.pipeline_runs.exists()
+                compiled = CompiledOperationSpecification.read(job.content)
+                assert compiled.schedule is None
+                assert compiled.matrix is None
+                assert compiled.strict_params is None
+                assert compiled.run.container.image == "busybox:1.36"
+                assert compiled.run.container.args == [f"echo {count} hello"]
+                assert compiled.run.container.resources["limits"]["nvidia.com/gpu"] == 1
+            run.refresh_from_db()
+            assert run.raw_content == raw_content
+            assert run.content == parent_content
+
+    def test_shared_schedule_creates_dags_with_children_and_edges(self):
+        start_at = (now() + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        source = {
+            "kind": "operation",
+            "strictParams": True,
+            "cache": {"disable": True},
+            "inputs": [{"name": "count", "type": "int"}],
+            "params": {"count": 3},
+            "schedule": {
+                "kind": "cron",
+                "cron": "0 0 * * *",
+                "startAt": start_at.isoformat(),
+                "maxRuns": 2,
+            },
+            "run": {
+                "kind": "dag",
+                "components": [
+                    {
+                        "name": "echo",
+                        "inputs": [{"name": "count", "type": "int"}],
+                        "params": {"count": {"ref": "dag", "value": "inputs.count"}},
+                        "schedule": {"kind": "interval", "frequency": 120},
+                        "run": {
+                            "kind": "job",
+                            "container": {
+                                "image": "busybox:1.36",
+                                "command": ["sh", "-c"],
+                                "args": ["echo {{ count }}"],
+                                "resources": {"limits": {"nvidia.com/gpu": 1}},
+                            },
+                        },
+                    }
+                ],
+                "operations": [
+                    {"name": "first", "dagRef": "echo"},
+                    {
+                        "name": "second",
+                        "dagRef": "echo",
+                        "dependencies": ["first"],
+                        "conditions": "true",
+                        "trigger": "all_succeeded",
+                        "skipOnUpstreamSkip": False,
+                    },
+                ],
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        raw_content = run.raw_content
+        assert run.kind == V1RunKind.SCHEDULE
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        parent_content = run.content
+        assert run.pipeline_runs.count() == 1
+        first = run.pipeline_runs.get()
+        for index in range(2):
+            if index:
+                SchedulingManager._start_schedule_based_on_run(
+                    first, depends_on_past=False
+                )
+            assert run.pipeline_runs.count() == index + 1
+            dag = run.pipeline_runs.order_by("schedule_at").last()
+            dag_raw = dag.raw_content
+            assert dag.kind == V1RunKind.DAG
+            assert dag.schedule_at == start_at + timedelta(days=index)
+            assert dag.component_state == run.component_state
+            source = read_polyaxonfile(dag_raw)
+            assert source.schedule is None
+            assert source.run.components[0].schedule.frequency == timedelta(seconds=120)
+
+            with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                SchedulingManager.runs_prepare(run_id=dag.id, start=False)
+
+            dag.refresh_from_db()
+            assert dag.status == V1Statuses.COMPILED, dag.status_conditions
+            assert dag.raw_content == dag_raw
+            assert dag.inputs == {"count": 3}
+            children = {child.name: child for child in dag.pipeline_runs.all()}
+            assert set(children) == {"first", "second"}
+            assert RunEdge.objects.filter(downstream__pipeline=dag).count() == 1
+            edge = RunEdge.objects.get(
+                upstream=children["first"], downstream=children["second"]
+            )
+            assert edge.kind == "dag"
+            assert edge.statuses == []
+            compiled = CompiledOperationSpecification.read(children["second"].content)
+            assert compiled.dependencies == ["first"]
+            assert compiled.conditions == "true"
+            assert compiled.trigger == "all_succeeded"
+            assert compiled.skip_on_upstream_skip is False
+
+            for name in ("first", "second"):
+                child = children[name]
+                assert child.kind == V1RunKind.JOB
+                assert child.pipeline_id == dag.id
+                assert child.controller_id == dag.id
+                assert child.params["count"] == {"value": 3}
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+                child.refresh_from_db()
+                assert child.status == V1Statuses.COMPILED, child.status_conditions
+                assert child.inputs == {"count": 3}
+                assert not child.pipeline_runs.exists()
+                compiled = CompiledOperationSpecification.read(child.content)
+                assert compiled.schedule is None
+                assert compiled.run.container.args == ["echo 3"]
+                assert compiled.run.container.resources["limits"]["nvidia.com/gpu"] == 1
+                if name == "first":
+                    child.status = V1Statuses.SUCCEEDED
+                    child.save(update_fields=["status"])
+                    with patch("haupt.common.workers.send") as workers_send:
+                        SchedulingManager.runs_notify_done(run_id=child.id)
+                    assert {
+                        call.kwargs["kwargs"]["run_id"]
+                        for call in workers_send.call_args_list
+                        if call.args[0] == SchedulerCeleryTasks.RUNS_PREPARE
+                    } == {children["second"].id}
+            run.refresh_from_db()
+            assert run.raw_content == raw_content
+            assert run.content == parent_content
 
     def test_shared_grid_jobs_and_services_through_prepare_and_restart(self):
         for runtime in (V1RunKind.JOB, V1RunKind.SERVICE):
