@@ -1118,10 +1118,11 @@ class SchedulingResolver(resolver.BaseResolver):
         meta_info = cls._pass_down_uploaded_artifacts(run=run)
         component_state = None
         for index, op_spec in enumerate(ops):
-            # We make sure that the component state resolves to the correct runs' state
-            # Calculate this value once
-            if not component_state:
-                component_state = get_component_version_state(op_spec.component)
+            # Direct files include each child's params in their component state.
+            if not component_state or op_spec.component is None:
+                component_state = get_component_version_state(
+                    op_spec.component or op_spec
+                )
             op_run = operations.init_run(
                 project_id=run.project_id,
                 user_id=run.user_id,

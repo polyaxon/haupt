@@ -7,6 +7,7 @@ from rest_framework import status
 from clipped.utils.json import orjson_dumps
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
+from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.versions import get_component_version_state
 from haupt.db.models.project_versions import ProjectVersion
 from haupt.db.models.run_edges import RunEdge
@@ -37,6 +38,366 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 schema_=V1BucketConnection(bucket="gs//:foo"),
             ),
         )
+
+    def test_shared_grid_jobs_and_services_through_prepare_and_restart(self):
+        for runtime in (V1RunKind.JOB, V1RunKind.SERVICE):
+            for kind in (None, "component", "operation", "embedded"):
+                with self.subTest(runtime=runtime, kind=kind):
+                    source = {
+                        "strictParams": True,
+                        "cache": {"disable": True},
+                        "inputs": [
+                            {"name": "count", "type": "int"},
+                            {"name": "rate", "type": "float"},
+                        ],
+                        "outputs": [{"name": "result", "type": "str", "value": "done"}],
+                        "params": {
+                            "count": {"value": 0, "contextOnly": False},
+                            "rate": 0.5,
+                            "message": {
+                                "value": "hello",
+                                "contextOnly": True,
+                                "toEnv": "MESSAGE",
+                            },
+                        },
+                        "matrix": {
+                            "kind": "grid",
+                            "params": {"count": {"kind": "choice", "value": [1, 2]}},
+                        },
+                        "run": {
+                            "kind": runtime,
+                            "container": {
+                                "image": "busybox:1.36",
+                                "command": ["sh", "-c"],
+                                "args": ["echo {{ count }} {{ rate }} {{ message }}"],
+                                "resources": {"limits": {"nvidia.com/gpu": 1}},
+                            },
+                        },
+                    }
+                    if runtime == V1RunKind.SERVICE:
+                        source["run"]["ports"] = [8080]
+                    if kind == "embedded":
+                        source = {
+                            "kind": "operation",
+                            "strictParams": False,
+                            "component": {"kind": "component", **source},
+                        }
+                    elif kind:
+                        source["kind"] = kind
+                    response = self.client.post(
+                        self.url, {"content": orjson_dumps(source)}
+                    )
+                    assert response.status_code == status.HTTP_201_CREATED, (
+                        response.data
+                    )
+                    run = Run.objects.get(uuid=response.data["uuid"])
+                    raw_content = run.raw_content
+                    assert run.is_matrix
+                    assert run.runtime == "grid"
+
+                    with patch.object(
+                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    ):
+                        SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+                    run.refresh_from_db()
+                    assert run.status == V1Statuses.COMPILED, run.status_conditions
+                    assert run.raw_content == raw_content
+                    parent = CompiledOperationSpecification.read(run.content)
+                    assert parent.strict_params is True
+                    children = list(run.pipeline_runs.order_by("id"))
+                    assert len(children) == 2
+                    assert not RunEdge.objects.filter(downstream__pipeline=run).exists()
+                    for count, child in enumerate(children, 1):
+                        child_raw_content = child.raw_content
+                        child_source = read_polyaxonfile(child_raw_content)
+                        compiled = CompiledOperationSpecification.read(child.content)
+                        assert child.kind == runtime
+                        assert child.pipeline_id == run.id
+                        assert child.controller_id == run.id
+                        assert child_source.kind == (
+                            "operation" if kind == "embedded" else kind
+                        )
+                        assert child_source.matrix is None
+                        if child_source.component is not None:
+                            assert child_source.component.matrix is None
+                        assert child_source.strict_params is True
+                        assert child_source.params["count"].context_only is False
+                        assert child_source.params["message"].context_only is True
+                        assert child_source.params["message"].to_env == "MESSAGE"
+                        assert child.inputs == {"count": count, "message": "hello"}
+                        assert child.component_state == get_component_version_state(
+                            child_source.component or child_source
+                        )
+                        assert compiled.matrix is None
+                        assert compiled.strict_params is True
+                        assert compiled.run == parent.run
+                        assert compiled.inputs == parent.inputs
+                        assert compiled.outputs == parent.outputs
+
+                        with patch.object(
+                            polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                        ):
+                            SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+                        child.refresh_from_db()
+                        assert child.status == V1Statuses.COMPILED, (
+                            child.status_conditions
+                        )
+                        assert child.raw_content == child_raw_content
+                        assert child.inputs == {
+                            "count": count,
+                            "rate": 0.5,
+                            "message": "hello",
+                        }
+                        assert child.outputs == {"result": "done"}
+                        compiled = CompiledOperationSpecification.read(child.content)
+                        assert compiled.strict_params is None
+                        assert {io.name: io.value for io in compiled.inputs} == {
+                            "count": count,
+                            "rate": 0.5,
+                        }
+                        assert {io.name: io.value for io in compiled.contexts} == {
+                            "message": "hello"
+                        }
+                        assert compiled.contexts[0].to_env == "MESSAGE"
+                        assert compiled.run.container.args == [
+                            f"echo {count} 0.5 hello"
+                        ]
+                        assert (
+                            compiled.run.container.resources["limits"]["nvidia.com/gpu"]
+                            == 1
+                        )
+                        if runtime == V1RunKind.SERVICE:
+                            assert compiled.run.ports == [8080]
+                    assert len({child.component_state for child in children}) == (
+                        1 if kind == "embedded" else 2
+                    )
+
+                    child = children[0]
+                    with patch("haupt.common.workers.send"):
+                        response = self.client.post(
+                            f"{self.url}{child.uuid.hex}/restart/", {}
+                        )
+                    assert response.status_code == status.HTTP_201_CREATED, (
+                        response.data
+                    )
+                    restarted = Run.objects.get(uuid=response.data["uuid"])
+                    assert restarted.original_id == child.id
+                    assert restarted.pipeline_id is None
+
+                    with patch.object(
+                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    ):
+                        SchedulingManager.runs_prepare(run_id=restarted.id, start=False)
+
+                    restarted.refresh_from_db()
+                    assert restarted.status == V1Statuses.COMPILED, (
+                        restarted.status_conditions
+                    )
+                    assert restarted.inputs == child.inputs
+                    assert not restarted.pipeline_runs.exists()
+                    compiled = CompiledOperationSpecification.read(restarted.content)
+                    assert compiled.matrix is None
+                    assert compiled.run.container.args == ["echo 1 0.5 hello"]
+
+    @patch("haupt.common.workers.send")
+    def test_shared_matrix_later_suggestions_through_prepare(self, worker_send):
+        source = {
+            "kind": "component",
+            "strictParams": True,
+            "cache": {"disable": True},
+            "params": {
+                "count": {"value": 0, "contextOnly": True, "toEnv": "COUNT"},
+                "message": {"value": "hello", "contextOnly": True},
+            },
+            "matrix": {
+                "kind": "bayes",
+                "numInitialRuns": 2,
+                "maxIterations": 2,
+                "metric": {"name": "loss", "optimization": "minimize"},
+                "params": {"count": {"kind": "choice", "value": [1, 2, 3]}},
+            },
+            "run": {
+                "kind": "job",
+                "container": {
+                    "image": "busybox:1.36",
+                    "command": ["sh", "-c"],
+                    "args": ["echo {{ count }} {{ message }}"],
+                    "resources": {"limits": {"nvidia.com/gpu": 1}},
+                },
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        raw_content = run.raw_content
+        assert run.is_matrix
+        assert run.runtime == "bayes"
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert not run.pipeline_runs.exists()
+        worker_send.assert_any_call(
+            SchedulerCeleryTasks.RUNS_TUNE,
+            kwargs={"run_id": run.id},
+            eager_kwargs={"run": run},
+        )
+        parent_content = run.content
+        parent = CompiledOperationSpecification.read(parent_content)
+        assert parent.strict_params is True
+        assert parent.inputs is None
+        previous_children = {}
+        for iteration, counts in ((1, [1, 2]), (2, [3])):
+            tuner = RunFactory(
+                project=self.project,
+                user=run.user,
+                pipeline=run,
+                controller=run,
+                kind=V1RunKind.JOB,
+                runtime=V1RunKind.TUNER,
+                status=V1Statuses.SUCCEEDED,
+                inputs={"iteration": iteration},
+                outputs={"suggestions": [{"count": count} for count in counts]},
+            )
+
+            SchedulingManager.runs_iterate(run_id=tuner.id)
+
+            run.refresh_from_db()
+            assert run.meta_info["iteration"] == iteration
+            assert run.raw_content == raw_content
+            assert run.content == parent_content
+            children = [
+                child
+                for child in run.pipeline_runs.order_by("id")
+                if child.meta_info.get("iteration") == iteration
+            ]
+            assert len(children) == len(counts)
+            for count, child in zip(counts, children):
+                child_raw_content = child.raw_content
+                child_source = read_polyaxonfile(child_raw_content)
+                compiled = CompiledOperationSpecification.read(child.content)
+                assert child.is_job
+                assert child.pipeline_id == run.id
+                assert child.controller_id == run.id
+                assert child_source.matrix is None
+                assert child_source.strict_params is True
+                assert child_source.params["count"].context_only is True
+                assert child_source.params["count"].to_env == "COUNT"
+                assert child.inputs == {"count": count, "message": "hello"}
+                assert child.component_state == get_component_version_state(
+                    child_source.component or child_source
+                )
+                assert compiled.matrix is None
+                assert compiled.inputs is None
+                assert compiled.strict_params is True
+                assert compiled.run == parent.run
+                edge = RunEdge.objects.get(downstream=child)
+                assert edge.upstream_id == tuner.id
+                assert edge.kind == "join"
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+                child.refresh_from_db()
+                assert child.status == V1Statuses.COMPILED, child.status_conditions
+                assert child.raw_content == child_raw_content
+                assert child.inputs == {"count": count, "message": "hello"}
+                compiled = CompiledOperationSpecification.read(child.content)
+                assert compiled.strict_params is None
+                assert compiled.inputs is None
+                assert {io.name: io.value for io in compiled.contexts} == {
+                    "count": count,
+                    "message": "hello",
+                }
+                assert compiled.run.container.image == "busybox:1.36"
+                assert compiled.run.container.args == [f"echo {count} hello"]
+                assert compiled.run.container.resources["limits"]["nvidia.com/gpu"] == 1
+            for child_id, (saved_raw, saved_content) in previous_children.items():
+                previous = Run.objects.get(id=child_id)
+                assert previous.raw_content == saved_raw
+                assert previous.content == saved_content
+            previous_children.update(
+                {child.id: (child.raw_content, child.content) for child in children}
+            )
+        assert run.pipeline_runs.exclude(runtime=V1RunKind.TUNER).count() == 3
+        assert RunEdge.objects.filter(downstream__pipeline=run).count() == 3
+
+    def test_shared_matrix_dag_children_pass_suggestions_to_jobs(self):
+        source = {
+            "kind": "operation",
+            "cache": {"disable": True},
+            "strictParams": True,
+            "inputs": [{"name": "count", "type": "int"}],
+            "matrix": {
+                "kind": "grid",
+                "params": {"count": {"kind": "choice", "value": [1, 2]}},
+            },
+            "run": {
+                "kind": "dag",
+                "operations": [
+                    {
+                        "name": "echo",
+                        "inputs": [{"name": "count", "type": "int"}],
+                        "params": {"count": {"ref": "dag", "value": "inputs.count"}},
+                        "run": {
+                            "kind": "job",
+                            "container": {
+                                "image": "busybox:1.36",
+                                "args": ["echo {{ count }}"],
+                                "resources": {"limits": {"nvidia.com/gpu": 1}},
+                            },
+                        },
+                    }
+                ],
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        raw_content = run.raw_content
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert run.raw_content == raw_content
+        dags = list(run.pipeline_runs.order_by("id"))
+        assert len(dags) == 2
+        for count, dag in enumerate(dags, 1):
+            assert dag.is_dag
+            assert dag.inputs == {"count": count}
+            dag_source = read_polyaxonfile(dag.raw_content)
+            assert dag_source.matrix is None
+            assert dag_source.run.operations[0].params["count"].ref == "dag"
+
+            with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                SchedulingManager.runs_prepare(run_id=dag.id, start=False)
+
+            dag.refresh_from_db()
+            assert dag.status == V1Statuses.COMPILED, dag.status_conditions
+            assert dag.inputs == {"count": count}
+            leaf = dag.pipeline_runs.get()
+            assert leaf.is_job
+            assert leaf.name == "echo"
+            assert leaf.controller_id == run.id
+            assert leaf.pipeline_id == dag.id
+            assert leaf.params["count"] == {"value": count}
+
+            with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                SchedulingManager.runs_prepare(run_id=leaf.id, start=False)
+
+            leaf.refresh_from_db()
+            assert leaf.status == V1Statuses.COMPILED, leaf.status_conditions
+            assert leaf.inputs == {"count": count}
+            compiled = CompiledOperationSpecification.read(leaf.content)
+            assert compiled.matrix is None
+            assert compiled.run.container.args == [f"echo {count}"]
+            assert compiled.run.container.resources["limits"]["nvidia.com/gpu"] == 1
 
     def test_shared_dag_creates_children_and_edges_through_prepare(self):
         for kind in (None, "component", "operation"):
@@ -551,6 +912,35 @@ class TestSharedPolyaxonfileViews(BaseTest):
         assert search.params == {"message": {"value": "hello"}}
         search_compiled = CompiledOperationSpecification.read(search.content)
         assert search_compiled.matrix.kind == "grid"
+
+        search_raw_content = search.raw_content
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=search.id, start=False)
+        search.refresh_from_db()
+        assert search.status == V1Statuses.COMPILED, search.status_conditions
+        assert search.raw_content == search_raw_content
+        matrix_children = list(search.pipeline_runs.order_by("id"))
+        assert len(matrix_children) == 2
+        for seed, child in enumerate(matrix_children, 1):
+            assert child.is_job
+            assert child.pipeline_id == search.id
+            assert child.controller_id == run.id
+            assert child.inputs == {"seed": seed, "message": "hello"}
+            child_source = read_polyaxonfile(child.raw_content)
+            assert child_source.dag_ref == "search-template"
+            assert child_source.component.matrix is None
+
+            with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+            child.refresh_from_db()
+            assert child.status == V1Statuses.COMPILED, child.status_conditions
+            assert child.inputs == {"seed": seed, "message": "hello"}
+            compiled = CompiledOperationSpecification.read(child.content)
+            assert compiled.matrix is None
+            assert compiled.inputs[0].value == seed
+            assert compiled.contexts[0].value == "hello"
+
         nested = children["nested"]
         assert nested.is_dag
         nested_source = read_polyaxonfile(nested.raw_content)
