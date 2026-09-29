@@ -783,6 +783,7 @@ class TestLegacyRerunPreparationV1(BaseRerunRunApi):
 
 
 @pytest.mark.run_mark
+@patch("haupt.apis.runs.views.RunCloneView.throttle_classes", [])
 class TestSharedRerunPreparationV1(BaseTest):
     def setUp(self):
         super().setUp()
@@ -805,7 +806,7 @@ class TestSharedRerunPreparationV1(BaseTest):
         assert response.status_code == status.HTTP_201_CREATED, response.data
         return Run.objects.get(uuid=response.data["uuid"])
 
-    def _rerun(self, run, action):
+    def _rerun(self, run, action, data=None):
         if action == "resume":
             new_run_status(
                 run,
@@ -817,7 +818,7 @@ class TestSharedRerunPreparationV1(BaseTest):
         count = Run.objects.count()
         url = "{}{}/{}/".format(self.url, run.uuid.hex, action)
         with patch("haupt.common.workers.send"):
-            response = self.client.post(url, {})
+            response = self.client.post(url, data or {})
         assert response.status_code == status.HTTP_201_CREATED, response.data
         rerun = Run.objects.get(uuid=response.data["uuid"])
         if action == "resume":
@@ -831,7 +832,9 @@ class TestSharedRerunPreparationV1(BaseTest):
             assert rerun.cloning_kind == action
         return rerun
 
-    def _prepare(self, run, runtime, count):
+    def _prepare(
+        self, run, runtime, count, image="busybox:1.36", param_image="busybox:1.36"
+    ):
         compiled = CompiledOperationSpecification.read(run.content)
         assert compiled.strict_params is True
         with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
@@ -841,7 +844,7 @@ class TestSharedRerunPreparationV1(BaseTest):
         assert run.kind == runtime
         assert run.runtime == runtime
         assert run.inputs == {
-            "image": "busybox:1.36",
+            "image": param_image,
             "count": count,
             "message": "hello",
         }
@@ -851,13 +854,42 @@ class TestSharedRerunPreparationV1(BaseTest):
         assert compiled.strict_params is None
         assert "strictParams" not in compiled.to_dict()
         assert compiled.run.kind == runtime
-        assert compiled.run.container.image == "busybox:1.36"
+        assert compiled.run.container.image == image
         assert compiled.run.container.command == ["sh", "-c"]
         assert compiled.run.container.args == ["echo {} hello".format(count)]
         assert compiled.contexts[0].name == "message"
         assert compiled.contexts[0].value == "hello"
         if runtime == V1RunKind.SERVICE:
             assert compiled.run.ports == [8080]
+
+    @staticmethod
+    def _source(runtime=V1RunKind.JOB):
+        source = {
+            "version": 1.1,
+            "strictParams": True,
+            "inputs": [
+                {"name": "image", "type": "str"},
+                {"name": "count", "type": "int"},
+            ],
+            "outputs": [{"name": "result", "type": "int", "value": 7}],
+            "params": {
+                "image": "busybox:1.36",
+                "count": 3,
+                "message": {"value": "hello", "contextOnly": True},
+            },
+            "run": {
+                "kind": runtime,
+                "container": {
+                    "image": "{{ image }}",
+                    "command": ["sh", "-c"],
+                    "args": ["echo {{ count }} {{ message }}"],
+                    "resources": {"limits": {"nvidia.com/gpu": 1}},
+                },
+            },
+        }
+        if runtime == V1RunKind.SERVICE:
+            source["run"]["ports"] = [8080]
+        return source
 
     def _check_rerun(self, action):
         for kind, runtime, embedded in product(
@@ -866,31 +898,7 @@ class TestSharedRerunPreparationV1(BaseTest):
             (False, True),
         ):
             with self.subTest(kind=kind, runtime=runtime, embedded=embedded):
-                source = {
-                    "version": 1.1,
-                    "strictParams": True,
-                    "inputs": [
-                        {"name": "image", "type": "str"},
-                        {"name": "count", "type": "int"},
-                    ],
-                    "outputs": [{"name": "result", "type": "int", "value": 7}],
-                    "params": {
-                        "image": "busybox:1.36",
-                        "count": 3,
-                        "message": {"value": "hello", "contextOnly": True},
-                    },
-                    "run": {
-                        "kind": runtime,
-                        "container": {
-                            "image": "{{ image }}",
-                            "command": ["sh", "-c"],
-                            "args": ["echo {{ count }} {{ message }}"],
-                            "resources": {"limits": {"nvidia.com/gpu": 1}},
-                        },
-                    },
-                }
-                if runtime == V1RunKind.SERVICE:
-                    source["run"]["ports"] = [8080]
+                source = self._source(runtime)
                 if embedded:
                     source = {
                         "component": {"kind": "operation", **source},
@@ -931,6 +939,199 @@ class TestSharedRerunPreparationV1(BaseTest):
 
     def test_copy_shared_source_through_prepare(self):
         self._check_rerun("copy")
+
+    def test_overrides_keep_saved_source_for_next_rerun(self):
+        for action, strategy, field in product(
+            ("restart", "resume", "copy"),
+            (None, "post_merge", "pre_merge", "replace", "isnull"),
+            ("run", "runPatch", "both"),
+        ):
+            with self.subTest(action=action, strategy=strategy, field=field):
+                source = {"kind": "operation", **self._source(V1RunKind.SERVICE)}
+                original = self._create(source)
+                raw_content = original.raw_content
+                original_content = original.content
+                override = {
+                    "kind": "component",
+                    "params": {**source["params"], "count": 5},
+                }
+                if field in ("run", "both"):
+                    override["run"] = {"container": {"image": "native:v2"}}
+                if field in ("runPatch", "both"):
+                    override["runPatch"] = {"container": {"image": "patch:v3"}}
+                if strategy:
+                    override["patchStrategy"] = strategy
+                changes_image = strategy in (None, "post_merge", "replace")
+                image = (
+                    ("native:v2" if field == "run" else "patch:v3")
+                    if changes_image
+                    else "busybox:1.36"
+                )
+                count = 5 if changes_image else 3
+
+                first = self._rerun(original, action, {"content": override})
+
+                assert first.raw_content == raw_content
+                assert first.params["count"]["value"] == count
+                self._prepare(first, V1RunKind.SERVICE, count, image=image)
+                assert first.raw_content == raw_content
+
+                second = self._rerun(first, action)
+
+                assert second.raw_content == raw_content
+                assert second.params["count"]["value"] == 3
+                self._prepare(second, V1RunKind.SERVICE, 3)
+                assert second.raw_content == raw_content
+                original.refresh_from_db()
+                assert original.raw_content == raw_content
+                if action != "resume":
+                    assert original.content == original_content
+
+    def test_legacy_source_accepts_native_run_override(self):
+        for action in ("restart", "resume", "copy"):
+            with self.subTest(action=action):
+                component = self._source()
+                source = {
+                    "kind": "operation",
+                    "params": component.pop("params"),
+                    "component": component,
+                }
+                original = self._create(source)
+                raw_content = original.raw_content
+
+                rerun = self._rerun(
+                    original,
+                    action,
+                    {
+                        "content": {
+                            "run": {"container": {"image": "native:v2"}},
+                            "params": {"count": 5},
+                        }
+                    },
+                )
+
+                assert rerun.raw_content == raw_content
+                assert rerun.params["count"]["value"] == 5
+                self._prepare(rerun, V1RunKind.JOB, 5, image="native:v2")
+                assert rerun.raw_content == raw_content
+
+    def test_recompile_replaces_source_for_next_rerun(self):
+        for action, kind in product(
+            ("restart", "resume", "copy"), (None, "component", "operation")
+        ):
+            with self.subTest(action=action, kind=kind):
+                source = {"kind": "operation", **self._source()}
+                source["params"]["old"] = {"value": "discard", "contextOnly": True}
+                original = self._create(source)
+                original_raw = original.raw_content
+                original_content = original.content
+                replacement = self._source()
+                replacement["params"]["image"] = "replacement:v3"
+                replacement["params"]["count"] = 7
+                if kind:
+                    replacement["kind"] = kind
+
+                replaced = self._rerun(
+                    original,
+                    action,
+                    {
+                        "content": (
+                            orjson_dumps(replacement)
+                            if kind == "component"
+                            else replacement
+                        ),
+                        "meta_info": {META_RECOMPILE: True},
+                    },
+                )
+
+                replacement_raw = replaced.raw_content
+                assert replacement_raw != original_raw
+                assert read_polyaxonfile(replacement_raw).to_dict() == (
+                    read_polyaxonfile(replacement).to_dict()
+                )
+                assert replaced.params == {
+                    "image": {"value": "replacement:v3"},
+                    "count": {"value": 7},
+                    "message": {"value": "hello", "contextOnly": True},
+                }
+                self._prepare(
+                    replaced,
+                    V1RunKind.JOB,
+                    7,
+                    image="replacement:v3",
+                    param_image="replacement:v3",
+                )
+
+                again = self._rerun(replaced, action)
+
+                assert again.raw_content == replacement_raw
+                assert again.params == replaced.params
+                self._prepare(
+                    again,
+                    V1RunKind.JOB,
+                    7,
+                    image="replacement:v3",
+                    param_image="replacement:v3",
+                )
+                assert again.raw_content == replacement_raw
+                if action != "resume":
+                    original.refresh_from_db()
+                    assert original.raw_content == original_raw
+                    assert original.content == original_content
+
+    def test_recompile_rejects_missing_or_incomplete_source(self):
+        original = self._create(self._source())
+        for action, replacement in product(
+            ("restart", "resume", "copy"),
+            (
+                {},
+                {"content": None},
+                {"content": {}},
+                {"content": {"params": {"count": 5}}},
+                {"content": {"runPatch": {"container": {"image": "patch:v3"}}}},
+                {"content": {"run": {"container": {"image": "missing-kind:v3"}}}},
+            ),
+        ):
+            with self.subTest(action=action, replacement=replacement):
+                if action == "resume":
+                    new_run_status(
+                        original,
+                        condition=V1StatusCondition.get_condition(
+                            type=V1Statuses.STOPPED, status=True
+                        ),
+                        force=True,
+                    )
+                original.refresh_from_db()
+                before = (
+                    original.raw_content,
+                    original.content,
+                    original.params,
+                    original.component_state,
+                    original.status,
+                )
+                count = Run.objects.count()
+                url = "{}{}/{}/".format(self.url, original.uuid.hex, action)
+
+                with patch("haupt.common.workers.send") as workers_send:
+                    response = self.client.post(
+                        url, {**replacement, "meta_info": {META_RECOMPILE: True}}
+                    )
+
+                assert response.status_code == status.HTTP_400_BAD_REQUEST, response.data
+                if not replacement.get("content"):
+                    assert "Recompile requires a complete Polyaxonfile" in str(
+                        response.data
+                    )
+                workers_send.assert_not_called()
+                assert Run.objects.count() == count
+                original.refresh_from_db()
+                assert (
+                    original.raw_content,
+                    original.content,
+                    original.params,
+                    original.component_state,
+                    original.status,
+                ) == before
 
 
 @pytest.mark.run_mark

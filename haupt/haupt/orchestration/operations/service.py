@@ -389,7 +389,11 @@ class OperationsService(Service):
         status_meta_info = kwargs.pop("status_meta_info", None)
         recompile = meta_info.pop(META_RECOMPILE, False)
         if recompile:
-            op_spec = V1Operation.read(content)
+            if not content:
+                raise PolyaxonSchemaError(
+                    "Recompile requires a complete Polyaxonfile in content."
+                )
+            op_spec = content
             content = None
         else:
             op_spec = read_polyaxonfile(run.raw_content)
@@ -449,7 +453,11 @@ class OperationsService(Service):
         meta_info = kwargs.pop("meta_info", {}) or {}
         recompile = meta_info.pop(META_RECOMPILE, False)
         if recompile:
-            op_spec = V1Operation.read(content)
+            if not content:
+                raise PolyaxonSchemaError(
+                    "Recompile requires a complete Polyaxonfile in content."
+                )
+            op_spec = content
             content = None
         else:
             op_spec = read_polyaxonfile(run.raw_content)
