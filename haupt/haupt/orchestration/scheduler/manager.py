@@ -55,7 +55,9 @@ from polyaxon._constants.metadata import (
     META_IS_HOOK,
     META_ITERATION,
 )
+from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._operations import get_bo_tuner, get_hyperband_tuner, get_tpe_tuner
+from polyaxon._polyaxonfile.specs import read_polyaxonfile
 from polyaxon.exceptions import (
     PolyaxonCompilerError,
     PolyaxonException,
@@ -518,7 +520,7 @@ class SchedulingManager:
 
     @classmethod
     def _check_upstream_trigger(
-        cls, run: Models.Run, op_spec: V1Operation
+        cls, run: Models.Run, op_spec: V1Polyaxonfile
     ) -> [bool, bool]:
         """
         Checks the upstream and the trigger rule.
@@ -564,7 +566,7 @@ class SchedulingManager:
     @classmethod
     def _trigger_downstream(cls, queryset: QuerySet, is_skipped: bool = False):
         for down_run in queryset:
-            op_spec = V1Operation.read(down_run.raw_content)  # TODO: Use construct
+            op_spec = read_polyaxonfile(down_run.raw_content)
             if is_skipped and op_spec.skip_on_upstream_skip:
                 condition = V1StatusCondition.get_condition(
                     type=V1Statuses.SKIPPED,

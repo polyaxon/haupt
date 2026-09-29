@@ -5,6 +5,7 @@ from unittest.mock import patch
 from rest_framework import status
 
 from clipped.utils.json import orjson_dumps
+from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.managers.versions import get_component_version_state
 from haupt.db.models.project_versions import ProjectVersion
@@ -59,14 +60,22 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     "params": {
                         "count": 3,
                         "result": {"ref": "ops.producer", "value": "outputs.result"},
+                        "producer_uuid": {
+                            "ref": "ops.producer",
+                            "value": "globals.uuid",
+                            "contextOnly": True,
+                        },
                     },
                     "dependencies": ["not-a-node"],
                     "trigger": "all_failed",
                     "conditions": "{{ False }}",
                     "skipOnUpstreamSkip": True,
                     "schedule": {"kind": "cron", "cron": "0 * * * *"},
-                    "run": job,
+                    "run": deepcopy(job),
                 }
+                template["run"]["container"]["args"] = [
+                    "echo {{ count }} {{ result }} {{ joined_results[0] }}"
+                ]
                 source = {
                     "cache": {"disable": True},
                     "run": {
@@ -86,14 +95,24 @@ class TestSharedPolyaxonfileViews(BaseTest):
                                 "run": job,
                             },
                             {
-                                "kind": "operation",
                                 "name": "consumer",
                                 "dagRef": "template",
                                 "params": {"count": 5},
                                 "dependencies": ["producer"],
                                 "trigger": "all_succeeded",
-                                "conditions": "{{ True }}",
+                                "conditions": "{{ result == 19 }}",
                                 "skipOnUpstreamSkip": False,
+                                "joins": [
+                                    {
+                                        "query": "uuid:{{ producer_uuid }}",
+                                        "params": {
+                                            "joined_results": {
+                                                "value": "outputs.result",
+                                                "contextOnly": True,
+                                            }
+                                        },
+                                    }
+                                ],
                                 "events": [
                                     {
                                         "ref": "ops.producer",
@@ -110,6 +129,7 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 }
                 if kind:
                     source["kind"] = kind
+                    source["run"]["operations"][1]["kind"] = kind
                 response = self.client.post(self.url, {"content": orjson_dumps(source)})
                 assert response.status_code == status.HTTP_201_CREATED, response.data
                 run = Run.objects.get(uuid=response.data["uuid"])
@@ -146,6 +166,8 @@ class TestSharedPolyaxonfileViews(BaseTest):
 
                 consumer = children["consumer"]
                 consumer_source = read_polyaxonfile(consumer.raw_content)
+                consumer_raw_content = consumer.raw_content
+                assert consumer_source.kind == kind
                 consumer_compiled = CompiledOperationSpecification.read(
                     consumer.content
                 )
@@ -159,12 +181,16 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 }
                 assert consumer_compiled.dependencies == ["producer"]
                 assert consumer_compiled.trigger == "all_succeeded"
-                assert consumer_compiled.conditions == "{{ True }}"
+                assert consumer_compiled.conditions == "{{ result == 19 }}"
                 assert consumer_compiled.skip_on_upstream_skip is False
+                assert consumer_compiled.joins[0].query == "uuid:{{ producer_uuid }}"
                 edge = RunEdge.objects.get(downstream=consumer)
                 assert edge.upstream_id == children["producer"].id
                 assert edge.kind == "dag"
-                assert edge.values == {"result": "outputs.result"}
+                assert edge.values == {
+                    "result": "outputs.result",
+                    "producer_uuid": "globals.uuid",
+                }
                 assert edge.statuses == [V1Statuses.SUCCEEDED]
                 assert RunEdge.objects.filter(downstream__pipeline=run).count() == 1
 
@@ -183,6 +209,143 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 assert CompiledOperationSpecification.read(
                     producer.content
                 ).run.container.args == ["echo 3"]
+
+                producer.outputs = {"result": 19}
+                producer.status = V1Statuses.SUCCEEDED
+                producer.save(update_fields=["outputs", "status"])
+                with patch("haupt.common.workers.send") as workers_send:
+                    SchedulingManager.runs_notify_done(run_id=producer.id)
+                assert (
+                    SchedulerCeleryTasks.RUNS_PREPARE,
+                    {"run_id": consumer.id},
+                ) in [
+                    (call.args[0], call.kwargs.get("kwargs"))
+                    for call in workers_send.call_args_list
+                ]
+
+                consumer.refresh_from_db()
+                assert consumer.status == V1Statuses.CREATED
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=consumer.id, start=False)
+
+                consumer.refresh_from_db()
+                assert consumer.status == V1Statuses.COMPILED, (
+                    consumer.status_conditions
+                )
+                assert consumer.raw_content == consumer_raw_content
+                assert consumer.inputs == {
+                    "count": 5,
+                    "result": 19,
+                    "producer_uuid": producer.uuid.hex,
+                    "joined_results": [19],
+                }
+                consumer_compiled = CompiledOperationSpecification.read(
+                    consumer.content
+                )
+                assert consumer_compiled.run.container.args == ["echo 5 19 19"]
+                assert consumer_compiled.run.container.image == "busybox:1.36"
+                assert consumer.gpu == 1
+                assert RunEdge.objects.get(
+                    upstream=producer, downstream=consumer, kind="join"
+                ).values == {"joined_results": "outputs.result"}
+
+    def test_shared_dag_downstream_trigger_conditions_and_skip_policy(self):
+        for upstream_status in (
+            V1Statuses.SUCCEEDED,
+            V1Statuses.FAILED,
+            V1Statuses.SKIPPED,
+        ):
+            with self.subTest(upstream_status=upstream_status):
+                job = {
+                    "kind": "job",
+                    "container": {"image": "busybox:1.36", "args": ["echo ready"]},
+                }
+                nodes = [
+                    {"name": "success-only", "kind": "component"},
+                    {"name": "always", "trigger": "all_done"},
+                    {
+                        "name": "skip-with-upstream",
+                        "kind": "operation",
+                        "trigger": "all_done",
+                        "skipOnUpstreamSkip": True,
+                    },
+                    {
+                        "name": "false-condition",
+                        "kind": "component",
+                        "trigger": "all_done",
+                        "conditions": "{{ False }}",
+                    },
+                ]
+                source = {
+                    "cache": {"disable": True},
+                    "run": {
+                        "kind": "dag",
+                        "operations": [{"name": "producer", "run": job}]
+                        + [
+                            {"dependencies": ["producer"], "run": job, **node}
+                            for node in nodes
+                        ],
+                    },
+                }
+                response = self.client.post(self.url, {"content": orjson_dumps(source)})
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                run = Run.objects.get(uuid=response.data["uuid"])
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+                run.refresh_from_db()
+                assert run.status == V1Statuses.COMPILED, run.status_conditions
+                children = {child.name: child for child in run.pipeline_runs.all()}
+                producer = children.pop("producer")
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=producer.id, start=False)
+                producer.refresh_from_db()
+                assert producer.status == V1Statuses.COMPILED, (
+                    producer.status_conditions
+                )
+                producer.status = upstream_status
+                producer.save(update_fields=["status"])
+
+                with patch("haupt.common.workers.send") as workers_send:
+                    SchedulingManager.runs_notify_done(run_id=producer.id)
+
+                queued = {"always", "false-condition"}
+                if upstream_status == V1Statuses.SUCCEEDED:
+                    queued.add("success-only")
+                if upstream_status != V1Statuses.SKIPPED:
+                    queued.add("skip-with-upstream")
+                assert {
+                    call.kwargs["kwargs"]["run_id"]
+                    for call in workers_send.call_args_list
+                    if call.args[0] == SchedulerCeleryTasks.RUNS_PREPARE
+                } == {children[name].id for name in queued}
+
+                for name, child in children.items():
+                    child.refresh_from_db()
+                    if name not in queued:
+                        expected = (
+                            V1Statuses.SKIPPED
+                            if name == "skip-with-upstream"
+                            else V1Statuses.UPSTREAM_FAILED
+                        )
+                        assert child.status == expected, child.status_conditions
+                        continue
+                    assert child.status == V1Statuses.CREATED
+                    with patch.object(
+                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    ):
+                        SchedulingManager.runs_prepare(run_id=child.id, start=False)
+                    child.refresh_from_db()
+                    expected = (
+                        V1Statuses.SKIPPED
+                        if name == "false-condition"
+                        else V1Statuses.COMPILED
+                    )
+                    assert child.status == expected, child.status_conditions
+                    if expected == V1Statuses.COMPILED:
+                        assert CompiledOperationSpecification.read(
+                            child.content
+                        ).run.container.args == ["echo ready"]
 
     def test_shared_dag_creates_nested_dag_and_inherits_node_matrix(self):
         source = {
