@@ -809,156 +809,6 @@ class SchedulingResolver(resolver.BaseResolver):
 
                 yield run_edge
 
-        def update_pipeline_params():
-            # Resolve pipeline params
-            pipeline_params = ops_params.get_dag_params_by_names(params=op_spec.params)
-            if pipeline_params:
-                pipeline_inputs = {i.name: i for i in (compiled_operation.inputs or {})}
-                pipeline_contexts = {
-                    i.name: i for i in (compiled_operation.contexts or {})
-                }
-                for pipeline_param in pipeline_params[ctx_refs.DAG_ENTITY_REF]:
-                    param = pipeline_param.param
-                    if pipeline_param.param.entity_value in pipeline_inputs:
-                        io = pipeline_inputs[param.entity_value]
-                        param = V1Param.model_construct(
-                            value=io.value,
-                            to_init=param.to_init or io.to_init,
-                            connection=param.connection or io.connection,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value in pipeline_contexts:
-                        io = pipeline_contexts[pipeline_param.param.entity_value]
-                        param = V1Param.model_construct(
-                            value=io.value,
-                            to_init=param.to_init or io.to_init,
-                            connection=param.connection or io.connection,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_type == ctx_sections.GLOBALS:
-                        # handles uid, uuid, and id
-                        if pipeline_param.param.entity_value in ctx_keys.UUID:
-                            param = V1Param.model_construct(
-                                value=run.uuid.hex,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.NAME:
-                            param = V1Param.model_construct(
-                                value=run.name,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.STATUS:
-                            param = V1Param.model_construct(
-                                value=run.status,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.CONDITION:
-                            param = V1Param.model_construct(
-                                value=run.get_last_condition(),
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.OWNER_NAME:
-                            param = V1Param.model_construct(
-                                value=run.project.owner.name,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.PROJECT_UUID:
-                            param = V1Param.model_construct(
-                                value=run.project.uuid.hex,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.PROJECT_NAME:
-                            param = V1Param.model_construct(
-                                value=run.project.name,
-                                context_only=param.context_only,
-                            )
-                        elif (
-                            pipeline_param.param.entity_value
-                            == ctx_keys.PROJECT_UNIQUE_NAME
-                        ):
-                            param = V1Param.model_construct(
-                                value=get_project_instance(
-                                    run.project.owner.name, run.project.name
-                                ),
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.RUN_INFO:
-                            param = V1Param.model_construct(
-                                value=get_run_instance(
-                                    run.project.owner.name,
-                                    run.project.name,
-                                    run.uuid.hex,
-                                ),
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.CONTEXT_PATH:
-                            param = V1Param.model_construct(
-                                value=ctx_paths.CONTEXT_ROOT,
-                                context_only=param.context_only,
-                            )
-                        elif (
-                            pipeline_param.param.entity_value == ctx_keys.ARTIFACTS_PATH
-                        ):
-                            param = V1Param.model_construct(
-                                value=ctx_paths.CONTEXT_MOUNT_ARTIFACTS,
-                                context_only=param.context_only,
-                            )
-                        elif (
-                            pipeline_param.param.entity_value
-                            == ctx_keys.RUN_ARTIFACTS_PATH
-                        ):
-                            param = V1Param.model_construct(
-                                value=ctx_paths.CONTEXT_MOUNT_ARTIFACTS_FORMAT.format(
-                                    run.uuid.hex
-                                ),
-                                context_only=param.context_only,
-                            )
-                        elif (
-                            pipeline_param.param.entity_value
-                            == ctx_keys.RUN_OUTPUTS_PATH
-                        ):
-                            param = V1Param.model_construct(
-                                value=ctx_paths.CONTEXT_MOUNT_RUN_OUTPUTS_FORMAT.format(
-                                    run.uuid.hex
-                                ),
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.CREATED_AT:
-                            param = V1Param.model_construct(
-                                value=run.created_at,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.SCHEDULE_AT:
-                            param = V1Param.model_construct(
-                                value=run.schedule_at,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.STARTED_AT:
-                            param = V1Param.model_construct(
-                                value=run.started_at,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.FINISHED_AT:
-                            param = V1Param.model_construct(
-                                value=run.finished_at,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.DURATION:
-                            param = V1Param.model_construct(
-                                value=run.duration,
-                                context_only=param.context_only,
-                            )
-                        elif pipeline_param.param.entity_value == ctx_keys.CLONING_KIND:
-                            param = V1Param.model_construct(
-                                value=run.cloning_kind,
-                                context_only=param.context_only,
-                            )
-
-                    else:
-                        param = None
-                    if param:
-                        op_spec.params[pipeline_param.name] = param
-
         hub_refs_to_components = cls._collect_hub_refs(
             ops=run_config.operations, owner_name=run.project.owner.name
         )
@@ -1000,7 +850,6 @@ class SchedulingResolver(resolver.BaseResolver):
                         ]
                 run_config.set_op_component(op_name)
                 op_spec = run_config.get_op_spec_by_name(op_name)
-                update_pipeline_params()
                 meta_info = cls._pass_down_uploaded_artifacts(run=run)
                 runs_by_names[op_name] = operations.init_run(
                     project_id=run.project_id,
@@ -1011,6 +860,8 @@ class SchedulingResolver(resolver.BaseResolver):
                     managed_by=run.managed_by,
                     override=pipeline_override,
                     is_dag_node=True,
+                    dag_run=run,
+                    dag_spec=compiled_operation,
                     supported_owners={run.project.owner.name},
                     component_state=component_state,
                     meta_info=meta_info,

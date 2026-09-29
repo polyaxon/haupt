@@ -347,9 +347,150 @@ class TestSharedPolyaxonfileViews(BaseTest):
                             child.content
                         ).run.container.args == ["echo ready"]
 
+    def test_shared_dag_binds_template_params_and_keeps_patch_precedence(self):
+        for count in (0, 3):
+            with self.subTest(count=count):
+                job = {
+                    "kind": "job",
+                    "container": {
+                        "image": "busybox:1.36",
+                        "command": ["sh", "-c"],
+                        "args": ["echo {{ count }}"],
+                    },
+                }
+                template = {
+                    "kind": "operation",
+                    "name": "template",
+                    "component": {
+                        "kind": "component",
+                        "cache": {"disable": True},
+                        "strictParams": True,
+                        "inputs": [{"name": "count", "type": "int"}],
+                        "params": {
+                            "count": {"ref": "dag", "value": "inputs.count"},
+                            "parent_uuid": {
+                                "ref": "dag",
+                                "value": "globals.uuid",
+                                "contextOnly": True,
+                            },
+                        },
+                        "run": job,
+                    },
+                }
+                source = {
+                    "cache": {"disable": True},
+                    "inputs": [{"name": "count", "type": "int"}],
+                    "params": {"count": count},
+                    "run": {
+                        "kind": "dag",
+                        "components": [template],
+                        "operations": [
+                            {"name": "inherited", "dagRef": "template"},
+                            {
+                                "kind": "component",
+                                "name": "direct",
+                                "params": {
+                                    "count": {"ref": "dag", "value": "inputs.count"}
+                                },
+                                "run": job,
+                            },
+                        ]
+                        + [
+                            {
+                                "name": strategy,
+                                "dagRef": "template",
+                                "patchStrategy": strategy,
+                                "params": {"count": 5},
+                            }
+                            for strategy in (
+                                "post_merge",
+                                "pre_merge",
+                                "replace",
+                                "isnull",
+                            )
+                        ],
+                    },
+                }
+                response = self.client.post(self.url, {"content": orjson_dumps(source)})
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                run = Run.objects.get(uuid=response.data["uuid"])
+                raw_content = run.raw_content
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+                run.refresh_from_db()
+                assert run.status == V1Statuses.COMPILED, run.status_conditions
+                assert run.raw_content == raw_content
+                children = {child.name: child for child in run.pipeline_runs.all()}
+                expected_counts = {
+                    "inherited": count,
+                    "direct": count,
+                    "post_merge": 5,
+                    "pre_merge": count,
+                    "replace": 5,
+                    "isnull": count,
+                }
+                assert set(children) == set(expected_counts)
+                for name, expected in expected_counts.items():
+                    child = children[name]
+                    child_raw_content = child.raw_content
+                    child_source = read_polyaxonfile(child_raw_content)
+                    if name == "direct":
+                        assert child_source.params["count"].value == count
+                        assert child_source.params["count"].ref is None
+                    else:
+                        bound = child_source.component.component.params
+                        assert bound["count"].value == count
+                        assert bound["count"].ref is None
+                        assert bound["parent_uuid"].value == run.uuid.hex
+                        assert bound["parent_uuid"].context_only is True
+                    expected_inputs = {"count": expected}
+                    if name not in ("direct", "replace"):
+                        expected_inputs["parent_uuid"] = run.uuid.hex
+                    assert child.inputs == expected_inputs
+                    assert child.params["count"] == {"value": expected}
+
+                    with patch.object(
+                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    ):
+                        SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+                    child.refresh_from_db()
+                    assert child.status == V1Statuses.COMPILED, child.status_conditions
+                    assert child.raw_content == child_raw_content
+                    assert child.inputs == expected_inputs
+                    compiled = CompiledOperationSpecification.read(child.content)
+                    assert compiled.run.container.args == [f"echo {expected}"]
+
+                inherited = children["inherited"]
+                assert read_polyaxonfile(inherited.raw_content).params is None
+                with patch("haupt.common.workers.send"):
+                    response = self.client.post(
+                        f"{self.url}{inherited.uuid.hex}/restart/", {}
+                    )
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                restarted = Run.objects.get(uuid=response.data["uuid"])
+                assert restarted.original_id == inherited.id
+                assert restarted.pipeline_id is None
+                assert restarted.params == inherited.params
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=restarted.id, start=False)
+                restarted.refresh_from_db()
+                assert restarted.status == V1Statuses.COMPILED, (
+                    restarted.status_conditions
+                )
+                assert restarted.inputs == inherited.inputs
+                assert CompiledOperationSpecification.read(
+                    restarted.content
+                ).run.container.args == [f"echo {count}"]
+
     def test_shared_dag_creates_nested_dag_and_inherits_node_matrix(self):
         source = {
             "kind": "component",
+            "cache": {"disable": True},
+            "inputs": [{"name": "count", "type": "int"}],
+            "params": {"count": 3},
             "run": {
                 "kind": "dag",
                 "components": [
@@ -369,13 +510,17 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     {"name": "search", "dagRef": "search-template"},
                     {
                         "name": "nested",
+                        "inputs": [{"name": "count", "type": "int"}],
+                        "params": {"count": 9},
                         "run": {
                             "kind": "dag",
                             "operations": [
                                 {
                                     "kind": "component",
                                     "name": "leaf",
-                                    "params": {"count": 3},
+                                    "params": {
+                                        "count": {"ref": "dag", "value": "inputs.count"}
+                                    },
                                     "run": {
                                         "kind": "job",
                                         "container": {
@@ -408,6 +553,8 @@ class TestSharedPolyaxonfileViews(BaseTest):
         assert search_compiled.matrix.kind == "grid"
         nested = children["nested"]
         assert nested.is_dag
+        nested_source = read_polyaxonfile(nested.raw_content)
+        assert nested_source.run.operations[0].params["count"].ref == "dag"
 
         with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
             SchedulingManager.runs_prepare(run_id=nested.id, start=False)
@@ -419,9 +566,18 @@ class TestSharedPolyaxonfileViews(BaseTest):
         assert leaf.controller_id == run.id
         assert leaf.pipeline_id == nested.id
         assert read_polyaxonfile(leaf.raw_content).kind == "component"
-        assert leaf.params == {"count": {"value": 3}}
+        assert leaf.params == {"count": {"value": 9}}
         leaf_compiled = CompiledOperationSpecification.read(leaf.content)
         assert leaf_compiled.run.container.image == "busybox:1.36"
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=leaf.id, start=False)
+        leaf.refresh_from_db()
+        assert leaf.status == V1Statuses.COMPILED, leaf.status_conditions
+        assert leaf.inputs == {"count": 9}
+        assert CompiledOperationSpecification.read(leaf.content).run.container.args == [
+            "echo 9"
+        ]
 
     def test_shared_dag_rejects_node_schedule_without_creating_children(self):
         source = {
