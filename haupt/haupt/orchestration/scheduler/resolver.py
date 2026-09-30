@@ -643,7 +643,7 @@ class SchedulingResolver(resolver.BaseResolver):
             )
 
     def _pre_persist_state(self):
-        # Slow sync process
+        # Reduce API calls and artifact syncs when many matrix/DAG children run.
         if not self.run.controller_id and not self.run.pipeline_id:
             return
         self.compiled_operation.plugins = self.compiled_operation.plugins or V1Plugins()
@@ -651,6 +651,8 @@ class SchedulingResolver(resolver.BaseResolver):
             self.compiled_operation.plugins.sidecar or V1PolyaxonSidecarContainer()
         )
         if self.compiled_operation.plugins.sidecar.sync_interval is None:
+            # We set the sync interval to 60 seconds to reduce the number of API calls and
+            # artifact syncs when many matrix/DAG children run.
             self.compiled_operation.plugins.sidecar.sync_interval = 60
 
     def _persist_meta_info(self):
