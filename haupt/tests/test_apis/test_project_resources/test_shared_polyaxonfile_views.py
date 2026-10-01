@@ -1146,6 +1146,12 @@ class TestSharedPolyaxonfileViews(BaseTest):
                         "operations": [
                             {"name": "inherited", "dagRef": "template"},
                             {
+                                "name": "patched",
+                                "dagRef": "template",
+                                "params": {"count": 5},
+                                "run": {"container": {"image": "busybox:1.37"}},
+                            },
+                            {
                                 "kind": "component",
                                 "name": "direct",
                                 "params": {
@@ -1184,6 +1190,7 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 children = {child.name: child for child in run.pipeline_runs.all()}
                 expected_counts = {
                     "inherited": count,
+                    "patched": 5,
                     "direct": count,
                     "post_merge": 5,
                     "pre_merge": count,
@@ -1195,6 +1202,10 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     child = children[name]
                     child_raw_content = child.raw_content
                     child_source = read_polyaxonfile(child_raw_content)
+                    if name == "patched":
+                        assert child_source.run == {
+                            "container": {"image": "busybox:1.37"}
+                        }
                     if name == "direct":
                         assert child_source.params["count"].value == count
                         assert child_source.params["count"].ref is None
@@ -1220,6 +1231,11 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     assert child.raw_content == child_raw_content
                     assert child.inputs == expected_inputs
                     compiled = CompiledOperationSpecification.read(child.content)
+                    assert compiled.run.kind == V1RunKind.JOB
+                    assert compiled.run.container.image == (
+                        "busybox:1.37" if name == "patched" else "busybox:1.36"
+                    )
+                    assert compiled.run.container.command == ["sh", "-c"]
                     assert compiled.run.container.args == [f"echo {expected}"]
 
                 inherited = children["inherited"]
@@ -1393,9 +1409,42 @@ class TestSharedPolyaxonfileViews(BaseTest):
         assert "cannot define a schedule" in run.status_conditions[-1]["message"]
         assert not run.pipeline_runs.exists()
 
+    def test_shared_dag_rejects_kindless_patch_for_template_runtime(self):
+        source = {
+            "run": {
+                "kind": "dag",
+                "components": [
+                    {
+                        "name": "template",
+                        "run": {
+                            "kind": "job",
+                            "container": {"image": "busybox:1.36"},
+                        },
+                    }
+                ],
+                "operations": [
+                    {"name": "train", "dagRef": "template", "run": {"ports": [8080]}}
+                ],
+            }
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        raw_content = run.raw_content
+        assert read_polyaxonfile(raw_content).run.operations[0].run == {"ports": [8080]}
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.FAILED, run.status_conditions
+        assert "ports" in run.status_conditions[-1]["message"]
+        assert run.raw_content == raw_content
+        assert not run.pipeline_runs.exists()
+
     def test_shared_jobs_and_services_through_prepare(self):
         for runtime in (V1RunKind.JOB, V1RunKind.SERVICE):
-            for kind in (None, "component", "operation", "legacy"):
+            for kind in (None, "component", "operation", "legacy", "patched"):
                 with self.subTest(runtime=runtime, kind=kind):
                     source = {
                         "version": 1.1,
@@ -1418,7 +1467,12 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     }
                     if runtime == V1RunKind.SERVICE:
                         source["run"]["ports"] = [8080]
-                    if kind == "legacy":
+                    if kind == "patched":
+                        source = {
+                            "component": source,
+                            "run": {"container": {"image": "busybox:1.37"}},
+                        }
+                    elif kind == "legacy":
                         params = source.pop("params")
                         source = {
                             "kind": "operation",
@@ -1454,6 +1508,10 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     compiled = CompiledOperationSpecification.read(run.content)
                     assert compiled.kind == "compiled_operation"
                     assert compiled.run.kind == runtime
+                    assert compiled.run.container.image == (
+                        "busybox:1.37" if kind == "patched" else "busybox:1.36"
+                    )
+                    assert compiled.run.container.command == ["sh", "-c"]
                     assert compiled.inputs[0].name == "count"
                     assert compiled.outputs[0].name == "result"
                     assert [io.name for io in compiled.contexts] == ["message"]
@@ -1477,6 +1535,11 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     assert run.outputs == {"result": 7}
                     assert run.gpu == 1
                     compiled = CompiledOperationSpecification.read(run.content)
+                    assert compiled.run.kind == runtime
+                    assert compiled.run.container.image == (
+                        "busybox:1.37" if kind == "patched" else "busybox:1.36"
+                    )
+                    assert compiled.run.container.command == ["sh", "-c"]
                     assert compiled.run.container.args == ["echo 3 hello shared"]
                     if runtime == V1RunKind.SERVICE:
                         assert compiled.run.ports == [8080]
@@ -1574,6 +1637,12 @@ class TestSharedPolyaxonfileViews(BaseTest):
             {"kind": "component", "params": {"count": 3}},
             {"kind": "operation", "component": {"params": {"count": 3}}},
             {"run": {"kind": "unknown"}},
+            {
+                "component": {
+                    "run": {"kind": "job", "container": {"image": "busybox:1.36"}}
+                },
+                "run": {"ports": [8080]},
+            },
             {"runPatch": {"container": {"image": "busybox:1.36"}}},
             {"pathRef": "/client-only/base.yaml"},
             {"hubRef": {"name": "invalid"}},
