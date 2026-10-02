@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from rest_framework import status
 
-from clipped.utils.json import orjson_dumps
+from clipped.utils.json import orjson_dumps, orjson_loads
 from haupt.apis.serializers.runs import (
     RunDetailSerializer,
     RunSerializer,
@@ -932,6 +932,103 @@ class TestSharedRerunPreparationV1(BaseTest):
                 assert original.raw_content == raw_content
                 if action != "resume":
                     assert original.content == prepared_content
+
+    def test_explicit_null_workflows_stay_disabled_on_rerun(self):
+        for action, (field, inherited) in product(
+            ("restart", "resume", "copy"),
+            (
+                ("schedule", {"kind": "cron", "cron": "0 * * * *"}),
+                (
+                    "matrix",
+                    {
+                        "kind": "grid",
+                        "params": {"count": {"kind": "choice", "value": [1, 2]}},
+                    },
+                ),
+            ),
+        ):
+            with self.subTest(action=action, field=field):
+                source = {
+                    "component": {**self._source(), field: inherited},
+                    field: None,
+                }
+                original = self._create(source)
+                raw_content = original.raw_content
+                self._prepare(original, V1RunKind.JOB, 3)
+
+                rerun = self._rerun(original, action)
+
+                self._prepare(rerun, V1RunKind.JOB, 3)
+                assert rerun.raw_content == raw_content
+                for run in (original, rerun):
+                    assert not run.pipeline_runs.exists()
+                    compiled = CompiledOperationSpecification.read(run.content)
+                    assert getattr(compiled, field) is None
+                    saved = orjson_loads(run.raw_content)
+                    assert saved[field] is None
+                    assert saved["component"][field] == inherited
+                    for omitted in ("kind", "version", "queue"):
+                        assert omitted not in saved
+
+    def test_omitted_workflow_overrides_still_inherit(self):
+        for field, inherited in (
+            ("schedule", {"kind": "cron", "cron": "0 * * * *"}),
+            (
+                "matrix",
+                {
+                    "kind": "grid",
+                    "params": {"count": {"kind": "choice", "value": [1, 2]}},
+                },
+            ),
+        ):
+            with self.subTest(field=field):
+                run = self._create({"component": {**self._source(), field: inherited}})
+
+                assert run.kind == field
+                compiled = CompiledOperationSpecification.read(run.content)
+                assert getattr(compiled, field).to_dict() == inherited
+                saved = orjson_loads(run.raw_content)
+                assert field not in saved
+                assert saved["component"][field] == inherited
+
+    def test_dag_binding_preserves_explicit_nulls(self):
+        component = self._source()
+        component["params"]["count"] = {"ref": "dag", "value": "inputs.count"}
+        component["schedule"] = {"kind": "cron", "cron": "0 * * * *"}
+        component["matrix"] = {
+            "kind": "grid",
+            "params": {"count": {"kind": "choice", "value": [1, 2]}},
+        }
+        parent = RunFactory(project=self.project, kind=V1RunKind.DAG)
+        dag_spec = CompiledOperationSpecification.read(
+            {
+                "inputs": [{"name": "count", "type": "int", "value": 3}],
+                "run": {"kind": "dag"},
+            }
+        )
+
+        child = operations.init_run(
+            project_id=self.project.id,
+            user_id=self.user.id,
+            op_spec={"component": component, "schedule": None, "matrix": None},
+            is_dag_node=True,
+            dag_run=parent,
+            dag_spec=dag_spec,
+        ).instance
+
+        compiled, params = OperationSpecification.compile_operation_with_params(
+            read_polyaxonfile(child.raw_content), is_dag_node=True
+        )
+        assert compiled.schedule is None
+        assert compiled.matrix is None
+        assert compiled.run.kind == V1RunKind.JOB
+        assert params["count"].value == 3
+        saved = orjson_loads(child.raw_content)
+        assert saved["schedule"] is None
+        assert saved["matrix"] is None
+        assert "queue" not in saved
+        assert saved["component"]["params"]["count"]["value"] == 3
+        assert "ref" not in saved["component"]["params"]["count"]
 
     def test_restart_shared_source_through_prepare(self):
         self._check_rerun("restart")

@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from rest_framework import status
 
-from clipped.utils.json import orjson_dumps
+from clipped.utils.json import orjson_dumps, orjson_loads
 from clipped.utils.tz import now
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
@@ -1729,6 +1729,43 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     compiled = CompiledOperationSpecification.read(run.content)
                     assert compiled.run.container.image == "busybox:1.36"
                     assert compiled.run.container.args == ["echo local"]
+
+    def test_register_explicit_nulls_then_submit_saved_content(self):
+        source = {
+            "component": {
+                "schedule": {"kind": "cron", "cron": "0 * * * *"},
+                "matrix": {
+                    "kind": "grid",
+                    "params": {"count": {"kind": "choice", "value": [1, 2]}},
+                },
+                "run": {"kind": "job", "container": {"image": "busybox:1.36"}},
+            },
+            "schedule": None,
+            "matrix": None,
+        }
+        content = orjson_dumps(source)
+        response = self.client.post(
+            self.version_url, {"name": "explicit-nulls", "content": content}
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        version = ProjectVersion.objects.get(uuid=response.data["uuid"])
+
+        response = self.client.post(self.url, {"content": version.content})
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.JOB
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert not run.pipeline_runs.exists()
+        compiled = CompiledOperationSpecification.read(run.content)
+        assert compiled.schedule is None
+        assert compiled.matrix is None
+        assert compiled.run.kind == V1RunKind.JOB
+        assert version.content == content
+        assert orjson_loads(run.raw_content) == source
 
     def test_register_invocation_fields_without_creating_runs(self):
         for kind in (None, "component", "operation"):
