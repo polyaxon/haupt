@@ -49,6 +49,36 @@ class TestCreateServices(TestCase):
                 assert spec.kind == kind
                 assert spec.to_dict() == source
 
+    def test_dag_component_state_distinguishes_explicit_nulls(self):
+        for explicit_null in (False, True):
+            with self.subTest(explicit_null=explicit_null):
+                node = {
+                    "kind": "operation",
+                    "name": "train",
+                    "component": {
+                        "kind": "component",
+                        "run": {
+                            "kind": "job",
+                            "container": {"image": "busybox:1.36"},
+                        },
+                    },
+                }
+                if explicit_null:
+                    node.update({"schedule": None, "matrix": None})
+                source = {
+                    "kind": "component",
+                    "run": {"kind": "dag", "operations": [node]},
+                }
+                component = read_polyaxonfile(source)
+
+                state = get_component_version_state(component)
+
+                if explicit_null:
+                    assert str(state) != "88eb9eca-d36f-5763-8d24-5a645a86b700"
+                else:
+                    assert str(state) == "88eb9eca-d36f-5763-8d24-5a645a86b700"
+                assert component.to_dict() == source
+
     def test_create_run_with_service_spec(self):
         count = Run.objects.count()
         config_dict = get_fxt_service()

@@ -1383,6 +1383,146 @@ class TestSharedPolyaxonfileViews(BaseTest):
             "echo 9"
         ]
 
+    def test_shared_dag_explicit_nulls_survive_prepare_and_child_restart(self):
+        for field, nested in (
+            ("operations", False),
+            ("components", False),
+            ("operations", True),
+            ("components", True),
+        ):
+            with self.subTest(field=field, nested=nested):
+                template = {
+                    "name": "train",
+                    "strictParams": True,
+                    "inputs": [{"name": "count", "type": "int"}],
+                    "params": {"count": {"ref": "dag", "value": "inputs.count"}},
+                    "schedule": {"kind": "cron", "cron": "0 * * * *"},
+                    "matrix": {
+                        "kind": "grid",
+                        "params": {"count": {"kind": "choice", "value": [1, 2]}},
+                    },
+                    "run": {
+                        "kind": "job",
+                        "container": {
+                            "image": "busybox:1.36",
+                            "args": ["echo {{ count }}"],
+                        },
+                    },
+                }
+                node = {"name": "once", "dagRef": "train"}
+                if field == "operations":
+                    node.update({"matrix": None, "schedule": None})
+                else:
+                    template = {
+                        "name": "train",
+                        "component": template,
+                        "matrix": None,
+                        "schedule": None,
+                    }
+                source = {
+                    "cache": {"disable": True},
+                    "inputs": [{"name": "count", "type": "int"}],
+                    "params": {"count": 3},
+                    "run": {
+                        "kind": "dag",
+                        "components": [template],
+                        "operations": [node],
+                    },
+                }
+                if nested:
+                    source = {
+                        "cache": {"disable": True},
+                        "run": {
+                            "kind": "dag",
+                            "components": [{"name": "nested-template", **source}],
+                            "operations": [
+                                {"name": "nested", "dagRef": "nested-template"}
+                            ],
+                        },
+                    }
+                response = self.client.post(self.url, {"content": orjson_dumps(source)})
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                root = Run.objects.get(uuid=response.data["uuid"])
+                saved_dag = orjson_loads(root.content)["run"]
+                if nested:
+                    saved_dag = saved_dag["components"][0]["run"]
+                parent = root
+                child_kinds = (
+                    (V1RunKind.DAG, V1RunKind.JOB) if nested else (V1RunKind.JOB,)
+                )
+                for child_kind in child_kinds:
+                    raw_content = parent.raw_content
+
+                    with patch.object(
+                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    ):
+                        SchedulingManager.runs_prepare(run_id=parent.id, start=False)
+
+                    parent.refresh_from_db()
+                    assert parent.status == V1Statuses.COMPILED, (
+                        parent.status_conditions
+                    )
+                    assert parent.raw_content == raw_content
+                    child = parent.pipeline_runs.get()
+                    assert child.kind == child_kind
+                    assert child.pipeline_id == parent.id
+                    assert child.controller_id == root.id
+                    if child_kind == V1RunKind.DAG:
+                        parent = child
+
+                child_raw_content = child.raw_content
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=child.id, start=False)
+                child.refresh_from_db()
+                assert child.status == V1Statuses.COMPILED, child.status_conditions
+                assert child.inputs == {"count": 3}
+                assert not child.pipeline_runs.exists()
+                child_compiled = CompiledOperationSpecification.read(child.content)
+                assert child_compiled.matrix is None
+                assert child_compiled.schedule is None
+                assert child_compiled.run.container.args == ["echo 3"]
+
+                with patch("haupt.common.workers.send"):
+                    response = self.client.post(
+                        f"{self.url}{child.uuid.hex}/restart/", {}
+                    )
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                restarted = Run.objects.get(uuid=response.data["uuid"])
+                assert restarted.original_id == child.id
+                assert restarted.pipeline_id is None
+                assert restarted.kind == V1RunKind.JOB
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=restarted.id, start=False)
+
+                restarted.refresh_from_db()
+                assert restarted.status == V1Statuses.COMPILED, (
+                    restarted.status_conditions
+                )
+                assert restarted.inputs == {"count": 3}
+                assert not restarted.pipeline_runs.exists()
+                compiled = CompiledOperationSpecification.read(restarted.content)
+                assert compiled.matrix is None
+                assert compiled.schedule is None
+                assert compiled.run.container.args == ["echo 3"]
+                assert child.raw_content == child_raw_content
+                assert restarted.raw_content == child_raw_content
+                assert saved_dag[field][0]["matrix"] is None
+                assert saved_dag[field][0]["schedule"] is None
+                child_source = read_polyaxonfile(restarted.raw_content)
+                assert child_source.dag_ref == "train"
+                cleared = (
+                    child_source if field == "operations" else child_source.component
+                )
+                assert {"matrix", "schedule"} <= cleared.model_fields_set
+                assert cleared.matrix is None
+                assert cleared.schedule is None
+                bound = child_source.component
+                if field == "components":
+                    bound = bound.component
+                assert bound.params["count"].value == 3
+                assert bound.params["count"].ref is None
+
     def test_shared_dag_rejects_node_schedule_without_creating_children(self):
         source = {
             "run": {
