@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 
 from haupt.db.factories.projects import ProjectFactory
@@ -5,6 +7,7 @@ from haupt.db.factories.users import UserFactory
 from haupt.db.managers.versions import get_component_version_state
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
+from polyaxon._flow.run.dag import V1Dag
 from polyaxon._polyaxonfile import (
     CompiledOperationSpecification,
     OperationSpecification,
@@ -74,9 +77,14 @@ class TestCreateServices(TestCase):
                 state = get_component_version_state(component)
 
                 if explicit_null:
-                    assert str(state) != "88eb9eca-d36f-5763-8d24-5a645a86b700"
+                    assert str(state) == "a7ae3b97-2926-5e14-991b-3b9747c8759a"
                 else:
                     assert str(state) == "88eb9eca-d36f-5763-8d24-5a645a86b700"
+                with patch.dict(
+                    V1Dag._DUMP_POLICY,
+                    {"default": {"exclude_none": True}},
+                ):
+                    assert get_component_version_state(component) == state
                 assert component.to_dict() == source
 
     def test_create_run_with_service_spec(self):

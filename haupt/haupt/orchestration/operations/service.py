@@ -85,7 +85,7 @@ class OperationsService(Service):
                 spec = read_polyaxonfile(spec)
             except Exception as e:
                 raise PolyaxonSchemaError(str(e)) from e
-        kwargs["raw_content"] = spec.to_json(exclude_none=False)
+        kwargs["raw_content"] = spec.to_source_json()
         return spec, kwargs
 
     @classmethod
@@ -409,7 +409,7 @@ class OperationsService(Service):
                 )
             if dag_run is not None:
                 self._bind_dag_params(op_spec, dag_run, dag_spec)
-                kwargs["raw_content"] = op_spec.to_json(exclude_none=False)
+                kwargs["raw_content"] = op_spec.to_source_json()
         if op_spec:
             if not compiled_operation or override:
                 compiled_operation, params = (
@@ -467,7 +467,7 @@ class OperationsService(Service):
             self.supports_kind(
                 kind, runtime, supported_kinds, ManagedBy.is_managed(managed_by)
             )
-            kwargs["content"] = compiled_operation.to_json()
+            kwargs["content"] = compiled_operation.to_compiled_json()
         instance = Models.Run(
             project_id=project_id,
             user_id=user_id,

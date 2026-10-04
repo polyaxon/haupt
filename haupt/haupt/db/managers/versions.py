@@ -7,7 +7,6 @@ from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.projects import Owner
 from haupt.db.defs import Models
 from polyaxon._flow.polyaxonfile import V1Polyaxonfile
-from polyaxon.schemas import V1Component
 
 
 def add_version_contributors(
@@ -29,7 +28,5 @@ def add_version_contributors(
 def get_component_version_state(
     component: V1Polyaxonfile,
 ) -> Optional[uuid.UUID]:
-    """A string representation that is used to create hash version"""
-    # Keep legacy hashes without changing the authored kind.
-    component = V1Component.read({**component.to_dict(), "kind": "component"})
-    return uuid.uuid5(Owner.uuid, component.to_json())
+    """Hash the explicit legacy projection without changing stored identities."""
+    return uuid.uuid5(Owner.uuid, component.to_component_state_json())
