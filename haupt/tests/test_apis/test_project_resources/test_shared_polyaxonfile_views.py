@@ -17,6 +17,7 @@ from haupt.db.models.runs import Run
 from haupt.orchestration.scheduler.manager import SchedulingManager
 from polyaxon import settings as polyaxon_settings
 from polyaxon._connections import V1BucketConnection, V1Connection, V1ConnectionKind
+from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._polyaxonfile import CompiledOperationSpecification
 from polyaxon._polyaxonfile.specs import read_polyaxonfile
 from polyaxon._schemas.agent import AgentConfig
@@ -1453,11 +1454,20 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 for child_kind in child_kinds:
                     raw_content = parent.raw_content
 
-                    with patch.object(
-                        polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                    with (
+                        patch.object(
+                            polyaxon_settings, "AGENT_CONFIG", self.agent_config
+                        ),
+                        patch.object(
+                            V1Polyaxonfile,
+                            "to_source_json",
+                            autospec=True,
+                            side_effect=V1Polyaxonfile.to_source_json,
+                        ) as serialize_source,
                     ):
                         SchedulingManager.runs_prepare(run_id=parent.id, start=False)
 
+                    serialize_source.assert_called_once()
                     parent.refresh_from_db()
                     assert parent.status == V1Statuses.COMPILED, (
                         parent.status_conditions
@@ -1623,13 +1633,20 @@ class TestSharedPolyaxonfileViews(BaseTest):
                         source["kind"] = kind
                     expected_source = read_polyaxonfile(source).to_dict()
 
-                    response = self.client.post(
-                        self.url, {"content": orjson_dumps(source)}
-                    )
+                    with patch.object(
+                        V1Polyaxonfile,
+                        "to_source_json",
+                        autospec=True,
+                        side_effect=V1Polyaxonfile.to_source_json,
+                    ) as serialize_source:
+                        response = self.client.post(
+                            self.url, {"content": orjson_dumps(source)}
+                        )
 
                     assert response.status_code == status.HTTP_201_CREATED, (
                         response.data
                     )
+                    serialize_source.assert_called_once()
                     run = Run.objects.get(uuid=response.data["uuid"])
                     raw_content = run.raw_content
                     assert read_polyaxonfile(raw_content).to_dict() == expected_source
