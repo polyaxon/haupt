@@ -1011,7 +1011,6 @@ class TestSharedRerunPreparationV1(BaseTest):
             project_id=self.project.id,
             user_id=self.user.id,
             op_spec={"component": component, "schedule": None, "matrix": None},
-            is_dag_node=True,
             dag_run=parent,
             dag_spec=dag_spec,
         ).instance

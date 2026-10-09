@@ -27,8 +27,7 @@ from polyaxon._contexts import (
 )
 from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._polyaxonfile import OperationSpecification
-from polyaxon._polyaxonfile.manager.operations import compose_polyaxonfile
-from polyaxon._polyaxonfile.specs import read_polyaxonfile
+from polyaxon._polyaxonfile.specs import compose_polyaxonfile, read_polyaxonfile
 from polyaxon._schemas.types import V1ArtifactsType
 from polyaxon._utils.fqn_utils import get_project_instance, get_run_instance
 from polyaxon.exceptions import PolyaxonSchemaError
@@ -87,6 +86,38 @@ class OperationsService(Service):
                 raise PolyaxonSchemaError(str(e)) from e
         return spec, kwargs
 
+    @staticmethod
+    def _get_dag_globals(run: BaseRun) -> Dict:
+        owner_name, project_name = run.project.owner.name, run.project.name
+        run_uuid = run.uuid.hex
+        return {
+            ctx_keys.UUID: run_uuid,
+            ctx_keys.NAME: run.name,
+            ctx_keys.STATUS: run.status,
+            ctx_keys.CONDITION: run.get_last_condition(),
+            ctx_keys.OWNER_NAME: owner_name,
+            ctx_keys.PROJECT_UUID: run.project.uuid.hex,
+            ctx_keys.PROJECT_NAME: project_name,
+            ctx_keys.PROJECT_UNIQUE_NAME: get_project_instance(
+                owner_name, project_name
+            ),
+            ctx_keys.RUN_INFO: get_run_instance(owner_name, project_name, run_uuid),
+            ctx_keys.CONTEXT_PATH: ctx_paths.CONTEXT_ROOT,
+            ctx_keys.ARTIFACTS_PATH: ctx_paths.CONTEXT_MOUNT_ARTIFACTS,
+            ctx_keys.RUN_ARTIFACTS_PATH: (
+                ctx_paths.CONTEXT_MOUNT_ARTIFACTS_FORMAT.format(run_uuid)
+            ),
+            ctx_keys.RUN_OUTPUTS_PATH: (
+                ctx_paths.CONTEXT_MOUNT_RUN_OUTPUTS_FORMAT.format(run_uuid)
+            ),
+            ctx_keys.CREATED_AT: run.created_at,
+            ctx_keys.SCHEDULE_AT: run.schedule_at,
+            ctx_keys.STARTED_AT: run.started_at,
+            ctx_keys.FINISHED_AT: run.finished_at,
+            ctx_keys.DURATION: run.duration,
+            ctx_keys.CLONING_KIND: run.cloning_kind,
+        }
+
     @classmethod
     def _bind_dag_params(
         cls,
@@ -98,143 +129,36 @@ class OperationsService(Service):
         if op_spec.component is not None:
             cls._bind_dag_params(op_spec.component, run, compiled_operation)
         pipeline_params = ops_params.get_dag_params_by_names(params=op_spec.params)
-        if pipeline_params:
-            pipeline_inputs = {i.name: i for i in (compiled_operation.inputs or {})}
-            pipeline_contexts = {i.name: i for i in (compiled_operation.contexts or {})}
-            for pipeline_param in pipeline_params[ctx_refs.DAG_ENTITY_REF]:
-                param = pipeline_param.param
-                if pipeline_param.param.entity_value in pipeline_inputs:
-                    io = pipeline_inputs[param.entity_value]
-                    param = V1Param.model_construct(
-                        value=io.value,
-                        to_init=param.to_init or io.to_init,
-                        connection=param.connection or io.connection,
-                        context_only=param.context_only,
-                    )
-                elif pipeline_param.param.entity_value in pipeline_contexts:
-                    io = pipeline_contexts[param.entity_value]
-                    param = V1Param.model_construct(
-                        value=io.value,
-                        to_init=param.to_init or io.to_init,
-                        connection=param.connection or io.connection,
-                        context_only=param.context_only,
-                    )
-                elif pipeline_param.param.entity_type == ctx_sections.GLOBALS:
-                    # handles uid, uuid, and id
-                    if pipeline_param.param.entity_value in ctx_keys.UUID:
-                        param = V1Param.model_construct(
-                            value=run.uuid.hex,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.NAME:
-                        param = V1Param.model_construct(
-                            value=run.name,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.STATUS:
-                        param = V1Param.model_construct(
-                            value=run.status,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.CONDITION:
-                        param = V1Param.model_construct(
-                            value=run.get_last_condition(),
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.OWNER_NAME:
-                        param = V1Param.model_construct(
-                            value=run.project.owner.name,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.PROJECT_UUID:
-                        param = V1Param.model_construct(
-                            value=run.project.uuid.hex,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.PROJECT_NAME:
-                        param = V1Param.model_construct(
-                            value=run.project.name,
-                            context_only=param.context_only,
-                        )
-                    elif (
-                        pipeline_param.param.entity_value
-                        == ctx_keys.PROJECT_UNIQUE_NAME
-                    ):
-                        param = V1Param.model_construct(
-                            value=get_project_instance(
-                                run.project.owner.name, run.project.name
-                            ),
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.RUN_INFO:
-                        param = V1Param.model_construct(
-                            value=get_run_instance(
-                                run.project.owner.name,
-                                run.project.name,
-                                run.uuid.hex,
-                            ),
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.CONTEXT_PATH:
-                        param = V1Param.model_construct(
-                            value=ctx_paths.CONTEXT_ROOT,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.ARTIFACTS_PATH:
-                        param = V1Param.model_construct(
-                            value=ctx_paths.CONTEXT_MOUNT_ARTIFACTS,
-                            context_only=param.context_only,
-                        )
-                    elif (
-                        pipeline_param.param.entity_value == ctx_keys.RUN_ARTIFACTS_PATH
-                    ):
-                        param = V1Param.model_construct(
-                            value=ctx_paths.CONTEXT_MOUNT_ARTIFACTS_FORMAT.format(
-                                run.uuid.hex
-                            ),
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.RUN_OUTPUTS_PATH:
-                        param = V1Param.model_construct(
-                            value=ctx_paths.CONTEXT_MOUNT_RUN_OUTPUTS_FORMAT.format(
-                                run.uuid.hex
-                            ),
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.CREATED_AT:
-                        param = V1Param.model_construct(
-                            value=run.created_at,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.SCHEDULE_AT:
-                        param = V1Param.model_construct(
-                            value=run.schedule_at,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.STARTED_AT:
-                        param = V1Param.model_construct(
-                            value=run.started_at,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.FINISHED_AT:
-                        param = V1Param.model_construct(
-                            value=run.finished_at,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.DURATION:
-                        param = V1Param.model_construct(
-                            value=run.duration,
-                            context_only=param.context_only,
-                        )
-                    elif pipeline_param.param.entity_value == ctx_keys.CLONING_KIND:
-                        param = V1Param.model_construct(
-                            value=run.cloning_kind,
-                            context_only=param.context_only,
-                        )
-                else:
-                    param = None
-                if param:
-                    op_spec.params[pipeline_param.name] = param
+        if not pipeline_params:
+            return
+        # Inputs take precedence over contexts with the same name.
+        ios = {i.name: i for i in (compiled_operation.contexts or [])}
+        ios.update({i.name: i for i in (compiled_operation.inputs or [])})
+        dag_globals = None
+        for pipeline_param in pipeline_params[ctx_refs.DAG_ENTITY_REF]:
+            param = pipeline_param.param
+            key = param.entity_value
+            if key in ios:
+                io = ios[key]
+                bound = V1Param.model_construct(
+                    value=io.value,
+                    to_init=param.to_init or io.to_init,
+                    connection=param.connection or io.connection,
+                    context_only=param.context_only,
+                )
+            elif param.entity_type == ctx_sections.GLOBALS:
+                # Substring match also handles uid and id.
+                if key in ctx_keys.UUID:
+                    key = ctx_keys.UUID
+                dag_globals = dag_globals or cls._get_dag_globals(run)
+                if key not in dag_globals:
+                    continue
+                bound = V1Param.model_construct(
+                    value=dag_globals[key], context_only=param.context_only
+                )
+            else:
+                continue
+            op_spec.params[pipeline_param.name] = bound
 
     @staticmethod
     def get_kind(compiled_operation: V1CompiledOperation) -> Tuple[str, Optional[str]]:
@@ -394,11 +318,11 @@ class OperationsService(Service):
         pending: Optional[str] = None,
         meta_info: Optional[Dict] = None,
         supported_kinds: Set[str] = None,
-        is_dag_node: bool = False,
         dag_run: Optional[BaseRun] = None,
         dag_spec: Optional[V1CompiledOperation] = None,
         **kwargs,
     ) -> OperationInitSpec:
+        is_dag_node = dag_run is not None
         if op_spec:
             op_spec, kwargs = self.set_spec(op_spec, **kwargs)
             if op_spec.is_template():
@@ -406,7 +330,7 @@ class OperationsService(Service):
                     "Received a template polyaxonfile, "
                     "Please customize the specification or disable the template."
                 )
-            if dag_run is not None:
+            if is_dag_node:
                 self._bind_dag_params(op_spec, dag_run, dag_spec)
             kwargs["raw_content"] = op_spec.to_source_json()
         if op_spec:
@@ -466,7 +390,7 @@ class OperationsService(Service):
             self.supports_kind(
                 kind, runtime, supported_kinds, ManagedBy.is_managed(managed_by)
             )
-            kwargs["content"] = compiled_operation.to_compiled_json()
+            kwargs["content"] = compiled_operation.to_json()
         instance = Models.Run(
             project_id=project_id,
             user_id=user_id,

@@ -771,7 +771,7 @@ class SchedulingResolver(resolver.BaseResolver):
         if self._persist_resources():
             update_fields += ["memory", "cpu", "gpu", "custom"]
 
-        self.run.content = self.compiled_operation.to_compiled_json()
+        self.run.content = self.compiled_operation.to_json()
         self.run.save(update_fields=update_fields)
         self._resolve_artifacts_lineage_state()
 
@@ -861,7 +861,6 @@ class SchedulingResolver(resolver.BaseResolver):
                     controller_id=run.controller_id or run.id,
                     managed_by=run.managed_by,
                     override=pipeline_override,
-                    is_dag_node=True,
                     dag_run=run,
                     dag_spec=compiled_operation,
                     supported_owners={run.project.owner.name},
@@ -1751,7 +1750,7 @@ class SchedulingResolver(resolver.BaseResolver):
         # Change the pending logic to wait for the build
         self.compiled_operation.build = None
         self.run.pending = V1RunPending.BUILD
-        self.run.content = self.compiled_operation.to_compiled_json()
+        self.run.content = self.compiled_operation.to_json()
         self.run.save(update_fields=["content", "updated_at", "pending"])
 
         operations.save_build_relation(
