@@ -227,3 +227,33 @@ class TestShortcutPolyaxonfileViews(BaseTest):
             ("TOKEN", "literal"),
             ("LEVEL", "info"),
         ]
+
+    def test_resources_through_submit_and_restart(self):
+        source = {
+            "container": {"image": "busybox:1.36"},
+            "resources": {"cpu": "1..2", "gpu": 1},
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.JOB
+        assert orjson_loads(run.raw_content) == source
+        # Resolution literal-evals plain strings, as for native resources: "1" -> 1.
+        assert self.prepare(run).container.resources == {
+            "requests": {"cpu": 1, "nvidia.com/gpu": 1},
+            "limits": {"cpu": 2, "nvidia.com/gpu": 1},
+        }
+
+        override = {"resources": {"cpu": "4..8"}}
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(
+                f"{self.url}{run.uuid.hex}/restart/",
+                {"content": orjson_dumps(override)},
+            )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        restarted = Run.objects.get(uuid=response.data["uuid"])
+        assert orjson_loads(restarted.raw_content) == source
+        assert self.prepare(restarted).container.resources == {
+            "requests": {"cpu": 4, "nvidia.com/gpu": 1},
+            "limits": {"cpu": 8, "nvidia.com/gpu": 1},
+        }
