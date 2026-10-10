@@ -145,3 +145,40 @@ class TestShortcutPolyaxonfileViews(BaseTest):
                     CompiledOperationSpecification.read(run.content).run,
                     {**expected, "image": "resume:v3"},
                 )
+
+    def test_cmd_through_submit_and_restart(self):
+        source = {
+            "container": {"image": "busybox:1.36"},
+            "cmd": ["export MESSAGE=hello", "echo $MESSAGE"],
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.JOB
+        assert orjson_loads(run.raw_content) == source
+        self.assert_container(
+            self.prepare(run),
+            {
+                "image": "busybox:1.36",
+                "command": ["/bin/sh", "-c"],
+                "args": ["set -e\nexport MESSAGE=hello\necho $MESSAGE"],
+            },
+        )
+
+        override = {"cmd": "echo restarted"}
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(
+                f"{self.url}{run.uuid.hex}/restart/",
+                {"content": orjson_dumps(override)},
+            )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        restarted = Run.objects.get(uuid=response.data["uuid"])
+        assert orjson_loads(restarted.raw_content) == source
+        self.assert_container(
+            self.prepare(restarted),
+            {
+                "image": "busybox:1.36",
+                "command": ["/bin/sh", "-c"],
+                "args": ["set -e\necho restarted"],
+            },
+        )
