@@ -182,3 +182,48 @@ class TestShortcutPolyaxonfileViews(BaseTest):
                 "args": ["set -e\necho restarted"],
             },
         )
+
+    def test_env_through_submit_and_restart(self):
+        def env_values(runtime):
+            return [
+                (e["name"], e.get("value"))
+                if isinstance(e, dict)
+                else (e.name, e.value)
+                for e in runtime.container.env
+            ]
+
+        source = {
+            "container": {
+                "image": "busybox:1.36",
+                "env": [
+                    {
+                        "name": "TOKEN",
+                        "valueFrom": {"secretKeyRef": {"name": "s", "key": "token"}},
+                    }
+                ],
+            },
+            "env": {"TOKEN": "literal", "LEVEL": "debug"},
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.JOB
+        assert orjson_loads(run.raw_content) == source
+        assert env_values(self.prepare(run)) == [
+            ("TOKEN", "literal"),
+            ("LEVEL", "debug"),
+        ]
+
+        override = {"env": {"LEVEL": "info"}}
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(
+                f"{self.url}{run.uuid.hex}/restart/",
+                {"content": orjson_dumps(override)},
+            )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        restarted = Run.objects.get(uuid=response.data["uuid"])
+        assert orjson_loads(restarted.raw_content) == source
+        assert env_values(self.prepare(restarted)) == [
+            ("TOKEN", "literal"),
+            ("LEVEL", "info"),
+        ]
