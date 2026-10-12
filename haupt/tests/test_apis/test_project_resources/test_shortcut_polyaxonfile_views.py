@@ -288,3 +288,45 @@ class TestShortcutPolyaxonfileViews(BaseTest):
                 assert runtime.container.image == "busybox:1.36"
                 if kind == V1RunKind.SERVICE:
                     assert runtime.ports == [8080]
+
+    def test_runtime_fields_through_submit_and_restart(self):
+        source = {
+            "container": {"image": "busybox:1.36"},
+            "environment": {"nodeSelector": {"pool": "workers"}},
+            "init": [{"container": {"name": "setup", "image": "busybox:1.36"}}],
+            "sidecars": [{"name": "metrics", "image": "busybox:1.36"}],
+            "volumes": [{"name": "scratch", "emptyDir": {}}],
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.JOB
+        assert orjson_loads(run.raw_content) == source
+        runtime = self.prepare(run)
+        assert runtime.environment.node_selector == {"pool": "workers"}
+        assert [init.container.name for init in runtime.init] == ["setup"]
+        assert [sidecar.name for sidecar in runtime.sidecars] == ["metrics"]
+        assert [volume.name for volume in runtime.volumes] == ["scratch"]
+
+        # An invalid override is a validation error, not a server error.
+        runs = Run.objects.count()
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(
+                f"{self.url}{run.uuid.hex}/restart/",
+                {"content": orjson_dumps({"sidecars": True})},
+            )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.data
+        assert Run.objects.count() == runs
+
+        override = {"environment": {"nodeSelector": {"pool": "gpu"}}}
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(
+                f"{self.url}{run.uuid.hex}/restart/",
+                {"content": orjson_dumps(override)},
+            )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        restarted = Run.objects.get(uuid=response.data["uuid"])
+        assert orjson_loads(restarted.raw_content) == source
+        runtime = self.prepare(restarted)
+        assert runtime.environment.node_selector == {"pool": "gpu"}
+        assert [sidecar.name for sidecar in runtime.sidecars] == ["metrics"]
