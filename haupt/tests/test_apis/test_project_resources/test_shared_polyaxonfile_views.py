@@ -1261,6 +1261,78 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     restarted.content
                 ).run.container.args == [f"echo {count}"]
 
+    def test_shared_dag_template_shortcuts_isolate_node_overrides(self):
+        template = {
+            "kind": "operation",
+            "name": "template",
+            "component": {
+                "kind": "component",
+                "cache": {"disable": True},
+                "inputs": [{"name": "count", "type": "int"}],
+                "params": {"count": {"ref": "dag", "value": "inputs.count"}},
+                "container": {"image": "busybox:1.36"},
+                "cmd": "echo {{ count }} $LEVEL",
+                "env": {"LEVEL": "base", "TOKEN": "t"},
+            },
+        }
+        source = {
+            "cache": {"disable": True},
+            "inputs": [{"name": "count", "type": "int"}],
+            "params": {"count": 3},
+            "run": {
+                "kind": "dag",
+                "components": [template],
+                "operations": [
+                    {"name": "inherited", "dagRef": "template"},
+                    {
+                        "name": "overridden",
+                        "dagRef": "template",
+                        "params": {"count": 5},
+                        "container": {"image": "busybox:1.37"},
+                        "env": {"LEVEL": "node"},
+                    },
+                ],
+            },
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        raw_content = run.raw_content
+
+        with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+            SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+        run.refresh_from_db()
+        assert run.status == V1Statuses.COMPILED, run.status_conditions
+        assert run.raw_content == raw_content
+        children = {child.name: child for child in run.pipeline_runs.all()}
+        # The override changes only its own node.
+        expected = {
+            "inherited": (3, "busybox:1.36", [("LEVEL", "base"), ("TOKEN", "t")]),
+            "overridden": (5, "busybox:1.37", [("TOKEN", "t"), ("LEVEL", "node")]),
+        }
+        assert set(children) == set(expected)
+        for name, (count, image, env) in expected.items():
+            child = children[name]
+            child_raw_content = child.raw_content
+
+            with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                SchedulingManager.runs_prepare(run_id=child.id, start=False)
+
+            child.refresh_from_db()
+            assert child.status == V1Statuses.COMPILED, child.status_conditions
+            assert child.raw_content == child_raw_content
+            assert child.inputs == {"count": count}
+            compiled = CompiledOperationSpecification.read(child.content)
+            assert compiled.run.kind == V1RunKind.JOB
+            assert compiled.run.container.image == image
+            assert compiled.run.container.command == ["/bin/sh", "-c"]
+            assert compiled.run.container.args == [f"set -e\necho {count} $LEVEL"]
+            assert [
+                (entry["name"], entry["value"])
+                for entry in orjson_loads(child.content)["run"]["container"]["env"]
+            ] == env
+
     def test_shared_dag_creates_nested_dag_and_inherits_node_matrix(self):
         source = {
             "kind": "component",

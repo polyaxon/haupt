@@ -891,6 +891,13 @@ class TestSharedRerunPreparationV1(BaseTest):
             source["run"]["ports"] = [8080]
         return source
 
+    @classmethod
+    def _shortcut_source(cls):
+        # A root container without `run` prepares as the same job.
+        source = cls._source()
+        source["container"] = source.pop("run")["container"]
+        return source
+
     def _check_rerun(self, action):
         for kind, runtime, embedded in product(
             (None, "component", "operation"),
@@ -1114,16 +1121,27 @@ class TestSharedRerunPreparationV1(BaseTest):
                 assert rerun.raw_content == raw_content
 
     def test_recompile_replaces_source_for_next_rerun(self):
-        for action, kind in product(
-            ("restart", "resume", "copy"), (None, "component", "operation")
+        for action, kind, shortcut in product(
+            ("restart", "resume", "copy"),
+            (None, "component", "operation"),
+            (False, True),
         ):
-            with self.subTest(action=action, kind=kind):
-                source = {"kind": "operation", **self._source()}
+            with self.subTest(action=action, kind=kind, shortcut=shortcut):
+                build = self._shortcut_source if shortcut else self._source
+                source = {"kind": "operation", **build()}
                 source["params"]["old"] = {"value": "discard", "contextOnly": True}
+                if shortcut:
+                    source["env"] = {"OLD": "discard"}
                 original = self._create(source)
                 original_raw = original.raw_content
                 original_content = original.content
-                replacement = self._source()
+                if shortcut:
+                    # The replacement drops this shortcut; it must not come back.
+                    env = orjson_loads(original_content)["run"]["container"]["env"]
+                    assert [(e["name"], e["value"]) for e in env] == [
+                        ("OLD", "discard")
+                    ]
+                replacement = build()
                 replacement["params"]["image"] = "replacement:v3"
                 replacement["params"]["count"] = 7
                 if kind:
@@ -1159,6 +1177,7 @@ class TestSharedRerunPreparationV1(BaseTest):
                     image="replacement:v3",
                     param_image="replacement:v3",
                 )
+                assert not orjson_loads(replaced.content)["run"]["container"].get("env")
 
                 again = self._rerun(replaced, action)
 
@@ -1171,6 +1190,7 @@ class TestSharedRerunPreparationV1(BaseTest):
                     image="replacement:v3",
                     param_image="replacement:v3",
                 )
+                assert not orjson_loads(again.content)["run"]["container"].get("env")
                 assert again.raw_content == replacement_raw
                 if action != "resume":
                     original.refresh_from_db()
