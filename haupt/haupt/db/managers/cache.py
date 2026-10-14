@@ -93,7 +93,7 @@ def get_run_init_state(
     init = init or []
     init_reprs = [i.to_light_dict(exclude_attrs=["container"]) for i in init if i]
     if init_reprs:
-        init_reprs += "init-" + str(init_reprs)
+        run_state += "init-" + str(init_reprs)
 
     container_reprs = get_run_containers_state(
         [i.container for i in init if i.container]
@@ -117,10 +117,10 @@ def get_run_sections_state(
         cache_sections = ["init", "connections", "containers"]
 
     if "init" in cache_sections and init:
-        run_state += get_run_init_state(run_state, init)
+        run_state = get_run_init_state(run_state, init)
 
     if "connections" in cache_sections and connections:
-        run_state += get_run_connections_state(run_state, connections)
+        run_state = get_run_connections_state(run_state, connections)
 
     if "containers" in cache_sections and containers:
         containers_reprs = get_run_containers_state(containers)
