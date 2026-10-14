@@ -884,6 +884,20 @@ class TestSharedPolyaxonfileViews(BaseTest):
                                 "name": "embedded",
                                 "component": {"params": {"count": 4}, "run": job},
                             },
+                            {
+                                "name": "inline-shortcut",
+                                "inputs": [{"name": "result", "type": "int"}],
+                                "params": {
+                                    "result": {
+                                        "ref": "ops.producer",
+                                        "value": "outputs.result",
+                                    }
+                                },
+                                "container": {"image": "busybox:1.36"},
+                                "cmd": "echo {{ result }}",
+                                "env": {"MODE": "inline"},
+                                "resources": {"gpu": 1},
+                            },
                         ],
                     },
                 }
@@ -903,7 +917,12 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 assert run.status == V1Statuses.COMPILED, run.status_conditions
                 assert run.raw_content == raw_content
                 children = {child.name: child for child in run.pipeline_runs.all()}
-                assert set(children) == {"producer", "consumer", "embedded"}
+                assert set(children) == {
+                    "producer",
+                    "consumer",
+                    "embedded",
+                    "inline-shortcut",
+                }
                 for name, child in children.items():
                     child_source = read_polyaxonfile(child.raw_content)
                     compiled = CompiledOperationSpecification.read(child.content)
@@ -923,6 +942,20 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 assert producer_source.kind == "component"
                 assert read_polyaxonfile(children["embedded"].raw_content).kind is None
                 assert children["embedded"].params["count"] == {"value": 4}
+
+                inline = children["inline-shortcut"]
+                inline_raw_content = inline.raw_content
+                inline_source = orjson_loads(inline_raw_content)
+                assert "run" not in inline_source
+                assert "component" not in inline_source
+                for field in ("container", "cmd", "env", "resources"):
+                    assert (
+                        inline_source[field] == source["run"]["operations"][-1][field]
+                    )
+                inline_edge = RunEdge.objects.get(downstream=inline)
+                assert inline_edge.upstream_id == children["producer"].id
+                assert inline_edge.kind == "dag"
+                assert inline_edge.values == {"result": "outputs.result"}
 
                 consumer = children["consumer"]
                 consumer_source = read_polyaxonfile(consumer.raw_content)
@@ -952,7 +985,7 @@ class TestSharedPolyaxonfileViews(BaseTest):
                     "producer_uuid": "globals.uuid",
                 }
                 assert edge.statuses == [V1Statuses.SUCCEEDED]
-                assert RunEdge.objects.filter(downstream__pipeline=run).count() == 1
+                assert RunEdge.objects.filter(downstream__pipeline=run).count() == 2
 
                 producer = children["producer"]
                 with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
@@ -975,13 +1008,15 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 producer.save(update_fields=["outputs", "status"])
                 with patch("haupt.common.workers.send") as workers_send:
                     SchedulingManager.runs_notify_done(run_id=producer.id)
-                assert (
-                    SchedulerCeleryTasks.RUNS_PREPARE,
-                    {"run_id": consumer.id},
-                ) in [
+                dispatched = [
                     (call.args[0], call.kwargs.get("kwargs"))
                     for call in workers_send.call_args_list
                 ]
+                for downstream in (consumer, inline):
+                    assert (
+                        SchedulerCeleryTasks.RUNS_PREPARE,
+                        {"run_id": downstream.id},
+                    ) in dispatched
 
                 consumer.refresh_from_db()
                 assert consumer.status == V1Statuses.CREATED
@@ -1008,6 +1043,28 @@ class TestSharedPolyaxonfileViews(BaseTest):
                 assert RunEdge.objects.get(
                     upstream=producer, downstream=consumer, kind="join"
                 ).values == {"joined_results": "outputs.result"}
+
+                inline.refresh_from_db()
+                assert inline.status == V1Statuses.CREATED
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=inline.id, start=False)
+
+                inline.refresh_from_db()
+                assert inline.status == V1Statuses.COMPILED, inline.status_conditions
+                assert inline.raw_content == inline_raw_content
+                assert inline.inputs == {"result": 19}
+                inline_compiled = CompiledOperationSpecification.read(inline.content)
+                assert inline_compiled.run.kind == V1RunKind.JOB
+                assert inline_compiled.run.container.image == "busybox:1.36"
+                assert inline_compiled.run.container.command == ["/bin/sh", "-c"]
+                assert inline_compiled.run.container.args == ["set -e\necho 19"]
+                container = orjson_loads(inline.content)["run"]["container"]
+                assert [
+                    (env["name"], env["value"], env.get("value_from"))
+                    for env in container["env"]
+                ] == [("MODE", "inline", None)]
+                assert container["resources"]["requests"]["nvidia.com/gpu"] == 1
+                assert container["resources"]["limits"]["nvidia.com/gpu"] == 1
 
     def test_shared_dag_downstream_trigger_conditions_and_skip_policy(self):
         for upstream_status in (
