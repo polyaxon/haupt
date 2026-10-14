@@ -821,11 +821,15 @@ class SchedulingResolver(resolver.BaseResolver):
         pipeline_override = {"patchStrategy": PatchStrategy.PRE_MERGE}
         if compiled_operation.cache:
             pipeline_override["cache"] = compiled_operation.cache.to_dict()
+        run_patch = {}
         if run_config.environment:
-            pipeline_override["runPatch"] = {}
-            pipeline_override["runPatch"][
-                "environment"
-            ] = run_config.environment.to_dict()  # fmt: skip
+            run_patch["environment"] = run_config.environment.to_dict()
+        if run_config.connections:
+            run_patch["connections"] = run_config.connections
+        if run_config.volumes:
+            run_patch["volumes"] = run_config.swagger_to_dict(run_config.volumes)
+        if run_patch:
+            pipeline_override["runPatch"] = run_patch
         if compiled_operation.termination:
             pipeline_override["termination"] = compiled_operation.termination.to_dict()
         if compiled_operation.plugins:
