@@ -1721,6 +1721,87 @@ class TestSharedPolyaxonfileViews(BaseTest):
         assert run.raw_content == raw_content
         assert not run.pipeline_runs.exists()
 
+    def test_whole_field_container_references_through_prepare(self):
+        for runtime in (V1RunKind.JOB, V1RunKind.SERVICE):
+            with self.subTest(runtime=runtime):
+                source = {
+                    "cache": {"disable": True},
+                    "inputs": [
+                        {"name": "main_container", "type": "dict"},
+                        {"name": "init_container", "type": "dict"},
+                        {"name": "sidecar_containers", "type": "dict", "isList": True},
+                    ],
+                    "params": {
+                        "main_container": {
+                            "value": {
+                                "name": "main",
+                                "image": "busybox:1.36",
+                                "command": ["echo"],
+                                "args": ["main"],
+                            }
+                        },
+                        "init_container": {
+                            "value": {
+                                "name": "setup",
+                                "image": "busybox:1.36",
+                                "command": ["echo"],
+                                "args": ["init"],
+                            }
+                        },
+                        "sidecar_containers": {
+                            "value": [
+                                {
+                                    "name": "logger",
+                                    "image": "busybox:1.36",
+                                    "command": ["echo"],
+                                    "args": ["sidecar"],
+                                }
+                            ]
+                        },
+                    },
+                    "run": {
+                        "kind": runtime,
+                        "container": "{{ main_container }}",
+                        "init": [{"container": "{{ init_container }}"}],
+                        "sidecars": "{{ sidecar_containers }}",
+                    },
+                }
+                if runtime == V1RunKind.SERVICE:
+                    source["run"]["ports"] = [8080]
+                with patch("haupt.common.workers.send"):
+                    response = self.client.post(
+                        self.url, {"content": orjson_dumps(source)}
+                    )
+                assert response.status_code == status.HTTP_201_CREATED, response.data
+                run = Run.objects.get(uuid=response.data["uuid"])
+                raw_content = run.raw_content
+
+                with patch.object(polyaxon_settings, "AGENT_CONFIG", self.agent_config):
+                    SchedulingManager.runs_prepare(run_id=run.id, start=False)
+
+                run.refresh_from_db()
+                assert run.status == V1Statuses.COMPILED, run.status_conditions
+                assert run.raw_content == raw_content
+                compiled = CompiledOperationSpecification.read(run.content)
+                assert compiled.run.kind == runtime
+                assert len(compiled.run.init) == 1
+                assert len(compiled.run.sidecars) == 1
+                containers = [
+                    compiled.run.container,
+                    compiled.run.init[0].container,
+                    compiled.run.sidecars[0],
+                ]
+                assert [
+                    (container.name, container.image, container.command, container.args)
+                    for container in containers
+                ] == [
+                    ("main", "busybox:1.36", ["echo"], ["main"]),
+                    ("setup", "busybox:1.36", ["echo"], ["init"]),
+                    ("logger", "busybox:1.36", ["echo"], ["sidecar"]),
+                ]
+                if runtime == V1RunKind.SERVICE:
+                    assert compiled.run.ports == [8080]
+
     def test_shared_jobs_and_services_through_prepare(self):
         for runtime in (V1RunKind.JOB, V1RunKind.SERVICE):
             for kind in (None, "component", "operation", "legacy", "patched"):

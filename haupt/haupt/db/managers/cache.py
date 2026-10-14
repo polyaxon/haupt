@@ -46,6 +46,8 @@ def get_run_io_state(
 def get_state_from_container(container: V1Container):
     if not container:
         return None
+    if isinstance(container, str):
+        return container
 
     result = ""
     if container.command:

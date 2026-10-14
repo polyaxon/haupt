@@ -1197,6 +1197,47 @@ class TestSharedRerunPreparationV1(BaseTest):
                     assert original.raw_content == original_raw
                     assert original.content == original_content
 
+    def test_rerun_rejects_invalid_run_patch(self):
+        original = self._create(self._source())
+        for action in ("restart", "resume", "copy"):
+            with self.subTest(action=action):
+                if action == "resume":
+                    new_run_status(
+                        original,
+                        condition=V1StatusCondition.get_condition(
+                            type=V1Statuses.STOPPED, status=True
+                        ),
+                        force=True,
+                    )
+                original.refresh_from_db()
+                before = (
+                    original.raw_content,
+                    original.content,
+                    original.params,
+                    original.status,
+                )
+                count = Run.objects.count()
+                url = "{}{}/{}/".format(self.url, original.uuid.hex, action)
+
+                with patch("haupt.common.workers.send") as workers_send:
+                    response = self.client.post(
+                        url, {"content": {"runPatch": {"sidecars": True}}}
+                    )
+
+                assert response.status_code == status.HTTP_400_BAD_REQUEST, (
+                    response.data
+                )
+                assert "sidecars" in str(response.data)
+                workers_send.assert_not_called()
+                assert Run.objects.count() == count
+                original.refresh_from_db()
+                assert (
+                    original.raw_content,
+                    original.content,
+                    original.params,
+                    original.status,
+                ) == before
+
     def test_recompile_rejects_missing_or_incomplete_source(self):
         original = self._create(self._source())
         for action, replacement in product(
