@@ -1,3 +1,3 @@
-polyaxon==2.18.0
-traceml==1.5.0
-hypertune==1.4.0
+polyaxon==2.18.*
+traceml==1.5.*
+hypertune==1.4.*
