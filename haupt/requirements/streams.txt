@@ -3,8 +3,7 @@ fsspec>=2025.10.0,<=2026.8.0
 uvicorn[standard]<0.39
 uvloop==0.22.1
 
-kubernetes>=10.0.1
-kubernetes_asyncio>=28.2.1
+kubernetes>=37.0.1
 nbconvert>=6.5.0
 pandas<3
 pyarrow<22.1

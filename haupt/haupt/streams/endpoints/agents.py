@@ -6,7 +6,7 @@ from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
 from django.http import HttpResponse
 from django.urls import path
-from kubernetes_asyncio.client import V1Pod
+from kubernetes.aio.client import V1Pod
 from rest_framework import status
 
 from clipped.utils.bools import to_bool
