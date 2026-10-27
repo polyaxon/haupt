@@ -1,1 +1,1 @@
-whitenoise<=6.11.0
+whitenoise<=6.12.0

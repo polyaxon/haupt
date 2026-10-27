@@ -1,4 +1,4 @@
-Django<5.3
-djangorestframework<3.17
+Django<6.2
+djangorestframework<3.19
 django-cors-headers<4.10
 numpy
