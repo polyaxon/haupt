@@ -393,7 +393,7 @@ def test_auth_request_sandbox_rejects_invalid_path_before_cache(monkeypatch):
     assert response.content == b"A valid sandbox path param is required"
 
 
-def test_auth_request_k8s_cached_allow_returns_dynamic_headers(monkeypatch):
+def test_auth_request_k8s_cached_allow_returns_dynamic_headers(monkeypatch, run_pods):
     async def check_auth_cache(request_cache):
         return True
 
@@ -442,7 +442,7 @@ def test_auth_request_k8s_cached_allow_returns_dynamic_headers(monkeypatch):
 
 
 def test_auth_request_k8s_cache_miss_persists_allow_and_returns_dynamic_headers(
-    monkeypatch,
+    monkeypatch, run_pods
 ):
     persisted = []
 
@@ -488,3 +488,26 @@ def test_auth_request_k8s_cache_miss_persists_allow_and_returns_dynamic_headers(
     assert response.headers["K8S_URI"] == "https://k8s.local/exec"
     assert response.headers["K8S_TOKEN"] == "k8s-token"
     assert persisted == [True]
+
+
+def test_auth_request_k8s_cached_allow_rejects_pod_outside_run(monkeypatch, run_pods):
+    run_pods["pods"] = [("pod", "other-run", ["main"])]
+
+    async def check_auth_cache(request_cache):
+        return True
+
+    async def fail_reverse_k8s(path):
+        raise AssertionError("invalid k8s target must not be forwarded")
+
+    monkeypatch.setattr(auth_request_module, "_check_auth_cache", check_auth_cache)
+    monkeypatch.setattr(auth_request_module, "reverse_k8s", fail_reverse_k8s)
+
+    response = asyncio.run(
+        auth_request_module.auth_request(
+            make_auth_request(
+                uri="/k8s/v1/ns/owner/project/runs/uuid/k8s_exec/pod/main"
+            )
+        )
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN

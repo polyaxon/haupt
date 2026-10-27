@@ -163,10 +163,13 @@ async def auth_request(
 
     if uri_family == URI_FAMILY_K8S:
         try:
-            _path, params = k8s_check(uri)
-            return await reverse_k8s(path="{}?{}".format(_path, params))
+            _path, params = await k8s_check(uri)
         except ValueError:
-            pass
+            return HttpResponse(
+                content="A valid k8s exec target is required",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return await reverse_k8s(path="{}?{}".format(_path, params))
 
     return HttpResponse(status=status.HTTP_200_OK)
 

@@ -16,14 +16,41 @@ def patch_client_settings():
     patch_settings(set_auth=False, set_client=True, set_cli=False, set_agent=False)
 
 
-def test_k8s_check_extracts_exec_path_and_query_params():
-    path, query_params = k8s_check(
-        "/k8s/v1/ns/owner/project/runs/uuid/k8s_exec/pod/container"
-        "?command=/bin/bash&stdin=true"
+def test_k8s_check_extracts_exec_path_and_query_params(run_pods):
+    path, query_params = asyncio.run(
+        k8s_check(
+            "/k8s/v1/ns/owner/project/runs/uuid/k8s_exec/pod/main"
+            "?command=/bin/bash&stdin=true"
+        )
     )
 
     assert path == "api/v1/namespaces/ns/pods/pod/exec"
-    assert query_params == "command=/bin/bash&stdin=true&container=container"
+    assert query_params == "command=/bin/bash&stdin=true&container=main"
+
+
+@pytest.mark.parametrize(
+    "pods",
+    [
+        [],
+        [("pod", "other-run", ["main"])],
+        [("pod", "uuid", ["sidecar"])],
+    ],
+)
+def test_k8s_check_rejects_targets_outside_the_run(run_pods, pods):
+    run_pods["pods"] = pods
+    with pytest.raises(ValueError):
+        asyncio.run(k8s_check("/k8s/v1/ns/owner/project/runs/uuid/k8s_exec/pod/main"))
+
+
+def test_k8s_check_replaces_caller_container_params(run_pods):
+    _, query_params = asyncio.run(
+        k8s_check(
+            "/k8s/v1/ns/owner/project/runs/uuid/k8s_exec/pod/main"
+            "?container=other&command=ls&%63ontainer=other"
+        )
+    )
+
+    assert query_params == "command=ls&container=main"
 
 
 @pytest.mark.parametrize(
@@ -37,7 +64,7 @@ def test_k8s_check_extracts_exec_path_and_query_params():
 )
 def test_k8s_check_rejects_invalid_exec_paths(uri):
     with pytest.raises(ValueError):
-        k8s_check(uri)
+        asyncio.run(k8s_check(uri))
 
 
 def test_reverse_k8s_rejects_empty_path():
