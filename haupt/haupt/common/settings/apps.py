@@ -23,6 +23,9 @@ def set_apps(
             "django.contrib.sessions",
             "django.contrib.messages",
         )
+        # Required by ArrayField (postgres.E005); its app imports psycopg
+        if not config.is_sqlite_db_engine:
+            apps += ("django.contrib.postgres",)
         if use_admin_apps:
             apps += (
                 "django.contrib.admin",
