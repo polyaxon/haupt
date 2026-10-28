@@ -6,6 +6,7 @@ import aiofiles
 from asgiref.sync import sync_to_async
 
 from clipped.utils.json import orjson_loads
+from haupt.streams.endpoints.artifacts import get_run_subpath
 from polyaxon._fs.async_manager import (
     download_file,
     download_files,
@@ -170,7 +171,16 @@ async def get_archived_operation_event_and_assets(
         return pkg_files
     subpaths = []
     for file_from_path in files:
-        subpaths.append("{}/{}".format(run_uuid, file_from_path))
+        subpath = None
+        if isinstance(file_from_path, str) and not os.path.isabs(file_from_path):
+            subpath = get_run_subpath(run_uuid, file_from_path)
+        if not subpath or subpath == run_uuid:
+            logger.warning(
+                "During the packaging of %s, the asset path %r was skipped."
+                % (event_path, file_from_path)
+            )
+            continue
+        subpaths.append(subpath)
 
     return await download_files(
         fs=fs,
@@ -201,7 +211,10 @@ async def get_archived_operation_events_and_assets(
         )
         pkg_files += event_pkg_files
     return await tar_files(
-        filename="{}.{}.{}".format(run_uuid, event_kind, "-and-".join(event_names)),
+        # Names can contain `/`, the archive name must stay a single file name
+        filename="{}.{}.{}".format(
+            run_uuid, event_kind, "-and-".join(event_names).replace("/", "_")
+        ),
         pkg_files=pkg_files,
         subpath=run_uuid,
     )

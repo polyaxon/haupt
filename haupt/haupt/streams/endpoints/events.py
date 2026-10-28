@@ -1,3 +1,4 @@
+import os
 from typing import Dict, Optional, Set, Union
 
 from django.core.handlers.asgi import ASGIRequest
@@ -16,11 +17,21 @@ from haupt.streams.controllers.events import (
     get_archived_operation_resources,
     get_archived_operations_events,
 )
+from haupt.streams.endpoints.artifacts import clean_path
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.endpoints.utils import redirect_file
 from traceml.artifacts import V1ArtifactKind
 from traceml.events import V1Events
 from traceml.processors.importance_processors import calculate_importance_correlation
+
+
+def get_event_names(names: Optional[str]) -> Set[str]:
+    event_names = {e for e in names.split(",") if e} if names else set([])
+    for name in event_names:
+        if os.path.isabs(name):
+            raise ValueError("Invalid path: absolute path")
+        clean_path(name)
+    return event_names
 
 
 async def _get_multi_run_events(
@@ -41,7 +52,13 @@ async def _get_multi_run_events(
     sample = request.GET.get("sample")
     connection = request.GET.get("connection")
     orient = orient or V1Events.ORIENT_DICT
-    event_names = {e for e in event_names.split(",") if e} if event_names else set([])
+    try:
+        event_names = get_event_names(event_names)
+    except ValueError:
+        return HttpResponse(
+            content="received an invalid event name.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     run_uuids = {e for e in run_uuids.split(",") if e} if run_uuids else set([])
     events = await get_archived_operations_events(
         fs=await AppFS.get_fs(connection=connection),
@@ -133,7 +150,13 @@ async def get_run_events(
     sample = request.GET.get("sample")
     connection = request.GET.get("connection")
     orient = orient or V1Events.ORIENT_DICT
-    event_names = {e for e in event_names.split(",") if e} if event_names else set([])
+    try:
+        event_names = get_event_names(event_names)
+    except ValueError:
+        return HttpResponse(
+            content="received an invalid event name.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     if pkg_assets:
         return await get_package_event_assets(
             run_uuid=run_uuid,
@@ -163,7 +186,7 @@ async def get_run_resources(
     project: str,
     run_uuid: str,
     methods: Optional[Dict] = None,
-) -> UJSONResponse:
+) -> Union[UJSONResponse, HttpResponse]:
     validate_methods(request, methods)
     event_names = request.GET.get("names")
     orient = request.GET.get("orient")
@@ -171,7 +194,13 @@ async def get_run_resources(
     sample = request.GET.get("sample")
     connection = request.GET.get("connection")
     orient = orient or V1Events.ORIENT_DICT
-    event_names = {e for e in event_names.split(",") if e} if event_names else set([])
+    try:
+        event_names = get_event_names(event_names)
+    except ValueError:
+        return HttpResponse(
+            content="received an invalid event name.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     events = await get_archived_operation_resources(
         fs=await AppFS.get_fs(connection=connection),
         store_path=AppFS.get_fs_root_path(connection=connection),

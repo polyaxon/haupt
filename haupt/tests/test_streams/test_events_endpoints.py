@@ -347,6 +347,33 @@ class TestEventsEndpoints(BaseTest):
             assert res.kind == exp.kind
             assert pd.DataFrame.equals(res.df, exp.df)
 
+    def test_event_names_escaping_the_run_are_rejected(self):
+        runs_url = STREAMS_V1_LOCATION + "namespace/owner/project/runs"
+        for name in ["../x", "a/../../x", "/x"]:
+            for url in [
+                "{}/uuid/events/text?names={}",
+                "{}/uuid/events/image?names={}&pkg_assets=true",
+                "{}/multi/events/text?names={}&runs=uuid",
+                "{}/uuid/resources?names={}",
+            ]:
+                response = self.client.get(url.format(runs_url, name))
+                assert response.status_code == 400, url.format(runs_url, name)
+
+    def test_event_names_with_sub_paths_are_accepted(self):
+        create_path(os.path.join(self.run_events, "text", "train"))
+        loss = LoggedEventListSpec(
+            name="train/loss",
+            kind=V1ArtifactKind.TEXT,
+            events=[V1Event.make(step=1, text="foo1")],
+        )
+        self.create_kind_events(
+            name="train/loss", kind=V1ArtifactKind.TEXT, events=loss
+        )
+
+        response = self.client.get(self.base_url + "/text?names=train/loss&orient=dict")
+        assert response.status_code == 200
+        assert [i["name"] for i in response.json()["data"]] == ["train/loss"]
+
 
 @pytest.mark.events_mark
 class TestMultiRunsEventsEndpoints(BaseTest):
