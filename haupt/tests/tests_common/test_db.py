@@ -3,12 +3,15 @@ from typing import List, Union
 import uuid
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
 from django.test import TestCase
 from django.utils.timezone import now
 
 from clipped.utils.json import orjson_dumps
 from clipped.utils.versions import compare_versions
 from haupt.common.db import RawBulkInserter, RawBulkUpdater
+from haupt.common.db.updater import _get_field_placeholder
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.users import UserFactory
 from haupt.db.models.runs import Run
@@ -203,6 +206,15 @@ class TestRawBulkInserter(TestCase):
             ).count()
             == 1
         )
+
+
+class TestFieldPlaceholder(TestCase):
+    def test_array_field_keeps_cast(self):
+        field = ArrayField(models.CharField(max_length=64))
+        assert _get_field_placeholder(field) == "%s::varchar(64)[]"
+
+    def test_field_without_cast(self):
+        assert _get_field_placeholder(models.CharField(max_length=64)) == "%s"
 
 
 class TestRawBulkUpdater(TestCase):

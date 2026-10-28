@@ -4,6 +4,17 @@ from django.db import connection
 from clipped.decorators.memoization import memoize
 
 
+def _get_field_placeholder(field):
+    # Django >= 6.1
+    if hasattr(field, "get_placeholder_sql"):
+        sql, _ = field.get_placeholder_sql(None, None, connection)
+        return sql
+    # Django < 6.1
+    if hasattr(field, "get_placeholder"):
+        return field.get_placeholder(None, None, connection)
+    return "%s"
+
+
 class RawBulkUpdater:
     """
     This class does bulk updates and behaves the same way as the RawBulkInserter
@@ -84,18 +95,9 @@ class RawBulkUpdater:
                 ]
             ),
         )
-        # In psycopg2 this was:
-        # placeholder_single_row = "({})".format(
-        #     (",".join(["%s"] * (len(query_fields) + len(value_fields))))
-        # )
-        # After the upgrade we have to mimic the update logic in the SQLUpdateCompiler.as_sql
+        # Mimic SQLUpdateCompiler.as_sql: cast value fields to their db type
         update_fields = ["%s"] * len(query_fields)  # Retrieve fields
-        update_fields += [
-            fields[vf].get_placeholder(None, None, connection)
-            if hasattr(fields[vf], "get_placeholder")
-            else "%s"
-            for vf in value_fields
-        ]  # Update fields after casting to correct type
+        update_fields += [_get_field_placeholder(fields[vf]) for vf in value_fields]
         placeholder_single_row = "({})".format(",".join(update_fields))
         single_where_statement = ".".join(["{}".format(db_table), "{}=tempvalues.{}"])
         where_statement_sql = "AS tempvalues ({},{}) WHERE {}".format(
