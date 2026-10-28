@@ -1,4 +1,4 @@
 celery==5.6.3
-psycopg==3.2.12
-psycopg-binary==3.2.12
+psycopg==3.3.6
+psycopg-binary==3.3.6
 redis<=8.2.0
