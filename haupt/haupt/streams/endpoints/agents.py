@@ -1,6 +1,8 @@
 import logging
+import os
 import traceback
 from typing import Dict, List, Optional, Union
+from uuid import UUID
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
@@ -24,6 +26,8 @@ from haupt.streams.controllers.logs import get_archived_agent_logs
 from haupt.streams.endpoints.base import UJSONResponse
 from haupt.streams.tasks.op_spec import download_agent_spec, upload_agent_spec
 from polyaxon import settings
+from polyaxon._env_vars.getters import get_agent_info
+from polyaxon._env_vars.keys import ENV_KEYS_AGENT_INSTANCE
 from polyaxon._fs.async_manager import upload_data
 from polyaxon._k8s.logging.async_monitor import (
     collect_agent_service_logs,
@@ -31,10 +35,26 @@ from polyaxon._k8s.logging.async_monitor import (
 )
 from polyaxon._k8s.manager.async_manager import AsyncK8sManager
 from polyaxon._services import PolyaxonServices
+from polyaxon.exceptions import PolyaxonAgentError
 from traceml.logging import V1Logs
 
 
 _logger = logging.getLogger("haupt.streams.agents")
+
+
+def _is_own_agent(namespace: str, owner: str, agent_uuid: str) -> bool:
+    # Bind to the deployment config, the caller and the db can't change it
+    own_namespace = settings.CLIENT_CONFIG.namespace
+    if own_namespace and own_namespace != namespace:
+        return False
+    agent_instance = os.getenv(ENV_KEYS_AGENT_INSTANCE)
+    if not agent_instance:
+        return True
+    try:
+        own_owner, own_uuid = get_agent_info(agent_instance)
+        return own_owner == owner and UUID(own_uuid) == UUID(agent_uuid)
+    except (PolyaxonAgentError, ValueError):
+        return False
 
 
 @transaction.non_atomic_requests
@@ -179,6 +199,11 @@ async def restart_agent_pod(
         return UJSONResponse(
             data={"errors": "Service name is required"},
             status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not _is_own_agent(namespace=namespace, owner=owner, agent_uuid=agent_uuid):
+        return UJSONResponse(
+            data={"errors": "The agent is not managed by this service"},
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     label = "app.kubernetes.io/name={}-polyaxon-{}".format(namespace, service)
