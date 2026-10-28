@@ -193,3 +193,61 @@ def test_restart_agent_pod_missing_target_is_scheduled(monkeypatch, k8s_manager_
 
     assert response.status_code == status.HTTP_200_OK
     assert orjson_loads(response.content) == {"status": "scheduled"}
+
+
+@pytest.fixture
+def agent_logs_store(monkeypatch):
+    get_fs = AsyncMock()
+    get_archived_agent_logs = AsyncMock(return_value=([], "1", ["1"]))
+    monkeypatch.setattr(agents_module.AppFS, "get_fs", get_fs)
+    monkeypatch.setattr(agents_module.AppFS, "get_fs_root_path", Mock())
+    monkeypatch.setattr(
+        agents_module, "get_archived_agent_logs", get_archived_agent_logs
+    )
+    return get_fs, get_archived_agent_logs
+
+
+def run_get_agent_logs(params):
+    return asyncio.run(
+        agents_module.get_agent_logs(
+            RequestFactory().get(
+                "/streams/v1/ns/foo/agents/{}/logs".format(AGENT_UUID), data=params
+            ),
+            namespace="ns",
+            owner="foo",
+            agent_uuid=AGENT_UUID,
+            methods=["GET"],
+        )
+    )
+
+
+@pytest.mark.parametrize("service", ["agent", "streams", "operator"])
+def test_get_agent_logs_reads_supported_services(agent_logs_store, service):
+    _, get_archived_agent_logs = agent_logs_store
+
+    response = run_get_agent_logs({"service": service, "last_file": "1"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert get_archived_agent_logs.await_args.kwargs["service"] == service
+    assert get_archived_agent_logs.await_args.kwargs["last_file"] == "1"
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"service": "../../../uuid/plxlogs"},
+        {"service": "../x"},
+        {"service": "/etc"},
+        {"service": "agent/../streams"},
+        {"service": ""},
+        {},
+    ],
+)
+def test_get_agent_logs_rejects_unsupported_services(agent_logs_store, params):
+    get_fs, get_archived_agent_logs = agent_logs_store
+
+    response = run_get_agent_logs(params)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    get_fs.assert_not_awaited()
+    get_archived_agent_logs.assert_not_awaited()

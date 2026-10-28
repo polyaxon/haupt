@@ -240,6 +240,15 @@ async def get_agent_logs(
     connection = request.GET.get("connection")
     service = request.GET.get("service")
     last_file = request.GET.get("last_file")
+    if service not in {
+        PolyaxonServices.STREAMS.value,
+        PolyaxonServices.OPERATOR.value,
+        PolyaxonServices.AGENT.value,
+    }:
+        return UJSONResponse(
+            data={"errors": "Service name is not supported"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     operation_logs, last_file, files = await get_archived_agent_logs(
         fs=await AppFS.get_fs(connection=connection),
