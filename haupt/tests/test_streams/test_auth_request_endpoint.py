@@ -1,4 +1,5 @@
 import asyncio
+from datetime import timedelta
 import pytest
 from unittest.mock import patch
 
@@ -6,6 +7,7 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 from rest_framework import status
 
+from clipped.utils.tz import now
 from haupt.streams.endpoints import auth_request as auth_request_module
 from polyaxon import settings
 from polyaxon._env_vars.keys import (
@@ -54,13 +56,62 @@ def make_auth_request(
     uri="/services/v1/ns/owner/project/runs/uuid/8000/path",
     method="GET",
     auth="token abc",
+    **extra,
 ):
     return RequestFactory().get(
         "/auth-request/v1/",
         HTTP_X_ORIGIN_URI=uri,
         HTTP_X_ORIGIN_METHOD=method,
         HTTP_AUTHORIZATION=auth,
+        **extra,
     )
+
+
+@pytest.mark.parametrize(
+    "response,age,expected",
+    [
+        (True, timedelta(seconds=30), True),
+        (True, timedelta(days=1, seconds=30), None),
+        (True, timedelta(days=2, seconds=30), None),
+        (False, timedelta(seconds=2), False),
+        (False, timedelta(days=1, seconds=2), None),
+        (True, timedelta(seconds=-30), None),
+    ],
+)
+def test_auth_cache_expires_on_total_age(monkeypatch, response, age, expected):
+    current = now().replace(microsecond=0)
+    monkeypatch.setattr(auth_request_module, "now", lambda: current - age)
+    asyncio.run(auth_request_module._persist_auth_cache("key", response=response))
+    monkeypatch.setattr(auth_request_module, "now", lambda: current)
+
+    assert asyncio.run(auth_request_module._check_auth_cache("key")) is expected
+
+
+def test_auth_request_cache_is_bound_to_credentials(monkeypatch):
+    calls = []
+
+    async def check_auth_service(headers):
+        calls.append(headers.get("Cookie"))
+        if headers.get("Cookie") == "token=a":
+            return AuthResponse()
+        return AuthDeniedResponse()
+
+    monkeypatch.setattr(auth_request_module, "_check_auth_service", check_auth_service)
+
+    def request_status(**extra):
+        request = make_auth_request(auth="", **extra)
+        return asyncio.run(auth_request_module.auth_request(request)).status_code
+
+    assert request_status(HTTP_COOKIE="token=a") == status.HTTP_200_OK
+    assert request_status() == status.HTTP_403_FORBIDDEN
+    assert request_status(HTTP_COOKIE="token=b") == status.HTTP_403_FORBIDDEN
+    assert request_status(HTTP_COOKIE="token=a") == status.HTTP_200_OK
+    assert (
+        request_status(HTTP_COOKIE="token=a", HTTP_X_POLYAXON_SERVICE="cli")
+        == status.HTTP_200_OK
+    )
+    # The repeated `token=a` request is the only cache hit
+    assert calls == ["token=a", "", "token=b", "token=a"]
 
 
 def test_auth_cache_distinguishes_allow_deny_and_miss():

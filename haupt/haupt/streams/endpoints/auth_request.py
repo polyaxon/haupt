@@ -68,7 +68,7 @@ async def _check_auth_cache(request_cache: str) -> Optional[bool]:
                 )
                 interval = 60 if last_value["response"] else 5
 
-            if (now() - last_time).seconds < interval:
+            if 0 <= (now() - last_time).total_seconds() < interval:
                 return last_value["response"]
 
             os.remove(cache_path)
@@ -123,8 +123,16 @@ async def auth_request(
                 status=status.HTTP_403_FORBIDDEN,
             )
         auth = get_authorization_header(request)
+        # Every input the auth service uses to authenticate the request
         request_cache = hash_value(
-            value={uri.split("?")[0], method, auth}, hash_length=64
+            value=(
+                uri.split("?")[0],
+                method,
+                auth,
+                request.headers.get("Cookie"),
+                request.headers.get("X-Polyaxon-Service"),
+            ),
+            hash_length=64,
         )
         uri_family = _get_uri_family(uri)
     except Exception as exc:
