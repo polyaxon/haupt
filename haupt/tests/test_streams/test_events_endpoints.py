@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import pytest
 import shutil
+from unittest.mock import patch
 
 from clipped.utils.enums import get_enum_value
 from clipped.utils.paths import create_path
@@ -380,9 +381,13 @@ class TestMultiRunsEventsEndpoints(BaseTest):
     def setUp(self):
         super().setUp()
         self.store_root = set_store()
-        self.run1_path = os.path.join(self.store_root, "uuid1")
+        self.run1_path = os.path.join(
+            self.store_root, "11111111111111111111111111111111"
+        )
         self.run1_events = os.path.join(self.run1_path, "events")
-        self.run2_path = os.path.join(self.store_root, "uuid2")
+        self.run2_path = os.path.join(
+            self.store_root, "22222222222222222222222222222222"
+        )
         self.run2_events = os.path.join(self.run2_path, "events")
         # Create run artifacts path
         create_path(self.run1_path)
@@ -397,6 +402,17 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         self.base_url = (
             STREAMS_V1_LOCATION + "namespace/owner/project/runs/multi/events"
         )
+
+    def test_download_multi_events_rejects_invalid_runs(self):
+        with patch(
+            "haupt.streams.endpoints.events.get_archived_operations_events"
+        ) as get_events:
+            for runs in ["../x", "/x", "11111111111111111111111111111111,../x"]:
+                response = self.client.get(
+                    self.base_url + "/metric?names=metric1&runs={}".format(runs)
+                )
+                assert response.status_code == 400, runs
+        get_events.assert_not_called()
 
     def create_tmp_events(self, run_events: str):
         metric1 = LoggedEventListSpec(
@@ -441,96 +457,36 @@ class TestMultiRunsEventsEndpoints(BaseTest):
     def test_download_multi_metric_events_cached(self):
         filepath11 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
+            "11111111111111111111111111111111",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
+            "11111111111111111111111111111111",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
+            "22222222222222222222222222222222",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
+            "22222222222222222222222222222222",
             "events",
             "metric",
             "metric2.plx",
         )
 
         response = self.client.get(
-            self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict"
-        )
-        assert response.status_code == 200
-        assert os.path.exists(filepath11) is True
-        assert os.path.exists(filepath12) is True
-        assert os.path.exists(filepath21) is True
-        assert os.path.exists(filepath22) is True
-
-        shutil.rmtree(self.run1_path)
-        shutil.rmtree(self.run2_path)
-
-        response = self.client.get(
-            self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict"
-        )
-        assert response.status_code == 200
-        assert os.path.exists(filepath11) is True
-        assert os.path.exists(filepath12) is True
-        assert os.path.exists(filepath21) is True
-        assert os.path.exists(filepath22) is True
-
-        shutil.rmtree(os.path.join(settings.CLIENT_CONFIG.archives_root, "uuid1"))
-        response = self.client.get(
-            self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict"
-        )
-        assert response.status_code == 200
-        assert os.path.exists(filepath11) is False
-        assert os.path.exists(filepath12) is False
-        assert os.path.exists(filepath21) is True
-        assert os.path.exists(filepath22) is True
-
-    def test_download_multi_metric_events_cached_force(self):
-        filepath11 = os.path.join(
-            settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
-            "events",
-            "metric",
-            "metric1.plx",
-        )
-        filepath12 = os.path.join(
-            settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
-            "events",
-            "metric",
-            "metric2.plx",
-        )
-        filepath21 = os.path.join(
-            settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
-            "events",
-            "metric",
-            "metric1.plx",
-        )
-        filepath22 = os.path.join(
-            settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
-            "events",
-            "metric",
-            "metric2.plx",
-        )
-
-        response = self.client.get(
-            self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict"
+            self.base_url
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=dict"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -543,7 +499,75 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
         response = self.client.get(
             self.base_url
-            + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict&force=true"
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=dict"
+        )
+        assert response.status_code == 200
+        assert os.path.exists(filepath11) is True
+        assert os.path.exists(filepath12) is True
+        assert os.path.exists(filepath21) is True
+        assert os.path.exists(filepath22) is True
+
+        shutil.rmtree(
+            os.path.join(
+                settings.CLIENT_CONFIG.archives_root, "11111111111111111111111111111111"
+            )
+        )
+        response = self.client.get(
+            self.base_url
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=dict"
+        )
+        assert response.status_code == 200
+        assert os.path.exists(filepath11) is False
+        assert os.path.exists(filepath12) is False
+        assert os.path.exists(filepath21) is True
+        assert os.path.exists(filepath22) is True
+
+    def test_download_multi_metric_events_cached_force(self):
+        filepath11 = os.path.join(
+            settings.CLIENT_CONFIG.archives_root,
+            "11111111111111111111111111111111",
+            "events",
+            "metric",
+            "metric1.plx",
+        )
+        filepath12 = os.path.join(
+            settings.CLIENT_CONFIG.archives_root,
+            "11111111111111111111111111111111",
+            "events",
+            "metric",
+            "metric2.plx",
+        )
+        filepath21 = os.path.join(
+            settings.CLIENT_CONFIG.archives_root,
+            "22222222222222222222222222222222",
+            "events",
+            "metric",
+            "metric1.plx",
+        )
+        filepath22 = os.path.join(
+            settings.CLIENT_CONFIG.archives_root,
+            "22222222222222222222222222222222",
+            "events",
+            "metric",
+            "metric2.plx",
+        )
+
+        response = self.client.get(
+            self.base_url
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=dict"
+        )
+        assert response.status_code == 200
+        assert os.path.exists(filepath11) is True
+        assert os.path.exists(filepath12) is True
+        assert os.path.exists(filepath21) is True
+        assert os.path.exists(filepath22) is True
+
+        shutil.rmtree(self.run1_path)
+        shutil.rmtree(self.run2_path)
+
+        response = self.client.get(
+            self.base_url
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=dict&force=true"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is False
@@ -554,28 +578,28 @@ class TestMultiRunsEventsEndpoints(BaseTest):
     def test_download_multi_metric_events_as_dict(self):
         filepath11 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
+            "11111111111111111111111111111111",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
+            "11111111111111111111111111111111",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
+            "22222222222222222222222222222222",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
+            "22222222222222222222222222222222",
             "events",
             "metric",
             "metric2.plx",
@@ -585,7 +609,8 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         assert os.path.exists(filepath21) is False
         assert os.path.exists(filepath22) is False
         response = self.client.get(
-            self.base_url + "/metric?names=metric1&runs=uuid1&orient=dict"
+            self.base_url
+            + "/metric?names=metric1&runs=11111111111111111111111111111111&orient=dict"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -599,15 +624,19 @@ class TestMultiRunsEventsEndpoints(BaseTest):
             parse_dates=False,
         )
         results = response.json()["data"]
-        assert list(results.keys()) == ["uuid1"]
-        assert len(results["uuid1"]) == 1
-        results = [V1Events.read(**i) for i in response.json()["data"]["uuid1"]]
+        assert list(results.keys()) == ["11111111111111111111111111111111"]
+        assert len(results["11111111111111111111111111111111"]) == 1
+        results = [
+            V1Events.read(**i)
+            for i in response.json()["data"]["11111111111111111111111111111111"]
+        ]
         assert results[0].name == events11.name
         assert results[0].kind == events11.kind
         assert pd.DataFrame.equals(results[0].df, events11.df)
 
         response = self.client.get(
-            self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=dict"
+            self.base_url
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=dict"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -633,8 +662,14 @@ class TestMultiRunsEventsEndpoints(BaseTest):
             parse_dates=False,
         )
         expected = {
-            "uuid1": {events11.name: events11, events12.name: events12},
-            "uuid2": {events21.name: events21, events22.name: events22},
+            "11111111111111111111111111111111": {
+                events11.name: events11,
+                events12.name: events12,
+            },
+            "22222222222222222222222222222222": {
+                events21.name: events21,
+                events22.name: events22,
+            },
         }
         response = response.json()["data"]
         results = {
@@ -650,7 +685,7 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
         response = self.client.get(
             self.base_url
-            + "/metric?names=metric12,text2,text3&runs=uuid1,uuid2,uuid3&orient=dict"
+            + "/metric?names=metric12,text2,text3&runs=11111111111111111111111111111111,22222222222222222222222222222222,33333333333333333333333333333333&orient=dict"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -658,8 +693,14 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         assert os.path.exists(filepath21) is True
         assert os.path.exists(filepath22) is True
         expected = {
-            "uuid1": {events11.name: events11, events12.name: events12},
-            "uuid2": {events21.name: events21, events22.name: events22},
+            "11111111111111111111111111111111": {
+                events11.name: events11,
+                events12.name: events12,
+            },
+            "22222222222222222222222222222222": {
+                events21.name: events21,
+                events22.name: events22,
+            },
         }
         response = response.json()["data"]
         results = {
@@ -676,28 +717,28 @@ class TestMultiRunsEventsEndpoints(BaseTest):
     def test_download_multi_metric_events_as_csv(self):
         filepath11 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
+            "11111111111111111111111111111111",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath12 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid1",
+            "11111111111111111111111111111111",
             "events",
             "metric",
             "metric2.plx",
         )
         filepath21 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
+            "22222222222222222222222222222222",
             "events",
             "metric",
             "metric1.plx",
         )
         filepath22 = os.path.join(
             settings.CLIENT_CONFIG.archives_root,
-            "uuid2",
+            "22222222222222222222222222222222",
             "events",
             "metric",
             "metric2.plx",
@@ -707,7 +748,8 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         assert os.path.exists(filepath21) is False
         assert os.path.exists(filepath22) is False
         response = self.client.get(
-            self.base_url + "/metric?names=metric1&runs=uuid1&orient=csv"
+            self.base_url
+            + "/metric?names=metric1&runs=11111111111111111111111111111111&orient=csv"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -718,15 +760,19 @@ class TestMultiRunsEventsEndpoints(BaseTest):
             name="metric1", kind=V1ArtifactKind.METRIC, data=filepath11
         )
         results = response.json()["data"]
-        assert list(results.keys()) == ["uuid1"]
-        assert len(results["uuid1"]) == 1
-        results = [V1Events.read(**i) for i in response.json()["data"]["uuid1"]]
+        assert list(results.keys()) == ["11111111111111111111111111111111"]
+        assert len(results["11111111111111111111111111111111"]) == 1
+        results = [
+            V1Events.read(**i)
+            for i in response.json()["data"]["11111111111111111111111111111111"]
+        ]
         assert results[0].name == events11.name
         assert results[0].kind == events11.kind
         assert pd.DataFrame.equals(results[0].df, events11.df)
 
         response = self.client.get(
-            self.base_url + "/metric?names=metric1,metric2&runs=uuid1,uuid2&orient=csv"
+            self.base_url
+            + "/metric?names=metric1,metric2&runs=11111111111111111111111111111111,22222222222222222222222222222222&orient=csv"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -743,8 +789,14 @@ class TestMultiRunsEventsEndpoints(BaseTest):
             name="metric2", kind=V1ArtifactKind.METRIC, data=filepath22
         )
         expected = {
-            "uuid1": {events11.name: events11, events12.name: events12},
-            "uuid2": {events21.name: events21, events22.name: events22},
+            "11111111111111111111111111111111": {
+                events11.name: events11,
+                events12.name: events12,
+            },
+            "22222222222222222222222222222222": {
+                events21.name: events21,
+                events22.name: events22,
+            },
         }
         response = response.json()["data"]
         results = {
@@ -760,7 +812,7 @@ class TestMultiRunsEventsEndpoints(BaseTest):
 
         response = self.client.get(
             self.base_url
-            + "/metric?names=metric12,text2,text3&runs=uuid1,uuid2,uuid3&orient=csv"
+            + "/metric?names=metric12,text2,text3&runs=11111111111111111111111111111111,22222222222222222222222222222222,33333333333333333333333333333333&orient=csv"
         )
         assert response.status_code == 200
         assert os.path.exists(filepath11) is True
@@ -768,8 +820,14 @@ class TestMultiRunsEventsEndpoints(BaseTest):
         assert os.path.exists(filepath21) is True
         assert os.path.exists(filepath22) is True
         expected = {
-            "uuid1": {events11.name: events11, events12.name: events12},
-            "uuid2": {events21.name: events21, events22.name: events22},
+            "11111111111111111111111111111111": {
+                events11.name: events11,
+                events12.name: events12,
+            },
+            "22222222222222222222222222222222": {
+                events21.name: events21,
+                events22.name: events22,
+            },
         }
         response = response.json()["data"]
         results = {

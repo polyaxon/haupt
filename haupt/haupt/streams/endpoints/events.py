@@ -1,5 +1,6 @@
 import os
 from typing import Dict, Optional, Set, Union
+from uuid import UUID
 
 from django.core.handlers.asgi import ASGIRequest
 from django.db import transaction
@@ -60,6 +61,14 @@ async def _get_multi_run_events(
             status=status.HTTP_400_BAD_REQUEST,
         )
     run_uuids = {e for e in run_uuids.split(",") if e} if run_uuids else set([])
+    try:
+        for run_uuid in run_uuids:
+            UUID(run_uuid)
+    except ValueError:
+        return HttpResponse(
+            content="received an invalid run uuid.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     events = await get_archived_operations_events(
         fs=await AppFS.get_fs(connection=connection),
         store_path=AppFS.get_fs_root_path(connection=connection),

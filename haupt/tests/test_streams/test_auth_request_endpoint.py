@@ -114,6 +114,24 @@ def test_auth_request_cache_is_bound_to_credentials(monkeypatch):
     assert calls == ["token=a", "", "token=b", "token=a"]
 
 
+def test_auth_request_cache_is_bound_to_runs(monkeypatch):
+    calls = []
+
+    async def check_auth_service(headers):
+        calls.append(headers.get("X-Origin-Uri"))
+        return AuthResponse()
+
+    monkeypatch.setattr(auth_request_module, "_check_auth_service", check_auth_service)
+
+    uri = "/streams/v1/ns/owner/project/runs/multi/events/metric?runs={}"
+    for runs in ["a", "b", "a", "b&runs="]:
+        request = make_auth_request(uri=uri.format(runs))
+        asyncio.run(auth_request_module.auth_request(request))
+
+    # The repeated `runs=a` request is the only cache hit
+    assert calls == [uri.format("a"), uri.format("b"), uri.format("b&runs=")]
+
+
 def test_auth_cache_distinguishes_allow_deny_and_miss():
     asyncio.run(
         auth_request_module._persist_auth_cache(

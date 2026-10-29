@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import Dict, Optional
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 import aiofiles
 import aiohttp
@@ -123,7 +123,7 @@ async def auth_request(
                 status=status.HTTP_403_FORBIDDEN,
             )
         auth = get_authorization_header(request)
-        # Every input the auth service uses to authenticate the request
+        # Every input the auth service reads to authorize the request
         request_cache = hash_value(
             value=(
                 uri.split("?")[0],
@@ -131,6 +131,7 @@ async def auth_request(
                 auth,
                 request.headers.get("Cookie"),
                 request.headers.get("X-Polyaxon-Service"),
+                parse_qs(urlparse(uri).query, keep_blank_values=True).get("runs"),
             ),
             hash_length=64,
         )
