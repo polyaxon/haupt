@@ -258,21 +258,21 @@ class TestShortcutPolyaxonfileViews(BaseTest):
             "limits": {"cpu": 8, "nvidia.com/gpu": 1},
         }
 
-    def test_ports_through_submit_and_restart(self):
+    def test_service_through_submit_and_restart(self):
         container = {"image": "busybox:1.36", "command": ["httpd"]}
-        with_ports = {"container": container, "ports": [8080]}
+        with_service = {"container": container, "service": {"ports": [8080]}}
         for source, override, kind in (
-            # Adding ports to a shortcut-only source selects a service.
-            ({"container": container}, {"ports": [8080]}, V1RunKind.SERVICE),
-            # Clearing them selects a job again.
-            (with_ports, {"ports": None}, V1RunKind.JOB),
+            # Adding a service section to a shortcut-only source selects a service.
+            ({"container": container}, {"service": {"ports": [8080]}}, V1RunKind.JOB),
+            # A null section keeps the existing one, so the run stays a service.
+            (with_service, {"service": None}, V1RunKind.SERVICE),
         ):
             with self.subTest(source=source):
                 response = self.client.post(self.url, {"content": orjson_dumps(source)})
                 assert response.status_code == status.HTTP_201_CREATED, response.data
                 run = Run.objects.get(uuid=response.data["uuid"])
-                assert run.kind != kind
-                assert self.prepare(run).kind == run.kind
+                assert run.kind == kind
+                assert self.prepare(run).kind == kind
 
                 with patch("haupt.common.workers.send"):
                     response = self.client.post(
@@ -281,13 +281,12 @@ class TestShortcutPolyaxonfileViews(BaseTest):
                     )
                 assert response.status_code == status.HTTP_201_CREATED, response.data
                 restarted = Run.objects.get(uuid=response.data["uuid"])
-                assert restarted.kind == kind
+                assert restarted.kind == V1RunKind.SERVICE
                 assert orjson_loads(restarted.raw_content) == source
                 runtime = self.prepare(restarted)
-                assert runtime.kind == kind
+                assert runtime.kind == V1RunKind.SERVICE
                 assert runtime.container.image == "busybox:1.36"
-                if kind == V1RunKind.SERVICE:
-                    assert runtime.ports == [8080]
+                assert runtime.ports == [8080]
 
     def test_runtime_fields_through_submit_and_restart(self):
         source = {
