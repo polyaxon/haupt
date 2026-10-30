@@ -288,6 +288,61 @@ class TestShortcutPolyaxonfileViews(BaseTest):
                 assert runtime.container.image == "busybox:1.36"
                 assert runtime.ports == [8080]
 
+    def test_dag_through_submit_and_restart(self):
+        container = {"image": "busybox:1.36"}
+        source = {
+            "dag": {
+                "concurrency": 2,
+                "operations": [
+                    {"name": "prepare", "container": container, "cmd": "echo prepare"},
+                    {
+                        "name": "train",
+                        "dependencies": ["prepare"],
+                        "container": container,
+                        "cmd": "echo train",
+                    },
+                ],
+            }
+        }
+
+        def restart(run, override):
+            with patch("haupt.common.workers.send"):
+                return self.client.post(
+                    f"{self.url}{run.uuid.hex}/restart/",
+                    {"content": orjson_dumps(override)},
+                )
+
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.DAG
+        assert orjson_loads(run.raw_content) == source
+        runtime = self.prepare(run)
+        assert runtime.kind == V1RunKind.DAG
+        assert runtime.concurrency == 2
+        children = {child.name: child for child in run.pipeline_runs.all()}
+        assert set(children) == {"prepare", "train"}
+        for name, child in children.items():
+            assert read_polyaxonfile(child.raw_content).name == name
+
+        response = restart(run, {"dag": {"concurrency": 4}})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        restarted = Run.objects.get(uuid=response.data["uuid"])
+        assert restarted.kind == V1RunKind.DAG
+        assert orjson_loads(restarted.raw_content) == source
+        assert self.prepare(restarted).concurrency == 4
+
+        # An existing job is never converted to a DAG.
+        content = orjson_dumps({"run": {"kind": "job", "container": container}})
+        response = self.client.post(self.url, {"content": content})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        job = Run.objects.get(uuid=response.data["uuid"])
+        runs = Run.objects.count()
+        response = restart(job, {"dag": {}})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.data
+        assert "requires a dag runtime" in str(response.data)
+        assert Run.objects.count() == runs
+
     def test_runtime_fields_through_submit_and_restart(self):
         source = {
             "container": {"image": "busybox:1.36"},
