@@ -343,6 +343,29 @@ class TestShortcutPolyaxonfileViews(BaseTest):
         assert "requires a dag runtime" in str(response.data)
         assert Run.objects.count() == runs
 
+    def test_run_patch_override_on_a_shortcut_runtime(self):
+        source = {
+            "container": {"image": "busybox:1.36", "command": ["httpd"]},
+            "service": {"ports": [8080]},
+            "runPatch": {"rewritePath": True},
+        }
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert self.prepare(run).rewrite_path is True
+
+        with patch("haupt.common.workers.send"):
+            response = self.client.post(
+                f"{self.url}{run.uuid.hex}/restart/",
+                {"content": orjson_dumps({"runPatch": {"replicas": 2}})},
+            )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        restarted = Run.objects.get(uuid=response.data["uuid"])
+        assert orjson_loads(restarted.raw_content) == source
+        runtime = self.prepare(restarted)
+        assert runtime.rewrite_path is True
+        assert runtime.replicas == 2
+
     def test_runtime_fields_through_submit_and_restart(self):
         source = {
             "container": {"image": "busybox:1.36"},
