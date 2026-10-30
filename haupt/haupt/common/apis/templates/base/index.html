@@ -52,7 +52,20 @@
   <div id="root" class="plxLayout">
     <div class="plxLoading" role="status" aria-label="Loading Polyaxon">
       <svg viewBox="204.226497 150.966679 907.547005 907.547005" aria-hidden="true">
-        <path fill="#3487FF"
+        <defs>
+          <linearGradient id="polyaxon-gray-startup-base" gradientUnits="userSpaceOnUse" x1="366" y1="151" x2="950" y2="1058">
+            <stop offset="0" stop-color="#606060"/>
+            <stop offset="0.5" stop-color="#909090"/>
+            <stop offset="1" stop-color="#BEBEBE"/>
+          </linearGradient>
+          <linearGradient id="polyaxon-gray-startup-middle" href="#polyaxon-gray-startup-base" gradientTransform="translate(-120 -69.282032)"/>
+          <linearGradient id="polyaxon-gray-startup-right" gradientUnits="userSpaceOnUse" x1="366" y1="151" x2="950" y2="1058" gradientTransform="translate(-20 -11.547005)">
+            <stop offset="0" stop-color="#777777"/>
+            <stop offset="0.5" stop-color="#7E8DA3"/>
+            <stop offset="1" stop-color="#879FBF"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#polyaxon-gray-startup-base)"
           d="M366 938.31158
             L366 382.854228
             A20 20 0 0 1 376 365.53372
@@ -67,7 +80,7 @@
             L372 948.703884
             A12 12 0 0 1 366 938.31158
             Z"/>
-        <path fill="#2DBB75" transform="translate(120 69.282032)"
+        <path fill="url(#polyaxon-gray-startup-middle)" transform="translate(120 69.282032)"
           d="M366 938.31158
             L366 382.854228
             A20 20 0 0 1 376 365.53372
@@ -82,7 +95,7 @@
             L372 948.703884
             A12 12 0 0 1 366 938.31158
             Z"/>
-        <path fill="#F2B222" transform="translate(20 11.547005)"
+        <path fill="url(#polyaxon-gray-startup-right)" transform="translate(20 11.547005)"
           d="M805.5 394.689908
             L731.5 437.413828
             A3 3 0 0 0 730 440.011904
@@ -97,7 +110,7 @@
             L810 397.287984
             A3 3 0 0 0 805.5 394.689908
             Z"/>
-        <path fill="#F54151" transform="translate(20 11.547005)"
+        <path fill="url(#polyaxon-gray-startup-right)" transform="translate(20 11.547005)"
           d="M925.5 325.407876
             L851.5 368.131796
             A3 3 0 0 0 850 370.729872
