@@ -78,6 +78,63 @@ class TestDateTimeCondition(BaseTestQuery):
         nrange_cond = DateTimeCondition(op="range", negation=True)
         assert nrange_cond.operator == DateTimeCondition._nrange_operator
 
+    def test_comparison_operators(self):
+        for operator, lookup in (
+            (DateTimeCondition._lt_operator, "lt"),
+            (DateTimeCondition._lte_operator, "lte"),
+            (DateTimeCondition._gt_operator, "gt"),
+            (DateTimeCondition._gte_operator, "gte"),
+        ):
+            with self.assertRaises(PQLException):
+                operator("field", "value", query_backend=Q, timezone=settings.TIME_ZONE)
+
+            for value in ("2010-01-01", "2010-01-01 10:10"):
+                assert operator(
+                    "field", value, query_backend=Q, timezone=settings.TIME_ZONE
+                ) == Q(
+                    **{
+                        f"field__{lookup}": DateTimeFormatter.extract(
+                            value, settings.TIME_ZONE
+                        )
+                    }
+                )
+
+    def test_comparison_condition_init_with_correct_operator(self):
+        assert DateTimeCondition(op="lt").operator == DateTimeCondition._lt_operator
+        assert (
+            DateTimeCondition(op="lt", negation=True).operator
+            == DateTimeCondition._gte_operator
+        )
+        assert DateTimeCondition(op="lte").operator == DateTimeCondition._lte_operator
+        assert (
+            DateTimeCondition(op="lte", negation=True).operator
+            == DateTimeCondition._gt_operator
+        )
+        assert DateTimeCondition(op="gt").operator == DateTimeCondition._gt_operator
+        assert (
+            DateTimeCondition(op="gt", negation=True).operator
+            == DateTimeCondition._lte_operator
+        )
+        assert DateTimeCondition(op="gte").operator == DateTimeCondition._gte_operator
+        assert (
+            DateTimeCondition(op="gte", negation=True).operator
+            == DateTimeCondition._lt_operator
+        )
+
+    @pytest.mark.filterwarnings(
+        "error:DateTimeField .* received a naive datetime:RuntimeWarning"
+    )
+    def test_comparison_apply_does_not_pass_naive_datetimes(self):
+        for op, count in (("lt", 0), ("lte", 0), ("gt", 1), ("gte", 1)):
+            queryset = DateTimeCondition(op=op).apply(
+                queryset=Run.objects,
+                name="created_at",
+                params="2018-01-01 10:10",
+                query_backend=Q,
+                timezone=settings.TIME_ZONE,
+            )
+            assert queryset.count() == count
+
     @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     def test_range_apply(self):
         # Delete current run
