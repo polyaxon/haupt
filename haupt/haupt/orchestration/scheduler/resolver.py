@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import uuid
 
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from django.utils.timezone import now
 
 from clipped._vendor.croniter import croniter
@@ -136,7 +136,9 @@ class SchedulingResolver(resolver.BaseResolver):
         self.owner = self.project.owner
 
     @staticmethod
-    def _collect_hub_refs(ops: List[V1Operation], owner_name: str) -> Dict:
+    def _collect_hub_refs(
+        ops: List[V1Operation], owner_name: str, user_id: Optional[int]
+    ) -> Dict:
         return {}
 
     @staticmethod
@@ -812,7 +814,9 @@ class SchedulingResolver(resolver.BaseResolver):
                 yield run_edge
 
         hub_refs_to_components = cls._collect_hub_refs(
-            ops=run_config.operations, owner_name=run.project.owner.name
+            ops=run_config.operations,
+            owner_name=run.project.owner.name,
+            user_id=run.user_id,
         )
         topological_sort = run_config.sort_topologically()
         # We create ops for each stage
@@ -1438,6 +1442,9 @@ class SchedulingResolver(resolver.BaseResolver):
             run=self.run, compiled_operation=self.compiled_operation
         )
 
+    def _filter_readable_sources(self, queryset: QuerySet) -> QuerySet:
+        return queryset
+
     def _get_project_version_refs(
         self,
         names: Union[List[str], Set[str]],
@@ -1475,6 +1482,7 @@ class SchedulingResolver(resolver.BaseResolver):
         versions = Models.ProjectVersion.objects.filter(kind=kind)
         if settings.HAS_ORG_MANAGEMENT:
             versions = versions.filter(project__owner__name=self.owner_name)
+        versions = self._filter_readable_sources(versions)
         versions = versions.filter(reduce(or_, query))
         additional_fields = ()
         if settings.HAS_ORG_MANAGEMENT:
@@ -1507,9 +1515,10 @@ class SchedulingResolver(resolver.BaseResolver):
         # }
         if len(ids) != len(names):
             raise AccessNotFound(
-                "Some {} version refs were provided but were not found: `{}`".format(
-                    kind, names
-                )
+                "Some {} version refs were provided "
+                "but were not found or are not accessible: `{}`. "
+                "Please check that they exist and that your permissions "
+                "and the project restrictions allow access to them.".format(kind, names)
             )
 
         # if (
@@ -1600,9 +1609,10 @@ class SchedulingResolver(resolver.BaseResolver):
                     "but could not be parsed correctly: `{}`. "
                     "Error: {}".format(name, e)
                 )
-        runs = Models.Run.objects
+        runs = Models.Run.objects.all()
         if settings.HAS_ORG_MANAGEMENT:
             runs = runs.filter(project__owner__name=self.owner_name)
+        runs = self._filter_readable_sources(runs)
         runs = (
             runs.filter(reduce(or_, query))
             .prefetch_related("artifacts")
@@ -1626,8 +1636,10 @@ class SchedulingResolver(resolver.BaseResolver):
         lineage_runs = list(lineages_by_run.keys())
         if len(ids) != len(lineage_runs):
             raise AccessNotFound(
-                "Some lineage refs were provided but were not found. "
-                "Please check that the runs `{}` exist and are available".format(
+                "Some lineage refs were provided "
+                "but were not found or are not accessible. "
+                "Please check that the runs `{}` exist and that your permissions "
+                "and the project restrictions allow access to them.".format(
                     lineage_runs
                 )
             )

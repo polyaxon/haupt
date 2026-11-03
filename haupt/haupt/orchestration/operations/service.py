@@ -77,7 +77,9 @@ class OperationsService(Service):
 
     @staticmethod
     def set_spec(
-        spec: Union[str, Dict, V1Polyaxonfile], **kwargs
+        spec: Union[str, Dict, V1Polyaxonfile],
+        user_id: Optional[int] = None,
+        **kwargs,
     ) -> Tuple[V1Polyaxonfile, Dict]:
         if not isinstance(spec, V1Polyaxonfile):
             try:
@@ -324,7 +326,7 @@ class OperationsService(Service):
     ) -> OperationInitSpec:
         is_dag_node = dag_run is not None
         if op_spec:
-            op_spec, kwargs = self.set_spec(op_spec, **kwargs)
+            op_spec, kwargs = self.set_spec(op_spec, user_id=user_id, **kwargs)
             if op_spec.is_template():
                 raise PolyaxonSchemaError(
                     "Received a template polyaxonfile, "

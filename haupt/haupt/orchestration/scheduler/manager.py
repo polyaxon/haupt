@@ -218,7 +218,7 @@ class SchedulingManager:
             return []
 
         hub_refs_to_components = cls.RESOLVER._collect_hub_refs(
-            ops=hook_ops, owner_name=run.project.owner.name
+            ops=hook_ops, owner_name=run.project.owner.name, user_id=run.user_id
         )
 
         def get_edges():
