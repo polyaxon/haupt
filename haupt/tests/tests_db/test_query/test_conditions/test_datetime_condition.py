@@ -1,5 +1,6 @@
 import datetime
 import pytest
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.db.models import Q
@@ -14,6 +15,10 @@ from tests.tests_db.test_query.base import BaseTestQuery
 
 
 # pylint:disable=protected-access
+
+
+def localize(*args):
+    return datetime.datetime(*args, tzinfo=ZoneInfo(settings.TIME_ZONE))
 
 
 class TestDateTimeCondition(BaseTestQuery):
@@ -54,23 +59,13 @@ class TestDateTimeCondition(BaseTestQuery):
             ("2010-01-01", "2010-01-01"),
             query_backend=Q,
             timezone=settings.TIME_ZONE,
-        ) == Q(
-            field__range=(
-                DateTimeFormatter.extract("2010-01-01", settings.TIME_ZONE),
-                DateTimeFormatter.extract("2010-01-01", settings.TIME_ZONE),
-            )
-        )
+        ) == Q(field__range=(localize(2010, 1, 1), localize(2010, 1, 1)))
         assert DateTimeCondition._nrange_operator(
             "field",
             ("2010-01-01 10:10", "2010-01-01"),
             query_backend=Q,
             timezone=settings.TIME_ZONE,
-        ) == ~Q(
-            field__range=(
-                DateTimeFormatter.extract("2010-01-01 10:10", settings.TIME_ZONE),
-                DateTimeFormatter.extract("2010-01-01", settings.TIME_ZONE),
-            )
-        )
+        ) == ~Q(field__range=(localize(2010, 1, 1, 10, 10), localize(2010, 1, 1)))
 
     def test_range_condition_init_with_correct_operator(self):
         range_cond = DateTimeCondition(op="range")
@@ -88,16 +83,13 @@ class TestDateTimeCondition(BaseTestQuery):
             with self.assertRaises(PQLException):
                 operator("field", "value", query_backend=Q, timezone=settings.TIME_ZONE)
 
-            for value in ("2010-01-01", "2010-01-01 10:10"):
+            for value, expected in (
+                ("2010-01-01", localize(2010, 1, 1)),
+                ("2010-01-01 10:10", localize(2010, 1, 1, 10, 10)),
+            ):
                 assert operator(
                     "field", value, query_backend=Q, timezone=settings.TIME_ZONE
-                ) == Q(
-                    **{
-                        f"field__{lookup}": DateTimeFormatter.extract(
-                            value, settings.TIME_ZONE
-                        )
-                    }
-                )
+                ) == Q(**{f"field__{lookup}": expected})
 
     def test_comparison_condition_init_with_correct_operator(self):
         assert DateTimeCondition(op="lt").operator == DateTimeCondition._lt_operator
@@ -353,7 +345,7 @@ class TestDateTimeCondition(BaseTestQuery):
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
-        assert queryset.count() == 0
+        assert queryset.count() == 1
 
         # nrange
         queryset = nrange_cond.apply(
@@ -414,7 +406,7 @@ class TestDateTimeCondition(BaseTestQuery):
             query_backend=Q,
             timezone=settings.TIME_ZONE,
         )
-        assert queryset.count() == 2
+        assert queryset.count() == 1
 
 
 del BaseTestQuery

@@ -1,9 +1,10 @@
+import datetime
 import pytest
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.db.models import Q
 
-from clipped.utils.dates import DateTimeFormatter
 from clipped.utils.tz import get_datetime_from_now
 from haupt.db.models.runs import Run
 from haupt.db.query_managers.run import RunQueryManager
@@ -350,17 +351,10 @@ class TestQueryManager(BaseTestQuery):
             query_spec=self.query1, queryset=Run.objects
         )
         created_at = get_datetime_from_now(days=30).replace(microsecond=0)
+        tz = ZoneInfo(settings.TIME_ZONE)
         expected_query = Run.objects.filter(
-            Q(
-                updated_at__lte=DateTimeFormatter.extract(
-                    "2020-10-10", settings.TIME_ZONE
-                )
-            ),
-            Q(
-                started_at__gt=DateTimeFormatter.extract(
-                    "2010-10-10", settings.TIME_ZONE
-                )
-            ),
+            Q(updated_at__lte=datetime.datetime(2020, 10, 10, tzinfo=tz)),
+            Q(started_at__gt=datetime.datetime(2010, 10, 10, tzinfo=tz)),
             ~Q(
                 Q(started_at__date="2016-10-01"),
                 Q(started_at__hour="10"),
