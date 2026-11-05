@@ -80,6 +80,9 @@ class PlatformConfig(BaseSchemaModel):
     redis_heartbeat_url: Optional[str] = Field(
         alias="POLYAXON_REDIS_HEARTBEAT_URL", default=None
     )
+    redis_cache_url: Optional[str] = Field(
+        alias="POLYAXON_REDIS_CACHE_URL", default=None
+    )
     admin_name: Optional[str] = Field(alias="POLYAXON_ADMIN_NAME", default=None)
     admin_mail: Optional[str] = Field(alias="POLYAXON_ADMIN_MAIL", default=None)
     extra_apps: Optional[List[str]] = Field(alias="POLYAXON_EXTRA_APPS", default=None)
@@ -250,7 +253,7 @@ class PlatformConfig(BaseSchemaModel):
         alias="POLYAXON_THROTTLE_RATES_RUN_LINEAGE", default=120
     )
     rest_throttle_rates_run: Optional[int] = Field(
-        alias="POLYAXON_THROTTLE_RATES_RUN", default=15
+        alias="POLYAXON_THROTTLE_RATES_RUN", default=300
     )
     rest_throttle_rates_anon: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_ANON", default=20
