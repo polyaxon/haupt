@@ -15,6 +15,7 @@ from polyaxon._services.values import PolyaxonServices
 class HealthView(APIView):
     authentication_classes = ()
     throttle_scope = "checks"
+    throttle_local = True
     HEALTH_FILE = "/tmp/.compatibility"
 
     def get_config(self):
