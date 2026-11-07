@@ -108,12 +108,12 @@ def set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
     # TODO: Add intermediate metric early
 
 
-@transaction.atomic
 def atomic_set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
-    retries = 0
-    while retries < 2:
+    # One savepoint per attempt: on PostgreSQL a failed statement aborts the
+    # whole transaction, so a retry in the same block can never succeed.
+    for _ in range(2):
         try:
-            return set_artifacts(run=run, artifacts=artifacts)
+            with transaction.atomic():
+                return set_artifacts(run=run, artifacts=artifacts)
         except IntegrityError:
-            retries += 1
             time.sleep(0.01)

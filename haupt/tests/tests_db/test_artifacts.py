@@ -1,10 +1,13 @@
+from unittest.mock import patch
+
+from django.db import transaction
 from django.test import TestCase
 
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.factories.users import UserFactory
-from haupt.db.managers.artifacts import set_artifacts
-from haupt.db.models.artifacts import Artifact
+from haupt.db.managers.artifacts import atomic_set_artifacts, set_artifacts
+from haupt.db.models.artifacts import Artifact, ArtifactLineage
 from traceml.artifacts import V1ArtifactKind, V1RunArtifact
 
 
@@ -145,3 +148,54 @@ class TestArtifacts(TestCase):
         assert results["histo"].to_dict() == artifact1.to_dict()
         assert results["dataframe"].to_dict() == artifact2.to_dict()
         assert results["audio"].to_dict() == artifact3.to_dict()
+
+    def test_atomic_set_artifacts_retries_after_concurrent_create(self):
+        state = self.run.uuid
+        Artifact.objects.create(
+            name="accuracy",
+            kind=V1ArtifactKind.METRIC,
+            path="accuracy",
+            state=state,
+            summary={},
+        )
+        metric = V1RunArtifact(
+            name="accuracy",
+            kind=V1ArtifactKind.METRIC,
+            path="accuracy",
+            state=state,
+            summary=dict(last_value=0.9, max_value=0.9, min_value=0.1),
+        )
+
+        real_filter = Artifact.objects.filter
+        real_bulk_create = Artifact.objects.bulk_create
+        calls = {"filter": 0, "bulk_create": 0}
+
+        def filter_misses_first(*args, **kwargs):
+            # Attempt 1 doesn't see the artifact, as if another writer created it
+            # after the lookup, so it inserts a duplicate.
+            calls["filter"] += 1
+            if calls["filter"] == 1:
+                return Artifact.objects.none()
+            return real_filter(*args, **kwargs)
+
+        def bulk_create_aborts_first(*args, **kwargs):
+            # Leave the transaction unusable after the IntegrityError, as on
+            # PostgreSQL, whatever the test database.
+            calls["bulk_create"] += 1
+            if calls["bulk_create"] == 1:
+                with transaction.atomic(savepoint=False):
+                    return real_bulk_create(*args, **kwargs)
+            return real_bulk_create(*args, **kwargs)
+
+        with (
+            patch.object(Artifact.objects, "filter", side_effect=filter_misses_first),
+            patch.object(
+                Artifact.objects, "bulk_create", side_effect=bulk_create_aborts_first
+            ),
+        ):
+            atomic_set_artifacts(run=self.run, artifacts=[metric])
+
+        assert calls["bulk_create"] == 1
+        artifact = Artifact.objects.get(name="accuracy", state=state)
+        assert V1RunArtifact.from_model(artifact).to_dict() == metric.to_dict()
+        assert ArtifactLineage.objects.filter(run=self.run, artifact=artifact).exists()
