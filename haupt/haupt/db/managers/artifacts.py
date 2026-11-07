@@ -1,7 +1,7 @@
 from functools import reduce
 from operator import or_
 import time
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Iterable, List
 import uuid
 
 from django.conf import settings
@@ -35,19 +35,36 @@ def get_artifacts_by_keys(
     return results
 
 
-def set_run_lineage(run: BaseRun, artifacts_by_keys: Dict, query: Any):
-    artifacts_to_link = Models.Artifact.objects.filter(query).only(
-        "id", "name", "state"
+def get_artifacts_query(owner: Any, keys: Iterable) -> Q:
+    query = reduce(or_, (Q(name=name, state=state) for name, state in keys))
+    if settings.HAS_ORG_MANAGEMENT:
+        query = Q(owner=owner) & query
+    return query
+
+
+def set_run_lineage(run: BaseRun, artifacts_by_keys: Dict, artifacts: List):
+    # Compare exact (artifact_id, is_input) pairs: NULLs never conflict in the
+    # unique constraint, so `ignore_conflicts` alone would duplicate
+    # `is_input=None` links on every re-send.
+    linked = set(
+        Models.ArtifactLineage.objects.filter(
+            run_id=run.id, artifact_id__in=[m.id for m in artifacts]
+        ).values_list("artifact_id", "is_input")
     )
-    for m in artifacts_to_link:
-        Models.ArtifactLineage.objects.get_or_create(
-            artifact_id=m.id,
-            run_id=run.id,
-            is_input=artifacts_by_keys[(m.name, m.state)].is_input,
-        )
+    to_link = []
+    for m in artifacts:
+        is_input = artifacts_by_keys[(m.name, m.state)].is_input
+        if (m.id, is_input) not in linked:
+            to_link.append(
+                Models.ArtifactLineage(
+                    artifact_id=m.id, run_id=run.id, is_input=is_input
+                )
+            )
+    if to_link:
+        Models.ArtifactLineage.objects.bulk_create(to_link, ignore_conflicts=True)
 
 
-def update_artifacts(to_update: Set, artifacts_by_keys: Dict):
+def update_artifacts(to_update: List, artifacts_by_keys: Dict):
     updated = []
     for m in to_update:
         artifact = artifacts_by_keys[(m.name, m.state)]
@@ -68,14 +85,11 @@ def set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
     artifacts_by_keys = get_artifacts_by_keys(
         run=run, namespace=namespace, artifacts=artifacts
     )
-    artifacts_keys = list(artifacts_by_keys.keys())
-    query = reduce(or_, (Q(name=name, state=state) for name, state in artifacts_keys))
-    if settings.HAS_ORG_MANAGEMENT:
-        query = Q(owner=owner) & query
-    to_update = Models.Artifact.objects.filter(query)
-    to_create = {
-        m for m in artifacts_keys if m not in {(n.name, n.state) for n in to_update}
-    }
+    existing = list(
+        Models.Artifact.objects.filter(get_artifacts_query(owner, artifacts_by_keys))
+    )
+    existing_keys = {(m.name, m.state) for m in existing}
+    to_create = [m for m in artifacts_by_keys if m not in existing_keys]
 
     has_iteration_kind = False
     has_metrics = False
@@ -100,8 +114,18 @@ def set_artifacts(run: BaseRun, artifacts: List[V1RunArtifact]):
             )
         Models.Artifact.objects.bulk_create(artifacts_to_create)
 
-    update_artifacts(to_update=to_update, artifacts_by_keys=artifacts_by_keys)
-    set_run_lineage(run=run, artifacts_by_keys=artifacts_by_keys, query=query)
+    update_artifacts(to_update=existing, artifacts_by_keys=artifacts_by_keys)
+    # `bulk_create` doesn't return ids on every backend, so fetch only the new rows.
+    created = []
+    if to_create:
+        created = list(
+            Models.Artifact.objects.filter(get_artifacts_query(owner, to_create)).only(
+                "id", "name", "state"
+            )
+        )
+    set_run_lineage(
+        run=run, artifacts_by_keys=artifacts_by_keys, artifacts=existing + created
+    )
     # Handle iteration lineage
     # if has_iteration_kind:
     #     workers.send(SchedulerCeleryTasks.RUNS_ITERATE, kwargs={"run_id": run.id})

@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
-from django.db import transaction
+from django.db import connection, transaction
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
@@ -199,3 +200,51 @@ class TestArtifacts(TestCase):
         artifact = Artifact.objects.get(name="accuracy", state=state)
         assert V1RunArtifact.from_model(artifact).to_dict() == metric.to_dict()
         assert ArtifactLineage.objects.filter(run=self.run, artifact=artifact).exists()
+
+    @staticmethod
+    def get_metrics(prefix, count, is_input=None):
+        return [
+            V1RunArtifact(
+                name=f"{prefix}{i}",
+                kind=V1ArtifactKind.METRIC,
+                path=f"{prefix}{i}",
+                is_input=is_input,
+                summary=dict(last_value=i),
+            )
+            for i in range(count)
+        ]
+
+    def count_queries(self, artifacts):
+        with CaptureQueriesContext(connection) as queries:
+            set_artifacts(run=self.run, artifacts=artifacts)
+        return len(queries.captured_queries)
+
+    def test_set_artifacts_has_no_per_artifact_queries(self):
+        # Load the run's project and owner first so they don't count.
+        set_artifacts(run=self.run, artifacts=self.get_metrics("warmup", 1))
+        small = self.get_metrics("small", 2)
+        large = self.get_metrics("large", 10)
+
+        # First send creates the artifacts and the links.
+        assert self.count_queries(small) == self.count_queries(large)
+        # Re-send updates the artifacts and keeps the links.
+        assert self.count_queries(small) == self.count_queries(large)
+
+    def test_set_artifacts_resend_keeps_one_link_per_artifact(self):
+        artifacts = self.get_metrics("metric", 3)
+        set_artifacts(run=self.run, artifacts=artifacts)
+        set_artifacts(run=self.run, artifacts=artifacts)
+
+        links = ArtifactLineage.objects.filter(run=self.run)
+        assert links.count() == 3
+        assert set(links.values_list("is_input", flat=True)) == {None}
+
+    def test_set_artifacts_links_is_input_none_and_false_separately(self):
+        set_artifacts(run=self.run, artifacts=self.get_metrics("metric", 1))
+        set_artifacts(
+            run=self.run, artifacts=self.get_metrics("metric", 1, is_input=False)
+        )
+
+        assert Artifact.objects.count() == 1
+        links = ArtifactLineage.objects.filter(run=self.run)
+        assert set(links.values_list("is_input", flat=True)) == {None, False}
