@@ -232,6 +232,7 @@ class TestRunArtifactListViewV1(BaseTest):
         assert {c[0][0] for c in workers_send.call_args_list} == {
             SchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
         }
+        assert workers_send.call_args.kwargs["eager_fallback"] is True
 
 
 @pytest.mark.lineages_mark

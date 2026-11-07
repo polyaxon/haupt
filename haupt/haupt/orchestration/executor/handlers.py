@@ -141,6 +141,7 @@ class APIHandler:
             SchedulerCeleryTasks.RUNS_SET_ARTIFACTS,
             kwargs={"run_id": event.instance_id, "artifacts": artifacts},
             eager_kwargs={"run": event.instance},
+            eager_fallback=True,
         )
 
     @classmethod
