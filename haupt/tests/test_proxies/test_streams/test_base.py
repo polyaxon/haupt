@@ -119,7 +119,7 @@ location /k8s/v1/ {
         assert get_base_config(is_gateway=False) == expected
 
     def test_streams_base_config_with_gateway(self):
-        expected = """
+        expected = r"""
 listen 8000;
 
 
@@ -459,7 +459,7 @@ location /static/ {
         assert get_base_config(is_gateway=True) == expected
 
     def test_streams_base_config_with_gateway_dns_auth(self):
-        expected = """
+        expected = r"""
 listen 8000;
 
 
