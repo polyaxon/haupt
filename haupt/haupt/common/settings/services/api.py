@@ -39,7 +39,7 @@ def set_api_service(
     set_middlewares(context=context, config=config, enable_crsf=enable_crsf)
     set_assets(context=context, config=config)
     if config.scheduler_enabled:
-        set_celery(context=context, config=config, routes=routes)
+        set_celery(context=context, config=config, routes=routes, publisher=True)
 
 
 def set_service(context, config: PlatformConfig):

@@ -4,12 +4,25 @@ from haupt.schemas.platform_config import PlatformConfig
 
 
 def set_celery(
-    context, config: PlatformConfig, routes: Dict, schedules: Optional[Dict] = None
+    context,
+    config: PlatformConfig,
+    routes: Dict,
+    schedules: Optional[Dict] = None,
+    publisher: bool = False,
 ):
     context["CELERY_TASK_TRACK_STARTED"] = config.celery_task_track_started
     context["CELERY_BROKER_POOL_LIMIT"] = config.celery_broker_pool_limit
     context["CELERY_BROKER_BACKEND"] = config.broker_backend
     context["CELERY_BROKER_URL"] = config.get_broker_url()
+    if publisher and config.is_redis_broker:
+        # Publishers send tasks on the request thread. The Redis transport has no
+        # socket timeouts by default and `broker_connection_timeout` doesn't cover
+        # publishing, so an unreachable or unresponsive Redis would block requests.
+        # Workers keep the defaults: they block on `BRPOP`.
+        context["CELERY_BROKER_TRANSPORT_OPTIONS"] = {
+            "socket_connect_timeout": 5,
+            "socket_timeout": 5,
+        }
 
     context["INTERNAL_EXCHANGE"] = config.internal_exchange
 
