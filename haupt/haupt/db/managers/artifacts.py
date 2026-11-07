@@ -43,9 +43,8 @@ def get_artifacts_query(owner: Any, keys: Iterable) -> Q:
 
 
 def set_run_lineage(run: BaseRun, artifacts_by_keys: Dict, artifacts: List):
-    # Compare exact (artifact_id, is_input) pairs: NULLs never conflict in the
-    # unique constraint, so `ignore_conflicts` alone would duplicate
-    # `is_input=None` links on every re-send.
+    # `is_input=None` is stored as an output link (`False`): NULLs never conflict in
+    # the unique constraint.
     linked = set(
         Models.ArtifactLineage.objects.filter(
             run_id=run.id, artifact_id__in=[m.id for m in artifacts]
@@ -53,7 +52,7 @@ def set_run_lineage(run: BaseRun, artifacts_by_keys: Dict, artifacts: List):
     )
     to_link = []
     for m in artifacts:
-        is_input = artifacts_by_keys[(m.name, m.state)].is_input
+        is_input = bool(artifacts_by_keys[(m.name, m.state)].is_input)
         if (m.id, is_input) not in linked:
             to_link.append(
                 Models.ArtifactLineage(

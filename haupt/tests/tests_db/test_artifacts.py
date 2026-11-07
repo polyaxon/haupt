@@ -237,14 +237,21 @@ class TestArtifacts(TestCase):
 
         links = ArtifactLineage.objects.filter(run=self.run)
         assert links.count() == 3
-        assert set(links.values_list("is_input", flat=True)) == {None}
+        assert set(links.values_list("is_input", flat=True)) == {False}
 
-    def test_set_artifacts_links_is_input_none_and_false_separately(self):
-        set_artifacts(run=self.run, artifacts=self.get_metrics("metric", 1))
-        set_artifacts(
-            run=self.run, artifacts=self.get_metrics("metric", 1, is_input=False)
-        )
+    def test_set_artifacts_stores_is_input_none_as_false(self):
+        for is_input in (True, None, False):
+            metric = V1RunArtifact(
+                name="metric",
+                kind=V1ArtifactKind.METRIC,
+                path="metric",
+                state=self.run.uuid,
+                is_input=is_input,
+                summary=dict(last_value=0.9),
+            )
+            set_artifacts(run=self.run, artifacts=[metric])
 
         assert Artifact.objects.count() == 1
         links = ArtifactLineage.objects.filter(run=self.run)
-        assert set(links.values_list("is_input", flat=True)) == {None, False}
+        assert links.count() == 2
+        assert set(links.values_list("is_input", flat=True)) == {True, False}
