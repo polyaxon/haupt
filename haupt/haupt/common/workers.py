@@ -71,9 +71,6 @@ def send(
         _run_eager(task_name, kwargs, eager_kwargs)
         return
     options["ignore_result"] = options.get("ignore_result", True)
-    if eager_fallback:
-        # Retrying the publish would only delay the fallback.
-        options["retry"] = False
     return transaction.on_commit(
         lambda: _send_task(task_name, kwargs, eager_kwargs, eager_fallback, options)
     )

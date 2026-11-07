@@ -44,7 +44,7 @@ class TestWorkersSend(TestCase):
                 )
 
         app.send_task.assert_called_once_with(
-            "task", kwargs={"run_id": 1}, ignore_result=True, retry=False
+            "task", kwargs={"run_id": 1}, ignore_result=True
         )
         run_eager.assert_called_once_with("task", {"run_id": 1}, {"run": "run"})
 
