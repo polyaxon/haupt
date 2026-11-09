@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from django.conf import settings
 from django.db.models import Q
@@ -43,6 +43,11 @@ def update_project_based_on_last_updated_entities(
     Models.Project.objects.filter(id__in=project_ids_with_recent_entities).update(
         updated_at=current_check
     )
+
+
+def touch_projects(project_ids: Set[int]):
+    """Advance `updated_at` so the stats cron recomputes these projects."""
+    Models.Project.all.filter(id__in=project_ids).update(updated_at=now())
 
 
 def add_project_contributors(

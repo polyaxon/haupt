@@ -1,6 +1,8 @@
+from datetime import timedelta
 import pytest
 from unittest.mock import patch
 
+from clipped.utils.tz import now
 from haupt.common.test_cases.base import PolyaxonBaseTest
 from haupt.db.factories.projects import ProjectFactory, ProjectVersionFactory
 from haupt.db.factories.runs import RunFactory
@@ -8,7 +10,7 @@ from haupt.db.models.project_versions import ProjectVersion
 from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
 from haupt.orchestration.crons.deletion import CronsDeletionManager
-from polyaxon.schemas import V1ProjectVersionKind, V1RunKind, V1Statuses
+from polyaxon.schemas import LiveState, V1ProjectVersionKind, V1RunKind, V1Statuses
 
 
 @pytest.mark.crons_mark
@@ -123,3 +125,19 @@ class TestDeletionCrons(PolyaxonBaseTest):
 
         assert Run.all.count() == 5
         assert Run.all.filter(deleted_at__isnull=True).count() == 0
+
+    def test_delete_in_progress_runs_touches_projects(self):
+        run = RunFactory(
+            project=self.project,
+            kind=V1RunKind.JOB,
+            live_state=LiveState.DELETION_PROGRESSING,
+            deleted_at=now() - timedelta(days=2),
+        )
+        last_week = now() - timedelta(days=7)
+        Project.objects.filter(id=self.project.id).update(updated_at=last_week)
+
+        CronsDeletionManager.delete_in_progress_runs()
+
+        assert not Run.all.filter(id=run.id).exists()
+        self.project.refresh_from_db()
+        assert self.project.updated_at > last_week

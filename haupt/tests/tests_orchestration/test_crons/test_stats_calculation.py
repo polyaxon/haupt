@@ -5,6 +5,7 @@ from haupt.common.test_cases.base import PolyaxonBaseTest
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.models.project_stats import ProjectStats
 from haupt.orchestration.crons.stats import CronsStatsManager
+from polyaxon.schemas import LiveState
 
 
 @pytest.mark.crons_mark
@@ -41,3 +42,23 @@ class TestStatsCalculation(PolyaxonBaseTest):
             CronsStatsManager.stats_calculation_projects()
 
         assert mock_send.call_count == 1
+
+    def test_stats_calculation_projects_includes_archived(self):
+        archived = ProjectFactory()
+        archived.latest_stats = ProjectStats(project=archived)
+        archived.latest_stats.save()
+        archived.save(update_fields=["latest_stats"])
+        deleting = ProjectFactory(live_state=LiveState.DELETION_PROGRESSING)
+
+        # `self.project` has no snapshot, so both calls dispatch something
+        with patch("haupt.common.workers.send"):
+            project_ids = CronsStatsManager.stats_calculation_projects()
+        assert archived.id not in project_ids
+        assert deleting.id not in project_ids
+
+        archived.archive()
+
+        with patch("haupt.common.workers.send"):
+            project_ids = CronsStatsManager.stats_calculation_projects()
+        assert archived.id in project_ids
+        assert deleting.id not in project_ids

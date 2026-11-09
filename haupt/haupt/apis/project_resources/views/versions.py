@@ -52,6 +52,7 @@ from haupt.common.events.registry.model_version import (
 )
 from haupt.common.user_system import USER_SYSTEM_ID, USER_SYSTEM_NAME
 from haupt.db.defs import Models
+from haupt.db.managers.projects import touch_projects
 from haupt.db.managers.versions import add_version_contributors
 from haupt.db.query_managers.project_version import ProjectVersionQueryManager
 from polyaxon.schemas import V1ProjectVersionKind
@@ -248,6 +249,11 @@ class ProjectVersionDetailView(
         instance = serializer.save()
         add_version_contributors(instance, users=[self.request.user])
 
+    def perform_destroy(self, instance):
+        project_id = instance.project_id
+        super().perform_destroy(instance)
+        touch_projects({project_id})
+
 
 class ProjectComponentVersionDetailView(ProjectVersionDetailView):
     serializer_class_mapping = {
@@ -331,8 +337,10 @@ class ProjectVersionTransferView(VersionEndpoint, CreateEndpoint):
                 "The destination project `{}` does not exist.".format(project_name)
             )
 
+        source_project_id = self.version.project_id
         self.version.project_id = dest_project.id
         self.version.save(update_fields=["project_id", "updated_at"])
+        touch_projects({source_project_id, dest_project.id})
         add_version_contributors(self.version, users=[request.user])
         self.audit(request, *args, **kwargs)
         return Response(status=status.HTTP_200_OK, data={})

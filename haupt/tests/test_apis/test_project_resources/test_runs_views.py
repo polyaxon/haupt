@@ -27,6 +27,7 @@ from haupt.db.managers.flows import get_run_graph
 from haupt.db.managers.live_state import archive_run, restore_run
 from haupt.db.models.artifacts import Artifact, ArtifactLineage
 from haupt.db.models.bookmarks import Bookmark
+from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
 from haupt.db.queries.artifacts import project_runs_artifacts
 from haupt.orchestration.scheduler.manager import SchedulingManager
@@ -357,6 +358,26 @@ class TestProjectRunsTransferViewV1(BaseTest):
         assert Run.objects.filter(project=self.project).count() == 4
         assert Run.objects.filter(project=self.same_owner_project).count() == 0
 
+    @patch("haupt.common.workers.send")
+    def test_transfer_touches_runs_and_projects(self, _):
+        last_week = now() - timedelta(days=7)
+        Run.objects.update(updated_at=last_week)
+        Project.objects.update(updated_at=last_week)
+        data = {
+            "uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex],
+            "project": self.same_owner_project.name,
+        }
+        with patch("haupt.common.auditor.record"):
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        touched = set(
+            Run.all.filter(updated_at__gt=last_week).values_list("id", flat=True)
+        )
+        assert touched == {self.objects[0].id, self.objects[1].id}
+        for project in (self.project, self.same_owner_project):
+            project.refresh_from_db()
+            assert project.updated_at > last_week
+
 
 @pytest.mark.projects_resources_mark
 class TestProjectRunsArchiveViewV1(BaseTest):
@@ -422,6 +443,23 @@ class TestProjectRunsArchiveViewV1(BaseTest):
         assert controller_child.live_state == LiveState.ARCHIVED
         assert controller_child.status == V1Statuses.STOPPING
         assert controller_child.archived_at is not None
+
+    @patch("haupt.common.workers.send")
+    def test_archive_touches_finished_runs(self, _):
+        parent = self.objects[0]
+        child = self.factory_class(
+            project=self.project, user=self.user, pipeline=parent
+        )
+        last_week = now() - timedelta(days=7)
+        Run.objects.update(status=V1Statuses.SUCCEEDED, updated_at=last_week)
+        data = {"uuids": [parent.uuid.hex, self.objects[1].uuid.hex]}
+        with patch("haupt.common.auditor.record"):
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        touched = set(
+            Run.all.filter(updated_at__gt=last_week).values_list("id", flat=True)
+        )
+        assert touched == {parent.id, self.objects[1].id, child.id}
 
 
 @pytest.mark.projects_resources_mark
@@ -491,6 +529,26 @@ class TestProjectRunsRestoreViewV1(BaseTest):
         controller_child.refresh_from_db()
         assert controller_child.live_state == LiveState.LIVE
         assert controller_child.archived_at is None
+
+    @patch("haupt.common.workers.send")
+    def test_restore_touches_runs(self, _):
+        parent = self.objects[0]
+        child = self.factory_class(
+            project=self.project,
+            user=self.user,
+            pipeline=parent,
+            live_state=LiveState.ARCHIVED,
+        )
+        last_week = now() - timedelta(days=7)
+        Run.all.update(updated_at=last_week)
+        data = {"uuids": [parent.uuid.hex, self.objects[1].uuid.hex]}
+        with patch("haupt.common.auditor.record"):
+            resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        touched = set(
+            Run.all.filter(updated_at__gt=last_week).values_list("id", flat=True)
+        )
+        assert touched == {parent.id, self.objects[1].id, child.id}
 
 
 @pytest.mark.projects_resources_mark
@@ -613,6 +671,18 @@ class TestProjectRunsDeleteViewV1(BaseTest):
         assert Run.objects.count() == 1
         assert Run.all.count() == 3
         assert workers_send.call_count == 0
+
+    def test_delete_touches_runs(self):
+        last_week = now() - timedelta(days=7)
+        Run.objects.update(updated_at=last_week)
+        data = {"uuids": [self.objects[0].uuid.hex, self.objects[1].uuid.hex]}
+        with patch("haupt.common.auditor.record"):
+            resp = self.client.delete(self.url, data)
+        assert resp.status_code == status.HTTP_200_OK
+        touched = set(
+            Run.all.filter(updated_at__gt=last_week).values_list("id", flat=True)
+        )
+        assert touched == {self.objects[0].id, self.objects[1].id}
 
 
 @pytest.mark.projects_resources_mark

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from itertools import product
 import pytest
 from unittest.mock import patch
@@ -5,6 +6,7 @@ from unittest.mock import patch
 from rest_framework import status
 
 from clipped.utils.json import orjson_dumps, orjson_loads
+from clipped.utils.tz import now
 from haupt.apis.serializers.runs import (
     RunDetailSerializer,
     RunSerializer,
@@ -14,6 +16,7 @@ from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.projects import ProjectFactory
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status, new_run_stop_status
+from haupt.db.models.projects import Project
 from haupt.db.models.runs import Run
 from haupt.orchestration import operations
 from haupt.orchestration.scheduler.manager import SchedulingManager
@@ -1327,6 +1330,25 @@ class TestTransferRunViewV1(BaseTestRunApi):
         assert self.queryset.count() == 1
         assert Run.objects.filter(project=self.project).count() == 1
         assert Run.objects.filter(project=self.same_owner_project).count() == 0
+
+    def test_transfer_touches_children_and_projects(self):
+        Run.objects.filter(id=self.object.id).update(kind=V1RunKind.DAG)
+        child = self.factory_class(
+            project=self.project, user=self.user, pipeline=self.object
+        )
+        last_week = now() - timedelta(days=7)
+        Run.objects.update(updated_at=last_week)
+        Project.objects.update(updated_at=last_week)
+        data = {"project": self.same_owner_project.name}
+        with patch("haupt.common.workers.send"):
+            resp = self.client.post(self.url + "transfer/", data)
+        assert resp.status_code == status.HTTP_200_OK
+        child.refresh_from_db()
+        assert child.project_id == self.same_owner_project.id
+        assert child.updated_at > last_week
+        for project in (self.project, self.same_owner_project):
+            project.refresh_from_db()
+            assert project.updated_at > last_week
 
 
 @pytest.mark.run_mark

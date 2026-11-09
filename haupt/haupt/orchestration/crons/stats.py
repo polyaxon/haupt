@@ -8,7 +8,7 @@ from haupt.db.defs import Models
 class CronsStatsManager:
     @staticmethod
     def stats_calculation_projects():
-        projects = Models.Project.objects.filter(
+        projects = Models.Project.restorable.filter(
             Q(updated_at__gt=F("latest_stats__updated_at"))
             | Q(latest_stats__isnull=True)
         )

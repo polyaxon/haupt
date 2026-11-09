@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from clipped.utils.json import orjson_loads
+from clipped.utils.tz import now
 from haupt.common.authentication.base import is_normal_user
 from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
@@ -13,6 +14,7 @@ from haupt.db.managers.live_state import (
     archive_run as base_archive_run,
     restore_run as base_restore_run,
 )
+from haupt.db.managers.projects import touch_projects
 from haupt.db.managers.runs import add_run_contributors, base_approve_run
 from haupt.db.managers.statuses import (
     new_run_skipped_status,
@@ -147,12 +149,14 @@ def transfer_run(view, request, *args, **kwargs):
                 f"You don't have permission to transfer runs to project '{project_name}'"
             )
 
+    source_project_id = view.run.project_id
     view.run.project_id = dest_project.id
     view.run.save(update_fields=["project_id", "updated_at"])
     if view.run.has_pipeline:
         Models.Run.all.filter(Q(pipeline=view.run) | Q(controller=view.run)).update(
-            project_id=dest_project.id
+            project_id=dest_project.id, updated_at=now()
         )
+    touch_projects({source_project_id, dest_project.id})
     add_run_contributors(view.run, users=[request.user])
     view.audit(request, *args, **kwargs)
     return Response(status=status.HTTP_200_OK, data={})

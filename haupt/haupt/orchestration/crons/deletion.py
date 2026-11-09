@@ -10,6 +10,7 @@ from haupt.common.options.registry.cleaning import (
 )
 from haupt.db.defs import Models
 from haupt.db.managers.live_state import confirm_delete_runs
+from haupt.db.managers.projects import touch_projects
 from haupt.db.managers.runs import collect_pipeline_controller_ids
 from polyaxon.schemas import LifeCycle, LiveState, V1RunKind, V1Statuses
 
@@ -88,9 +89,12 @@ class CronsDeletionManager:
                 )
 
         last_date = get_datetime_from_now(days=1)
-        Models.Run.all.filter(
+        expired_runs = Models.Run.all.filter(
             live_state=LiveState.DELETION_PROGRESSING, deleted_at__lte=last_date
-        ).delete()
+        )
+        project_ids = set(expired_runs.values_list("project_id", flat=True))
+        expired_runs.delete()
+        touch_projects(project_ids)
 
         # Stop all pipelines in deletion progress
         Models.Run.all.filter(

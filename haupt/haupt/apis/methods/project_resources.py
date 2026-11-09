@@ -22,6 +22,7 @@ from haupt.common.permissions import PERMISSIONS_MAPPING
 from haupt.db.defs import Models
 from haupt.db.managers.bookmarks import bookmark_obj
 from haupt.db.managers.live_state import run_queryset_stopping
+from haupt.db.managers.projects import touch_projects
 from haupt.db.managers.statuses import bulk_new_run_status
 from polyaxon.schemas import (
     LifeCycle,
@@ -198,7 +199,7 @@ def delete_runs(view, request, actor, *args, **kwargs):
             project_name=view.project_name,
         )
     # Deletion in progress
-    runs.update(live_state=LiveState.DELETION_PROGRESSING)
+    runs.update(live_state=LiveState.DELETION_PROGRESSING, updated_at=now())
     return Response(status=status.HTTP_200_OK, data={})
 
 
@@ -223,9 +224,9 @@ def archive_runs(view, request, actor, *args, **kwargs):
         Q(pipeline__uuid__in=uuids) | Q(controller__uuid__in=uuids)
     ).exclude(live_state=LiveState.ARCHIVED)
     run_queryset_stopping(queryset=children)
-    children.update(live_state=LiveState.ARCHIVED, archived_at=now())
+    children.update(live_state=LiveState.ARCHIVED, archived_at=now(), updated_at=now())
     runs = [r for r in queryset]
-    queryset.update(live_state=LiveState.ARCHIVED, archived_at=now())
+    queryset.update(live_state=LiveState.ARCHIVED, archived_at=now(), updated_at=now())
     # For Audit
     view.set_owner()
     for run in runs:
@@ -249,9 +250,13 @@ def restore_runs(view, request, actor, *args, **kwargs):
     # Restore pipeline/controller children runs
     Models.Run.archived.filter(
         Q(pipeline__uuid__in=uuids) | Q(controller__uuid__in=uuids)
-    ).update(live_state=LiveState.LIVE, archived_at=None, deleted_at=None)
+    ).update(
+        live_state=LiveState.LIVE, archived_at=None, deleted_at=None, updated_at=now()
+    )
     runs = [r for r in queryset]
-    queryset.update(live_state=LiveState.LIVE, archived_at=None, deleted_at=None)
+    queryset.update(
+        live_state=LiveState.LIVE, archived_at=None, deleted_at=None, updated_at=now()
+    )
     # For Audit
     view.set_owner()
     for run in runs:
@@ -307,8 +312,10 @@ def transfer_runs(view, request, actor, *args, **kwargs):
 
     queryset = view.enrich_queryset(Models.Run.all)
     queryset = queryset.filter(uuid__in=uuids)
-    run_ids = [i for i in queryset.values_list("id", flat=True)]
-    queryset.update(project_id=dest_project.id)
+    run_values = list(queryset.values_list("id", "project_id"))
+    run_ids = [v[0] for v in run_values]
+    queryset.update(project_id=dest_project.id, updated_at=now())
+    touch_projects({v[1] for v in run_values} | {dest_project.id})
     # For Audit
     view.set_owner()
     for run in Models.Run.all.filter(id__in=run_ids):
