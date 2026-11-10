@@ -379,7 +379,7 @@ class ProjectRunStats(
 
 
 def _sum_rows_by_live_state(rows):
-    """Add up the per-status rows of each live state into one row.
+    """Add up the run counts and sums of each live state into one row.
 
     A sum stays None when all its values are None, like SQL SUM.
     """
@@ -388,7 +388,7 @@ def _sum_rows_by_live_state(rows):
         live_state = row["live_state"]
         total = totals.setdefault(live_state, {"live_state": live_state})
         for key, value in row.items():
-            if key in ("live_state", "status"):
+            if key != "run_count" and not key.startswith("sum_"):
                 continue
             if value is None:
                 total.setdefault(key, None)
@@ -399,11 +399,10 @@ def _sum_rows_by_live_state(rows):
     return list(totals.values())
 
 
-def collect_entity_run_stats(**filters):
-    # Grouped by status as well, so one scan also gives the status counts
-    rows = list(
+def _collect_run_rows(filters, *group_by):
+    return list(
         Models.Run.all.filter(**filters)
-        .values("live_state", "status")
+        .values(*group_by)
         .annotate(
             run_count=Count("id"),
             sum_duration=Sum("duration"),
@@ -415,11 +414,13 @@ def collect_entity_run_stats(**filters):
             sum_custom=Sum("custom"),
         )
     )
-    status = {
-        row["status"]: row["run_count"]
-        for row in rows
-        if row["live_state"] == LiveState.LIVE
-    }
+
+
+def _build_run_stats(rows, filters):
+    status = {}
+    for row in rows:
+        if row["live_state"] == LiveState.LIVE:
+            status[row["status"]] = status.get(row["status"], 0) + row["run_count"]
     data = _sum_rows_by_live_state(rows)
     rolling = collect_entity_run_rolling_stats(**filters)
     run_count = {item["live_state"]: item["run_count"] for item in data}
@@ -445,6 +446,27 @@ def collect_entity_run_stats(**filters):
         "custom": custom,
     }
     return ProjectRunStats(run_count, tracking_time, wait_time, resources, status)
+
+
+def collect_entity_run_stats(**filters):
+    # Grouped by status as well, so one scan also gives the status counts
+    rows = _collect_run_rows(filters, "live_state", "status")
+    return _build_run_stats(rows, filters)
+
+
+def collect_entity_run_and_project_stats(**filters):
+    """Run stats plus distinct project counts, for queues and agents."""
+    rows = _collect_run_rows(
+        filters, "live_state", "status", "project_id", "project__live_state"
+    )
+    projects = {}
+    for row in rows:
+        if row["live_state"] == LiveState.LIVE:
+            projects.setdefault(row["project__live_state"], set()).add(
+                row["project_id"]
+            )
+    project_count = {live_state: len(ids) for live_state, ids in projects.items()}
+    return _build_run_stats(rows, filters), project_count
 
 
 def rolling_stats_expired(run_field: str) -> Q:
@@ -562,26 +584,6 @@ def collect_org_project_count_stats(org: Any):
 def collect_agent_queue_count_stats(agent: Any):
     data = agent.queues.values("live_state").annotate(queue_count=Count("id"))
     return {item["live_state"]: item["queue_count"] for item in data}
-
-
-def collect_agent_project_count_stats(agent: Any):
-    """Collect distinct project count for agent grouped by live_state."""
-    data = (
-        Models.Run.objects.filter(agent=agent)
-        .values("project__live_state")
-        .annotate(project_count=Count("project", distinct=True))
-    )
-    return {item["project__live_state"]: item["project_count"] for item in data}
-
-
-def collect_queue_project_count_stats(queue: Any):
-    """Collect distinct project count for queue grouped by live_state."""
-    data = (
-        Models.Run.objects.filter(queue=queue)
-        .values("project__live_state")
-        .annotate(project_count=Count("project", distinct=True))
-    )
-    return {item["project__live_state"]: item["project_count"] for item in data}
 
 
 def collect_org_projects_contributors(org: Any):
