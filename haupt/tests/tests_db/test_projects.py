@@ -11,7 +11,6 @@ from haupt.db.managers.deleted import ArchivedManager, LiveManager
 from haupt.db.managers.projects import update_project_based_on_last_updated_entities
 from haupt.db.managers.stats import (
     collect_entity_run_stats,
-    collect_entity_run_status_stats,
     collect_project_version_stats,
 )
 from haupt.db.models.project_stats import ProjectStats
@@ -161,7 +160,7 @@ class TestProjectModel(TestCase):
         }
 
     def test_collect_entity_run_status_stats(self):
-        run_count = collect_entity_run_status_stats(project=self.project)
+        run_count = collect_entity_run_stats(project=self.project).status
         assert run_count == {}
 
         # Add a new runs
@@ -177,10 +176,40 @@ class TestProjectModel(TestCase):
             status=V1Statuses.STARTING,
         )
 
-        run_count = collect_entity_run_status_stats(project=self.project)
+        run_count = collect_entity_run_stats(project=self.project).status
         assert run_count == {
             V1Statuses.RUNNING.value: 2,
             V1Statuses.STARTING.value: 1,
+        }
+
+    def test_collect_entity_run_stats_merges_statuses(self):
+        # Live runs: durations spread over statuses, some missing
+        RunFactory(project=self.project, status=V1Statuses.SUCCEEDED, duration=10)
+        RunFactory(project=self.project, status=V1Statuses.SUCCEEDED, duration=None)
+        RunFactory(project=self.project, status=V1Statuses.FAILED, duration=None)
+        RunFactory(project=self.project, status=V1Statuses.RUNNING, duration=5)
+        # Archived runs without any duration
+        for status in (V1Statuses.STOPPED, V1Statuses.FAILED):
+            RunFactory(
+                project=self.project,
+                live_state=LiveState.ARCHIVED,
+                status=status,
+                duration=None,
+            )
+
+        run_stats = collect_entity_run_stats(project=self.project)
+        assert run_stats.run_count == {
+            LiveState.LIVE.value: 4,
+            LiveState.ARCHIVED.value: 2,
+        }
+        # Missing durations are skipped; a live state with none at all is None
+        assert run_stats.tracking_time[LiveState.LIVE.value] == 15
+        assert run_stats.tracking_time[LiveState.ARCHIVED.value] is None
+        # Status counts only include live runs
+        assert run_stats.status == {
+            V1Statuses.SUCCEEDED.value: 2,
+            V1Statuses.FAILED.value: 1,
+            V1Statuses.RUNNING.value: 1,
         }
 
     def test_collect_project_run_duration_stats(self):

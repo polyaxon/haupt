@@ -12,7 +12,7 @@ from haupt.db.defs import Models
 from haupt.db.query_managers.bookmarks import filter_bookmarks
 from haupt.db.query_managers.run import RunsOfflineFilter
 from polyaxon.exceptions import PQLException
-from polyaxon.schemas import LifeCycle
+from polyaxon.schemas import LifeCycle, LiveState
 
 
 ROLLING_STATS_WINDOW = timedelta(days=30)
@@ -372,25 +372,38 @@ def annotate_quota(queryset):
     )
 
 
-def collect_entity_run_status_stats(**filters):
-    data = (
-        Models.Run.objects.filter(**filters)
-        .values("status")
-        .annotate(run_count=Count("id"))
-    )
-    return {item["status"]: item["run_count"] for item in data}
-
-
 class ProjectRunStats(
-    namedtuple("ProjectRunStats", "run_count tracking_time wait_time resources")
+    namedtuple("ProjectRunStats", "run_count tracking_time wait_time resources status")
 ):
     pass
 
 
+def _sum_rows_by_live_state(rows):
+    """Add up the per-status rows of each live state into one row.
+
+    A sum stays None when all its values are None, like SQL SUM.
+    """
+    totals = {}
+    for row in rows:
+        live_state = row["live_state"]
+        total = totals.setdefault(live_state, {"live_state": live_state})
+        for key, value in row.items():
+            if key in ("live_state", "status"):
+                continue
+            if value is None:
+                total.setdefault(key, None)
+            elif total.get(key) is None:
+                total[key] = value
+            else:
+                total[key] += value
+    return list(totals.values())
+
+
 def collect_entity_run_stats(**filters):
-    data = (
+    # Grouped by status as well, so one scan also gives the status counts
+    rows = list(
         Models.Run.all.filter(**filters)
-        .values("live_state")
+        .values("live_state", "status")
         .annotate(
             run_count=Count("id"),
             sum_duration=Sum("duration"),
@@ -402,6 +415,12 @@ def collect_entity_run_stats(**filters):
             sum_custom=Sum("custom"),
         )
     )
+    status = {
+        row["status"]: row["run_count"]
+        for row in rows
+        if row["live_state"] == LiveState.LIVE
+    }
+    data = _sum_rows_by_live_state(rows)
     rolling = collect_entity_run_rolling_stats(**filters)
     run_count = {item["live_state"]: item["run_count"] for item in data}
     tracking_time = {item["live_state"]: item["sum_duration"] for item in data}
@@ -425,7 +444,7 @@ def collect_entity_run_stats(**filters):
         "cost": cost,
         "custom": custom,
     }
-    return ProjectRunStats(run_count, tracking_time, wait_time, resources)
+    return ProjectRunStats(run_count, tracking_time, wait_time, resources, status)
 
 
 def rolling_stats_expired(run_field: str) -> Q:
