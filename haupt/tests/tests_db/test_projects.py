@@ -302,6 +302,17 @@ class TestProjectModel(TestCase):
         assert run_stats.wait_time["rolling"]["min"] == 5
         assert run_stats.wait_time["rolling"]["max"] == 15
 
+    def test_collect_entity_run_rolling_stats_includes_running_wait_time(self):
+        # A running run has its wait time, but no duration until it finishes
+        RunFactory(project=self.project, status=V1Statuses.RUNNING, wait_time=8)
+        RunFactory(project=self.project, duration=10, wait_time=4)
+
+        run_stats = collect_entity_run_stats(project=self.project)
+        assert run_stats.wait_time["rolling"]["avg"] == 6  # (8+4)/2
+        assert run_stats.wait_time["rolling"]["min"] == 4
+        assert run_stats.wait_time["rolling"]["max"] == 8
+        assert run_stats.tracking_time["rolling"]["avg"] == 10
+
         # Check that all runs are in the base stats
         assert run_stats.tracking_time[LiveState.LIVE.value] == 160  # 10+20+30+100
 

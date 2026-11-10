@@ -485,7 +485,7 @@ def rolling_stats_expired(run_field: str) -> Q:
 def collect_entity_run_rolling_stats(**filters):
     last_time = now() - ROLLING_STATS_WINDOW
     duration_filter = Q(duration__gt=0)
-    wait_time_filter = Q(duration__gt=0)
+    wait_time_filter = Q(wait_time__gt=0)
     cpu_filter = Q(cpu__gt=0)
     memory_filter = Q(memory__gt=0)
     gpu_filter = Q(gpu__gt=0)
