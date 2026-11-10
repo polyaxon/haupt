@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import timedelta, timezone
 from typing import Any, Tuple
 
-from django.db.models import Avg, Count, F, Max, Min, Q, Sum
+from django.db.models import Avg, Count, Exists, F, Max, Min, OuterRef, Q, Sum
 from django.db.models.functions import Trunc
 from django.utils.timezone import now
 from rest_framework.exceptions import ValidationError
@@ -14,6 +14,9 @@ from haupt.db.query_managers.run import RunsOfflineFilter
 from polyaxon.exceptions import PQLException
 from polyaxon.schemas import LifeCycle
 
+
+ROLLING_STATS_WINDOW = timedelta(days=30)
+ROLLING_STATS_REFRESH = timedelta(days=1)
 
 AGGREGATE_MAP = {
     "avg": Avg,
@@ -425,8 +428,21 @@ def collect_entity_run_stats(**filters):
     return ProjectRunStats(run_count, tracking_time, wait_time, resources)
 
 
+def rolling_stats_expired(run_field: str) -> Q:
+    """Snapshot older than a day, with a run that left the rolling window since."""
+    current = now()
+    aged_out_runs = Models.Run.all.filter(
+        **{run_field: OuterRef("id")},
+        created_at__lt=current - ROLLING_STATS_WINDOW,
+        created_at__gte=OuterRef("latest_stats__updated_at") - ROLLING_STATS_WINDOW,
+    )
+    return Q(latest_stats__updated_at__lt=current - ROLLING_STATS_REFRESH) & Exists(
+        aged_out_runs
+    )
+
+
 def collect_entity_run_rolling_stats(**filters):
-    last_time = now() - timedelta(days=30)
+    last_time = now() - ROLLING_STATS_WINDOW
     duration_filter = Q(duration__gt=0)
     wait_time_filter = Q(duration__gt=0)
     cpu_filter = Q(cpu__gt=0)
