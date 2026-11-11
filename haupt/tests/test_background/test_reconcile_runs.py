@@ -163,6 +163,27 @@ class TestReconcileRuns(BaseTest):
         assert self._reconcile() == [(PREPARE, child.id)]
         assert trigger.call_count == 0
 
+    def test_prepare_iteration_child_once_matrix_is_quiet(self):
+        bayes = self._run(
+            kind=V1RunKind.MATRIX,
+            runtime=V1MatrixKind.BAYES,
+            status=V1Statuses.RUNNING,
+        )
+        tuner = self._run(
+            pipeline=bayes, kind=V1RunKind.TUNER, status=V1Statuses.SUCCEEDED
+        )
+        child = self._run(pipeline=bayes)
+        # `runs_iterate` links the finished tuner to each iteration child
+        Models.RunEdge.objects.create(
+            upstream=tuner, downstream=child, kind=V1RunEdgeKind.JOIN
+        )
+        self._age(bayes, child)
+        # The tuner just finished, its trigger may still be pending
+        assert self._reconcile() == []
+
+        self._age(tuner)
+        assert self._reconcile() == [(PREPARE, child.id)]
+
     def test_start_compiled_runs(self):
         top = self._run(status=V1Statuses.COMPILED)
         schedule = self._run(kind=V1RunKind.SCHEDULE, status=V1Statuses.RUNNING)
