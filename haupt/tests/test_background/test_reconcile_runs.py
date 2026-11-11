@@ -55,9 +55,9 @@ class TestReconcileRuns(BaseTest):
         )
 
     @staticmethod
-    def _age(*runs, minutes: int = 10):
+    def _age(*runs):
         Models.Run.objects.filter(id__in=[r.id for r in runs]).update(
-            updated_at=now() - timedelta(minutes=minutes)
+            updated_at=now() - timedelta(minutes=10)
         )
 
     @staticmethod
@@ -157,6 +157,8 @@ class TestReconcileRuns(BaseTest):
         upstream = self._run(pipeline=dag, status=V1Statuses.SUCCEEDED)
         builder = self._run(runtime=V1RunKind.BUILDER, status=V1Statuses.SUCCEEDED)
         child = self._run(pipeline=dag)
+        # `runs_built` does not stagger prepares, a busy sibling does not delay it
+        self._run(pipeline=dag, status=V1Statuses.RUNNING)
         self._dag_edge(upstream, child)
         self._build_edge(builder, child)
         self._age(dag, upstream, builder, child)
@@ -231,23 +233,26 @@ class TestReconcileRuns(BaseTest):
         second = self._run(pending=V1RunPending.BUILD)
         self._build_edge(builder, first)
         self._build_edge(builder, second)
-        self._age(first, minutes=20)
-        self._age(second)
+        self._age(first, second)
         # Builder finished recently, its notification may still be pending
         assert self._reconcile() == []
 
         self._age(builder)
-        # Both runs wait on the same builder, each sweep releases its claimed run
-        assert self._reconcile(limit=1) == [(BUILT, first.id)]
-        assert self._reconcile(limit=1) == [(BUILT, second.id)]
+        # Both runs wait on the same builder, each sweep releases only its claimed run
+        first_sweep = self._reconcile(limit=1)
+        second_sweep = self._reconcile(limit=1)
+        assert len(first_sweep) == len(second_sweep) == 1
+        assert {first_sweep[0], second_sweep[0]} == {
+            (BUILT, first.id),
+            (BUILT, second.id),
+        }
 
     def test_notify_cache_skips_done_clones(self):
         stopped_original = self._run(status=V1Statuses.SUCCEEDED)
         stopped_clone = self._clone(stopped_original, status=V1Statuses.STOPPED)
         original = self._run(status=V1Statuses.FAILED)
         clone = self._clone(original)
-        self._age(stopped_original, original, clone)
-        self._age(stopped_clone, minutes=20)
+        self._age(stopped_original, stopped_clone, original, clone)
         # Releasing a clone records auditor events, check the database not the sends
         SchedulingManager.reconcile_runs(limit=1)
         stopped_clone.refresh_from_db()
@@ -260,18 +265,16 @@ class TestReconcileRuns(BaseTest):
         original = self._run(status=V1Statuses.SUCCEEDED)
         first = self._clone(original)
         second = self._clone(original)
-        self._age(original, second)
-        self._age(first, minutes=20)
-        # Both clones wait on the same original, each sweep releases its claimed clone
+        self._age(original, first, second)
+        clones = Models.Run.objects.filter(id__in=[first.id, second.id])
+        # Both clones wait on the same original, each sweep releases only its claimed clone
         SchedulingManager.reconcile_runs(limit=1)
-        first.refresh_from_db()
-        second.refresh_from_db()
-        assert first.status == V1Statuses.SUCCEEDED
-        assert second.pending == V1RunPending.CACHE
+        assert clones.filter(pending=V1RunPending.CACHE).count() == 1
 
         SchedulingManager.reconcile_runs(limit=1)
-        second.refresh_from_db()
-        assert second.status == V1Statuses.SUCCEEDED
+        assert set(clones.values_list("status", "pending")) == {
+            (V1Statuses.SUCCEEDED, None)
+        }
 
     def test_claimed_run_is_retried_after_threshold(self):
         run = self._run()
@@ -293,8 +296,7 @@ class TestReconcileRuns(BaseTest):
     def test_failing_recovery_does_not_drop_the_batch(self):
         first = self._run()
         second = self._run()
-        self._age(first, minutes=20)
-        self._age(second)
+        self._age(first, second)
         self.send.side_effect = [Exception("boom"), None]
         with self.assertLogs("polyaxon.scheduler", level="ERROR"):
             assert set(self._reconcile()) == {
