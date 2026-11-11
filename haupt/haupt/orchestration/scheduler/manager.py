@@ -269,12 +269,15 @@ class SchedulingManager:
         return [run.id for run in runs]
 
     @staticmethod
-    def _notify_build(run: Models.Run):
+    def _notify_build(run: Models.Run, downstream_ids: Optional[List[int]] = None):
         if run.runtime != V1RunKind.BUILDER:
             return
         runs = run.downstream_runs.exclude(status__in=LifeCycle.DONE_VALUES).filter(
             pending=V1RunPending.BUILD,
         )
+        # The reconcile sweep only releases the runs it claimed
+        if downstream_ids is not None:
+            runs = runs.filter(id__in=downstream_ids)
         if run.status != V1Statuses.SUCCEEDED:
             condition = V1StatusCondition.get_condition(
                 type=V1Statuses.UPSTREAM_FAILED,
@@ -326,18 +329,22 @@ class SchedulingManager:
             )
 
     @staticmethod
-    def _notify_cache(run: Models.Run):
+    def _notify_cache(run: Models.Run, clone_ids: Optional[List[int]] = None):
         condition = V1StatusCondition.get_condition(
             type=run.status,
             status="True",
             reason="SchedulerCacheNotify",
             message="Original run is done.",
         )
-        for clone_run in Models.Run.objects.filter(
+        clone_runs = Models.Run.objects.filter(
             original_id=run.id,
             cloning_kind=V1CloningKind.CACHE,
             pending=V1RunPending.CACHE,
-        ).only("outputs", *STATUS_UPDATE_COLUMNS_ONLY):
+        )
+        # The reconcile sweep only releases the clones it claimed
+        if clone_ids is not None:
+            clone_runs = clone_runs.filter(id__in=clone_ids)
+        for clone_run in clone_runs.only("outputs", *STATUS_UPDATE_COLUMNS_ONLY):
             clone_run.outputs = run.outputs
             clone_run.pending = None
             new_run_status(
@@ -1524,6 +1531,18 @@ class SchedulingManager:
         except Exception as e:
             cls._capture_exception(e)
 
+    @staticmethod
+    def _has_interrupted_children(run: Models.Run) -> bool:
+        # Interrupted while creating its children, preparing again duplicates them
+        if run.has_pipeline and run.has_children:
+            _logger.warning(
+                "Run `%s` is `%s` and already has children, it was not prepared again.",
+                run.id,
+                run.status,
+            )
+            return True
+        return False
+
     @classmethod
     def _reconcile_prepare(cls, runs: QuerySet, last_date: datetime, limit: int):
         upstream_edges = Models.RunEdge.objects.filter(downstream_id=OuterRef("id"))
@@ -1569,13 +1588,7 @@ class SchedulingManager:
             .annotate(has_children=Exists(children))
             .only("id", "kind", "status")
         ):
-            # Interrupted while creating its children, preparing again duplicates them
-            if run.has_pipeline and run.has_children:
-                _logger.warning(
-                    "Run `%s` is `%s` and already has children, it was not prepared again.",
-                    run.id,
-                    run.status,
-                )
+            if cls._has_interrupted_children(run):
                 continue
             cls._reconcile_call(
                 workers.send,
@@ -1616,11 +1629,15 @@ class SchedulingManager:
         run_ids = cls._claim_runs(
             "before downstream trigger", queryset, last_date, limit
         )
+        children = Models.Run.objects.filter(pipeline_id=OuterRef("id"))
         for run in Models.Run.objects.filter(id__in=run_ids).annotate(
+            has_children=Exists(children),
             is_skipped=Exists(
                 dag_upstream_edges.filter(upstream__status=V1Statuses.SKIPPED)
-            )
+            ),
         ):
+            if cls._has_interrupted_children(run):
+                continue
             cls._reconcile_call(
                 cls._trigger_downstream, [run], is_skipped=run.is_skipped
             )
@@ -1692,13 +1709,18 @@ class SchedulingManager:
         run_ids = cls._claim_runs(
             "before build notification", queryset, last_date, limit
         )
-        builder_ids = set(
-            done_builds.filter(downstream_id__in=run_ids).values_list(
-                "upstream_id", flat=True
+        # Several runs can wait on one builder, release only the claimed ones
+        run_ids_by_builder = {}
+        for builder_id, run_id in done_builds.filter(
+            downstream_id__in=run_ids
+        ).values_list("upstream_id", "downstream_id"):
+            run_ids_by_builder.setdefault(builder_id, []).append(run_id)
+        for builder in Models.Run.all.filter(id__in=run_ids_by_builder.keys()):
+            cls._reconcile_call(
+                cls._notify_build,
+                builder,
+                downstream_ids=run_ids_by_builder[builder.id],
             )
-        )
-        for builder in Models.Run.all.filter(id__in=builder_ids):
-            cls._reconcile_call(cls._notify_build, builder)
 
     @classmethod
     def _reconcile_caches(cls, runs: QuerySet, last_date: datetime, limit: int):
@@ -1714,13 +1736,18 @@ class SchedulingManager:
         run_ids = cls._claim_runs(
             "before cache notification", queryset, last_date, limit
         )
-        original_ids = set(
-            Models.Run.objects.filter(id__in=run_ids).values_list(
-                "original_id", flat=True
+        # Several clones can wait on one original, release only the claimed ones
+        run_ids_by_original = {}
+        for original_id, run_id in Models.Run.objects.filter(
+            id__in=run_ids
+        ).values_list("original_id", "id"):
+            run_ids_by_original.setdefault(original_id, []).append(run_id)
+        for original in Models.Run.all.filter(id__in=run_ids_by_original.keys()):
+            cls._reconcile_call(
+                cls._notify_cache,
+                original,
+                clone_ids=run_ids_by_original[original.id],
             )
-        )
-        for original in Models.Run.all.filter(id__in=original_ids):
-            cls._reconcile_call(cls._notify_cache, original)
 
     @staticmethod
     def delete_in_progress_project(project_id: int):

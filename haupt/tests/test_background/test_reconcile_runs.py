@@ -7,12 +7,15 @@ from django.utils.timezone import now
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.defs import Models
 from haupt.db.factories.runs import RunFactory
+from haupt.db.managers.artifacts import atomic_set_artifacts
 from haupt.orchestration import operations
 from haupt.orchestration.scheduler.manager import SchedulingManager
 from polyaxon.schemas import (
     ManagedBy,
+    V1ArtifactKind,
     V1CloningKind,
     V1MatrixKind,
+    V1RunArtifact,
     V1RunEdgeKind,
     V1RunKind,
     V1RunPending,
@@ -23,6 +26,7 @@ from tests.test_background.case import BaseTest
 
 PREPARE = SchedulerCeleryTasks.RUNS_PREPARE
 START = SchedulerCeleryTasks.RUNS_START
+BUILT = SchedulerCeleryTasks.RUNS_BUILT
 CHECK_PIPELINE = SchedulerCeleryTasks.RUNS_CHECK_PIPELINE
 
 
@@ -39,6 +43,16 @@ class TestReconcileRuns(BaseTest):
         kwargs.setdefault("managed_by", ManagedBy.AGENT)
         kwargs.setdefault("raw_content", "test")
         return RunFactory(project=self.project, user=self.user, **kwargs)
+
+    def _clone(self, original, **kwargs):
+        # Managed clones need a compiled specification (`run_created` signal)
+        return self._run(
+            original=original,
+            cloning_kind=V1CloningKind.CACHE,
+            pending=V1RunPending.CACHE,
+            content="test",
+            **kwargs,
+        )
 
     @staticmethod
     def _age(*runs, minutes: int = 10):
@@ -126,6 +140,18 @@ class TestReconcileRuns(BaseTest):
         assert trigger.call_args[1] == {"is_skipped": True}
 
     @patch.object(SchedulingManager, "_trigger_downstream")
+    def test_trigger_skips_dependent_pipeline_with_children(self, trigger):
+        dag = self._run(kind=V1RunKind.DAG, status=V1Statuses.RUNNING)
+        upstream = self._run(pipeline=dag, status=V1Statuses.SUCCEEDED)
+        nested = self._run(pipeline=dag, kind=V1RunKind.DAG)
+        nested_child = self._run(pipeline=nested)
+        self._dag_edge(upstream, nested)
+        self._age(dag, upstream, nested, nested_child)
+        with self.assertLogs("polyaxon.scheduler", level="WARNING"):
+            assert self._reconcile() == []
+        assert trigger.call_count == 0
+
+    @patch.object(SchedulingManager, "_trigger_downstream")
     def test_prepare_built_child(self, trigger):
         dag = self._run(kind=V1RunKind.DAG, status=V1Statuses.RUNNING)
         upstream = self._run(pipeline=dag, status=V1Statuses.SUCCEEDED)
@@ -170,42 +196,60 @@ class TestReconcileRuns(BaseTest):
         self._age(dag_child, bayes_child)
         assert self._reconcile() == [(CHECK_PIPELINE, dag.id)]
 
-    @patch.object(SchedulingManager, "_notify_build")
-    def test_notify_done_builder(self, notify_build):
+    def test_notify_build_only_for_claimed_runs(self):
         builder = self._run(runtime=V1RunKind.BUILDER, status=V1Statuses.SUCCEEDED)
-        run = self._run(pending=V1RunPending.BUILD)
-        self._build_edge(builder, run)
-        self._age(run)
+        artifact = V1RunArtifact(
+            name="destination",
+            state=builder.uuid,
+            kind=V1ArtifactKind.DOCKER_IMAGE,
+            summary=dict(image="foo/bar"),
+            is_input=False,
+        )
+        atomic_set_artifacts(run=builder, artifacts=[artifact])
+        first = self._run(pending=V1RunPending.BUILD)
+        second = self._run(pending=V1RunPending.BUILD)
+        self._build_edge(builder, first)
+        self._build_edge(builder, second)
+        self._age(first, minutes=20)
+        self._age(second)
         # Builder finished recently, its notification may still be pending
-        self._reconcile()
-        assert notify_build.call_count == 0
+        assert self._reconcile() == []
 
         self._age(builder)
-        self._reconcile()
-        assert [c[0][0].id for c in notify_build.call_args_list] == [builder.id]
+        # Both runs wait on the same builder, each sweep releases its claimed run
+        assert self._reconcile(limit=1) == [(BUILT, first.id)]
+        assert self._reconcile(limit=1) == [(BUILT, second.id)]
 
-    @patch.object(SchedulingManager, "_notify_cache")
-    def test_notify_cache_skips_done_clones(self, notify_cache):
+    def test_notify_cache_skips_done_clones(self):
         stopped_original = self._run(status=V1Statuses.SUCCEEDED)
-        # Managed clones need a compiled specification (`run_created` signal)
-        stopped_clone = self._run(
-            original=stopped_original,
-            cloning_kind=V1CloningKind.CACHE,
-            pending=V1RunPending.CACHE,
-            status=V1Statuses.STOPPED,
-            content="test",
-        )
+        stopped_clone = self._clone(stopped_original, status=V1Statuses.STOPPED)
         original = self._run(status=V1Statuses.FAILED)
-        clone = self._run(
-            original=original,
-            cloning_kind=V1CloningKind.CACHE,
-            pending=V1RunPending.CACHE,
-            content="test",
-        )
+        clone = self._clone(original)
         self._age(stopped_original, original, clone)
         self._age(stopped_clone, minutes=20)
         self._reconcile(limit=1)
-        assert [c[0][0].id for c in notify_cache.call_args_list] == [original.id]
+        stopped_clone.refresh_from_db()
+        clone.refresh_from_db()
+        assert stopped_clone.pending == V1RunPending.CACHE
+        assert clone.status == V1Statuses.FAILED
+        assert clone.pending is None
+
+    def test_notify_cache_only_for_claimed_runs(self):
+        original = self._run(status=V1Statuses.SUCCEEDED)
+        first = self._clone(original)
+        second = self._clone(original)
+        self._age(original, second)
+        self._age(first, minutes=20)
+        # Both clones wait on the same original, each sweep releases its claimed clone
+        self._reconcile(limit=1)
+        first.refresh_from_db()
+        second.refresh_from_db()
+        assert first.status == V1Statuses.SUCCEEDED
+        assert second.pending == V1RunPending.CACHE
+
+        self._reconcile(limit=1)
+        second.refresh_from_db()
+        assert second.status == V1Statuses.SUCCEEDED
 
     def test_claimed_run_is_retried_after_threshold(self):
         run = self._run()
