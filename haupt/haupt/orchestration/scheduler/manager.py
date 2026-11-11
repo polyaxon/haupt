@@ -826,6 +826,10 @@ class SchedulingManager:
             )
             return
 
+        # Already resolved, waiting for its image, `runs_built` clears pending
+        if run.pending == V1RunPending.BUILD:
+            return
+
         try:
             compiled_at = now()
             _, compiled_operation = cls._resolve(run=run, compiled_at=compiled_at)
@@ -925,9 +929,6 @@ class SchedulingManager:
             )
             return
 
-        if run.schedule_at:
-            cls._start_schedule_based_on_run(run, depends_on_past=False)
-
         if run.is_schedule:
             condition = V1StatusCondition.get_condition(
                 type=V1Statuses.RUNNING,
@@ -946,6 +947,10 @@ class SchedulingManager:
                 V1Statuses.QUEUED,
             )
             return None
+
+        # After the compiled check, so a replay does not create another schedule run
+        if run.schedule_at:
+            cls._start_schedule_based_on_run(run, depends_on_past=False)
 
         # Queue the independent or schedule runs immediately
         start_immediately = bool(not run.pipeline_id or run.schedule_at)
@@ -1183,7 +1188,8 @@ class SchedulingManager:
         if not run:
             return
 
-        if run.status != V1Statuses.CREATED:
+        # A duplicate must not clear the approval requested by the first delivery
+        if run.status != V1Statuses.CREATED or run.pending != V1RunPending.BUILD:
             return
 
         base_approve_run(run)

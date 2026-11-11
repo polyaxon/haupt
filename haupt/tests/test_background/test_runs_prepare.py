@@ -5,7 +5,13 @@ from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.db.factories.runs import RunFactory
 from haupt.db.managers.statuses import new_run_status
 from haupt.orchestration.scheduler.manager import SchedulingManager
-from polyaxon.schemas import ManagedBy, V1Cache, V1StatusCondition, V1Statuses
+from polyaxon.schemas import (
+    ManagedBy,
+    V1Cache,
+    V1RunPending,
+    V1StatusCondition,
+    V1Statuses,
+)
 from tests.test_background.case import BaseTest
 
 
@@ -143,3 +149,14 @@ class TestRunsPrepare(BaseTest):
                 SchedulerCeleryTasks.RUNS_START: False,
                 SchedulerCeleryTasks.RUNS_PREPARE: True,
             }
+
+    @mock.patch("haupt.orchestration.scheduler.manager.SchedulingManager._resolve")
+    def test_prepare_run_waiting_on_build(self, mock_resolve):
+        experiment = RunFactory(
+            project=self.project, user=self.user, pending=V1RunPending.BUILD
+        )
+        SchedulingManager.runs_prepare(run_id=experiment.id)
+
+        experiment.refresh_from_db()
+        assert experiment.status == V1Statuses.CREATED
+        assert mock_resolve.call_count == 0
