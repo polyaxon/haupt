@@ -248,7 +248,8 @@ class TestReconcileRuns(BaseTest):
         clone = self._clone(original)
         self._age(stopped_original, original, clone)
         self._age(stopped_clone, minutes=20)
-        self._reconcile(limit=1)
+        # Releasing a clone records auditor events, check the database not the sends
+        SchedulingManager.reconcile_runs(limit=1)
         stopped_clone.refresh_from_db()
         clone.refresh_from_db()
         assert stopped_clone.pending == V1RunPending.CACHE
@@ -262,13 +263,13 @@ class TestReconcileRuns(BaseTest):
         self._age(original, second)
         self._age(first, minutes=20)
         # Both clones wait on the same original, each sweep releases its claimed clone
-        self._reconcile(limit=1)
+        SchedulingManager.reconcile_runs(limit=1)
         first.refresh_from_db()
         second.refresh_from_db()
         assert first.status == V1Statuses.SUCCEEDED
         assert second.pending == V1RunPending.CACHE
 
-        self._reconcile(limit=1)
+        SchedulingManager.reconcile_runs(limit=1)
         second.refresh_from_db()
         assert second.status == V1Statuses.SUCCEEDED
 
