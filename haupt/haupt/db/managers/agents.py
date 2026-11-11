@@ -557,6 +557,7 @@ def trigger_cron(state: bool = False) -> Dict:
     workers.send(CronsCeleryTasks.HEARTBEAT_OUT_OF_SYNC)
     workers.send(CronsCeleryTasks.HEARTBEAT_STOPPING_RUNS)
     workers.send(CronsCeleryTasks.HEARTBEAT_PROJECT_LAST_UPDATED)
+    workers.send(CronsCeleryTasks.RECONCILE_RUNS)
     workers.send(CronsCeleryTasks.STATS_CALCULATION_PROJECTS)
     workers.send(CronsCeleryTasks.DELETE_ARCHIVED_PROJECTS)
     workers.send(CronsCeleryTasks.DELETE_IN_PROGRESS_PROJECTS)

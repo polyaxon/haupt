@@ -2,14 +2,15 @@ from datetime import datetime
 from functools import reduce
 import logging
 from operator import __or__ as OR
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
-from django.db.models import Q, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils.timezone import now
 from rest_framework.exceptions import ValidationError
 
 from clipped.compact.pydantic import ValidationError as PydanticValidationError
 from clipped.utils.lists import to_list
+from clipped.utils.tz import get_datetime_from_now
 from haupt.background.celeryp.tasks import SchedulerCeleryTasks
 from haupt.common import workers
 from haupt.common.exceptions import AccessNotAuthorized, AccessNotFound
@@ -1474,6 +1475,252 @@ class SchedulingManager:
             deleted_at__isnull=True,
         ).exists():
             run.confirm_delete()
+
+    @classmethod
+    def reconcile_runs(cls, minutes: int = 5, limit: int = 100):
+        # Recover runs whose next step was lost (broker down, worker died),
+        # each check only matches a state that a lost step explains
+        last_date = get_datetime_from_now(days=0, minutes=minutes)
+        runs = Models.Run.objects.filter(
+            managed_by=ManagedBy.AGENT, updated_at__lte=last_date
+        )
+        cls._reconcile_prepare(runs, last_date, limit)
+        cls._reconcile_downstream(runs, last_date, limit)
+        cls._reconcile_start(runs, last_date, limit)
+        cls._reconcile_pipelines(runs, last_date, limit)
+        cls._reconcile_builds(runs, last_date, limit)
+        cls._reconcile_caches(runs, last_date, limit)
+
+    @staticmethod
+    def _claim_runs(
+        check: str, queryset: QuerySet, last_date: datetime, limit: int
+    ) -> List[int]:
+        # Oldest first, a claimed run moves to the back of the next sweeps
+        run_ids = list(
+            queryset.order_by("updated_at").values_list("id", flat=True)[:limit]
+        )
+        if not run_ids:
+            return []
+        # Compare-and-set on `updated_at`: a run claimed by another sweep,
+        # or moved forward by its original step, is fresh and skipped
+        claimed_at = now()
+        Models.Run.objects.filter(id__in=run_ids, updated_at__lte=last_date).update(
+            updated_at=claimed_at
+        )
+        claimed_ids = list(
+            Models.Run.objects.filter(
+                id__in=run_ids, updated_at=claimed_at
+            ).values_list("id", flat=True)
+        )
+        if claimed_ids:
+            _logger.info("Reconciling runs stuck %s: %s", check, claimed_ids)
+        return claimed_ids
+
+    @classmethod
+    def _reconcile_call(cls, func: Callable, *args, **kwargs):
+        # One failing run must not drop the rest of the claimed runs
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            cls._capture_exception(e)
+
+    @classmethod
+    def _reconcile_prepare(cls, runs: QuerySet, last_date: datetime, limit: int):
+        upstream_edges = Models.RunEdge.objects.filter(downstream_id=OuterRef("id"))
+        queryset = (
+            runs.filter(pending__isnull=True)
+            .annotate(
+                has_dag_upstream=Exists(upstream_edges.filter(kind=V1RunEdgeKind.DAG)),
+                has_build_upstream=Exists(
+                    upstream_edges.filter(kind=V1RunEdgeKind.BUILD)
+                ),
+                # `_start_pipeline` staggers prepares, siblings stay busy meanwhile
+                has_busy_pipeline=Exists(
+                    Models.Run.objects.filter(
+                        pipeline_id=OuterRef("pipeline_id"),
+                        updated_at__gt=last_date,
+                    )
+                ),
+            )
+            .filter(
+                Q(
+                    status=V1Statuses.CREATED,
+                    pipeline__isnull=True,
+                    schedule_at__isnull=True,
+                )
+                | Q(status__in=[V1Statuses.RESUMING, V1Statuses.ON_SCHEDULE])
+                | (
+                    Q(
+                        status=V1Statuses.CREATED,
+                        schedule_at__isnull=True,
+                        pipeline__status=V1Statuses.RUNNING,
+                        pipeline__updated_at__lte=last_date,
+                        has_busy_pipeline=False,
+                    )
+                    # Independent op, or built op that `runs_built` did not prepare
+                    & (Q(has_dag_upstream=False) | Q(has_build_upstream=True))
+                )
+            )
+        )
+        run_ids = cls._claim_runs("before prepare", queryset, last_date, limit)
+        children = Models.Run.objects.filter(pipeline_id=OuterRef("id"))
+        for run in (
+            Models.Run.objects.filter(id__in=run_ids)
+            .annotate(has_children=Exists(children))
+            .only("id", "kind", "status")
+        ):
+            # Interrupted while creating its children, preparing again duplicates them
+            if run.has_pipeline and run.has_children:
+                _logger.warning(
+                    "Run `%s` is `%s` and already has children, it was not prepared again.",
+                    run.id,
+                    run.status,
+                )
+                continue
+            cls._reconcile_call(
+                workers.send,
+                SchedulerCeleryTasks.RUNS_PREPARE,
+                kwargs={"run_id": run.id},
+            )
+
+    @classmethod
+    def _reconcile_downstream(cls, runs: QuerySet, last_date: datetime, limit: int):
+        upstream_edges = Models.RunEdge.objects.filter(downstream_id=OuterRef("id"))
+        dag_upstream_edges = upstream_edges.filter(kind=V1RunEdgeKind.DAG)
+        queryset = (
+            runs.filter(
+                pending__isnull=True,
+                status=V1Statuses.CREATED,
+                schedule_at__isnull=True,
+                pipeline__status=V1Statuses.RUNNING,
+            )
+            .annotate(
+                has_dag_upstream=Exists(dag_upstream_edges),
+                has_build_upstream=Exists(
+                    upstream_edges.filter(kind=V1RunEdgeKind.BUILD)
+                ),
+                # Not done, or done too recently for its trigger to be lost
+                has_open_upstream=Exists(
+                    dag_upstream_edges.filter(
+                        ~Q(upstream__status__in=LifeCycle.DONE_VALUES)
+                        | Q(upstream__updated_at__gt=last_date)
+                    )
+                ),
+            )
+            .filter(
+                has_dag_upstream=True,
+                has_build_upstream=False,
+                has_open_upstream=False,
+            )
+        )
+        run_ids = cls._claim_runs(
+            "before downstream trigger", queryset, last_date, limit
+        )
+        for run in Models.Run.objects.filter(id__in=run_ids).annotate(
+            is_skipped=Exists(
+                dag_upstream_edges.filter(upstream__status=V1Statuses.SKIPPED)
+            )
+        ):
+            cls._reconcile_call(
+                cls._trigger_downstream, [run], is_skipped=run.is_skipped
+            )
+
+    @classmethod
+    def _reconcile_start(cls, runs: QuerySet, last_date: datetime, limit: int):
+        queryset = (
+            runs.filter(pending__isnull=True, status=V1Statuses.COMPILED)
+            # Polling queues the compiled children of running pipelines
+            .filter(
+                Q(pipeline__isnull=True)
+                | Q(schedule_at__isnull=False)
+                | Q(pipeline__status__in=LifeCycle.DONE_VALUES)
+            )
+            # Starting an iterative matrix creates a tuner
+            .exclude(kind=V1RunKind.MATRIX, runtime__in=V1MatrixKind.iteration_values())
+        )
+        for run_id in cls._claim_runs("before start", queryset, last_date, limit):
+            cls._reconcile_call(
+                workers.send,
+                SchedulerCeleryTasks.RUNS_START,
+                kwargs={"run_id": run_id},
+            )
+
+    @classmethod
+    def _reconcile_pipelines(cls, runs: QuerySet, last_date: datetime, limit: int):
+        children = Models.Run.objects.filter(pipeline_id=OuterRef("id"))
+        queryset = (
+            runs.filter(
+                status=V1Statuses.RUNNING,
+                kind__in=[V1RunKind.DAG, V1RunKind.MATRIX],
+            )
+            # Closing an iterative matrix creates a tuner
+            .exclude(kind=V1RunKind.MATRIX, runtime__in=V1MatrixKind.iteration_values())
+            .annotate(
+                has_children=Exists(children),
+                # Not done, or done too recently for its check to be lost
+                has_open_child=Exists(
+                    children.filter(
+                        ~Q(status__in=LifeCycle.DONE_VALUES)
+                        | Q(updated_at__gt=last_date)
+                    )
+                ),
+            )
+            .filter(has_children=True, has_open_child=False)
+        )
+        for run_id in cls._claim_runs(
+            "before pipeline check", queryset, last_date, limit
+        ):
+            cls._reconcile_call(
+                workers.send,
+                SchedulerCeleryTasks.RUNS_CHECK_PIPELINE,
+                kwargs={"run_id": run_id},
+            )
+
+    @classmethod
+    def _reconcile_builds(cls, runs: QuerySet, last_date: datetime, limit: int):
+        done_builds = Models.RunEdge.objects.filter(
+            kind=V1RunEdgeKind.BUILD,
+            upstream__runtime=V1RunKind.BUILDER,
+            upstream__status__in=LifeCycle.DONE_VALUES,
+            upstream__updated_at__lte=last_date,
+        )
+        queryset = (
+            runs.filter(pending=V1RunPending.BUILD)
+            .exclude(status__in=LifeCycle.DONE_VALUES)
+            .filter(Exists(done_builds.filter(downstream_id=OuterRef("id"))))
+        )
+        run_ids = cls._claim_runs(
+            "before build notification", queryset, last_date, limit
+        )
+        builder_ids = set(
+            done_builds.filter(downstream_id__in=run_ids).values_list(
+                "upstream_id", flat=True
+            )
+        )
+        for builder in Models.Run.all.filter(id__in=builder_ids):
+            cls._reconcile_call(cls._notify_build, builder)
+
+    @classmethod
+    def _reconcile_caches(cls, runs: QuerySet, last_date: datetime, limit: int):
+        queryset = runs.filter(
+            cloning_kind=V1CloningKind.CACHE,
+            pending=V1RunPending.CACHE,
+            original__status__in=LifeCycle.DONE_VALUES,
+            original__updated_at__lte=last_date,
+        ).exclude(
+            # A clone stopped while waiting keeps `pending=cache`
+            status__in=LifeCycle.DONE_VALUES
+        )
+        run_ids = cls._claim_runs(
+            "before cache notification", queryset, last_date, limit
+        )
+        original_ids = set(
+            Models.Run.objects.filter(id__in=run_ids).values_list(
+                "original_id", flat=True
+            )
+        )
+        for original in Models.Run.all.filter(id__in=original_ids):
+            cls._reconcile_call(cls._notify_cache, original)
 
     @staticmethod
     def delete_in_progress_project(project_id: int):

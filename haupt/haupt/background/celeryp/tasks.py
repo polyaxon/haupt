@@ -50,3 +50,4 @@ class CronsCeleryTasks:
     HEARTBEAT_STOPPING_RUNS = "heartbeat_stopping_runs"
     HEARTBEAT_OUT_OF_SYNC = "heartbeat_out_of_sync"
     HEARTBEAT_PROJECT_LAST_UPDATED = "heartbeat_project_last_updated"
+    RECONCILE_RUNS = "reconcile_runs"
