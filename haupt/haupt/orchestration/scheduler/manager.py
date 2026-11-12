@@ -1484,8 +1484,13 @@ class SchedulingManager:
         ).exists():
             run.confirm_delete()
 
+    @staticmethod
+    def reconcile_runs(minutes: int = 5, limit: int = 100):
+        # Beat task, Celery checks a classmethod's arguments as if `cls` was required
+        SchedulingManager._reconcile_runs(minutes, limit)
+
     @classmethod
-    def reconcile_runs(cls, minutes: int = 5, limit: int = 100):
+    def _reconcile_runs(cls, minutes: int, limit: int):
         # Recover runs whose next step was lost (broker down, worker died),
         # each check only matches a state that a lost step explains
         last_date = get_datetime_from_now(days=0, minutes=minutes)
