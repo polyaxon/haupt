@@ -56,7 +56,16 @@ class ProjectCreateView(BaseEndpoint, CreateAPIView):
     ALLOWED_METHODS = ["POST"]
 
 
-ADDITIONAL_ONLY_FIELD = ["is_public"] if settings.HAS_ORG_MANAGEMENT else []
+ADDITIONAL_ONLY_FIELD = (
+    [
+        "is_public",
+        "excluded_runtimes",
+        "excluded_features",
+        "archived_deletion_interval",
+    ]
+    if settings.HAS_ORG_MANAGEMENT
+    else []
+)
 
 
 class ProjectsListMixinView(BookmarkedListMixinView):
