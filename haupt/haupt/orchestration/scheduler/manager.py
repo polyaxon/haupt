@@ -562,13 +562,9 @@ class SchedulingManager:
         return False, False
 
     @staticmethod
-    def _trigger_event_downstream(queryset: QuerySet):
-        for down_run in queryset:
-            workers.send(
-                SchedulerCeleryTasks.RUNS_PREPARE,
-                kwargs={"run_id": down_run},
-                eager_kwargs={"run": down_run},
-            )
+    def _trigger_event_downstream(run_ids: List[int]):
+        for run_id in run_ids:
+            workers.send(SchedulerCeleryTasks.RUNS_PREPARE, kwargs={"run_id": run_id})
 
     @classmethod
     def _trigger_downstream(cls, queryset: QuerySet, is_skipped: bool = False):
@@ -1308,13 +1304,18 @@ class SchedulingManager:
         if run.pipeline_id is None:
             return
 
-        # Queue more runs for the pipeline
-        downstream_query = run.downstream_edges.filter(
+        # Queue the downstream runs waiting on this status
+        downstream_edges = run.downstream_edges.filter(
             downstream__status=V1Statuses.CREATED,
-            statuses__contains=[run.status],
-            pending=None,
-        ).values_list("downstream__id", flat=True)
-        cls._trigger_event_downstream(downstream_query)
+            downstream__pending=None,
+        ).values_list("downstream_id", "statuses")
+        # SQLite stores `statuses` as JSON, which has no `contains` lookup
+        downstream_ids = [
+            downstream_id
+            for downstream_id, statuses in downstream_edges
+            if statuses and run.status in statuses
+        ]
+        cls._trigger_event_downstream(downstream_ids)
 
     @classmethod
     def runs_notify_done(cls, run_id: int, run: Optional[Models.Run] = None):
