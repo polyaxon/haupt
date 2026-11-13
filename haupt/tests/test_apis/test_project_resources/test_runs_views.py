@@ -2729,6 +2729,41 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert last_run.pending == V1RunPending.UPLOAD
         assert last_run.meta_info == {"test": "works"}
 
+    @patch.multiple(
+        "clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"]
+    )
+    def test_create_generates_missing_name(self):
+        op = {
+            "version": 1.1,
+            "kind": "operation",
+            "component": {
+                "run": {"kind": V1RunKind.JOB, "container": {"image": "test"}}
+            },
+        }
+        unnamed_content = orjson_dumps(op)
+        named_content = orjson_dumps({**op, "name": "foo"})
+
+        for data in [
+            {"managed_by": ManagedBy.USER},
+            {"managed_by": ManagedBy.USER, "name": None},
+            {"managed_by": ManagedBy.USER, "name": ""},
+            {"content": unnamed_content},
+        ]:
+            resp = self.client.post(self.url, data)
+            assert resp.status_code == status.HTTP_201_CREATED
+            assert resp.data["name"] == "curious-otter"
+        runs = Run.objects.filter(name="curious-otter")
+        assert len({r.uuid for r in runs}) == 4
+
+        for data, name in [
+            ({"managed_by": ManagedBy.USER, "name": "baseline"}, "baseline"),
+            ({"content": named_content}, "foo"),
+            ({"content": named_content, "name": "baseline"}, "baseline"),
+        ]:
+            resp = self.client.post(self.url, data)
+            assert resp.status_code == status.HTTP_201_CREATED
+            assert resp.data["name"] == name
+
     def test_create_legacy_component_operation_through_prepare(self):
         content = {
             "version": 1.1,
@@ -3035,6 +3070,25 @@ class TestProjectRunsSyncViewV1(BaseTest):
             result_data.pop("finished_at")
         ) == datetime_deserialize(data.pop("finished_at"))
         assert xp.project == self.project
+
+    @patch.multiple(
+        "clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"]
+    )
+    def test_sync_generates_missing_name(self):
+        data = {
+            "uuid": uuid.uuid4().hex,
+            "created_at": "2021-01-03T22:43:38.986013+00:00",
+            "kind": V1RunKind.JOB,
+            "managed_by": ManagedBy.USER,
+        }
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert Run.objects.get(uuid=data["uuid"]).name == "curious-otter"
+
+        data = {**data, "uuid": uuid.uuid4().hex, "name": "baseline"}
+        resp = self.client.post(self.url, data)
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert Run.objects.get(uuid=data["uuid"]).name == "baseline"
 
     def test_sync_with_invalid_config(self):
         data = {"content": "bar"}

@@ -3,6 +3,7 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 from django.conf import settings
 from django.db.models import Count, Q
 
+from clipped.utils.names import generate_name
 from haupt.common.authentication.base import is_normal_user
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
@@ -47,7 +48,7 @@ def create_run(
     instance = Models.Run.objects.create(
         project_id=project_id,
         user_id=user_id,
-        name=name,
+        name=name or generate_name(),
         description=description,
         readme=readme,
         tags=tags,

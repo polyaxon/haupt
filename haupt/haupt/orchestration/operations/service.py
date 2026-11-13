@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 from clipped.utils.enums import get_enum_value
 from clipped.utils.lists import to_list
+from clipped.utils.names import generate_name
 from haupt.common.service_interface import Service
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
@@ -322,6 +323,7 @@ class OperationsService(Service):
         supported_kinds: Set[str] = None,
         dag_run: Optional[BaseRun] = None,
         dag_spec: Optional[V1CompiledOperation] = None,
+        auto_name: bool = True,
         **kwargs,
     ) -> OperationInitSpec:
         is_dag_node = dag_run is not None
@@ -393,6 +395,8 @@ class OperationsService(Service):
                 kind, runtime, supported_kinds, ManagedBy.is_managed(managed_by)
             )
             kwargs["content"] = compiled_operation.to_json()
+        if not name and auto_name:
+            name = generate_name()
         instance = Models.Run(
             project_id=project_id,
             user_id=user_id,
@@ -502,6 +506,7 @@ class OperationsService(Service):
             supported_kinds=supported_kinds,
             cloning_kind=V1CloningKind.RESTART,  # To clean the build if any
             use_override_patch_strategy=True,
+            auto_name=False,
             **kwargs,
         ).instance
 

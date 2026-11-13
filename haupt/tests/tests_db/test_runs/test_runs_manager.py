@@ -44,6 +44,32 @@ class TestRunManager(TestCase):
         assert run.cloning_kind is None
         assert run.original is None
 
+    @patch.multiple(
+        "clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"]
+    )
+    @patch("haupt.common.auditor.record")
+    def test_unnamed_legacy_run_clone_and_resume(self, auditor_record):
+        values = get_fxt_job_with_inputs()
+        values.pop("name")
+        values["component"].pop("name")
+        run = operations.init_and_save_run(
+            project_id=self.project.id,
+            op_spec=OperationSpecification.read(values=values),
+            user_id=self.user.id,
+        )
+        assert run.name == "curious-otter"
+        # Runs created before name generation have no name
+        run.name = None
+        run.save(update_fields=["name"])
+
+        for clone in [operations.copy_run(run=run), operations.restart_run(run=run)]:
+            assert clone.name == "curious-otter"
+            clone.refresh_from_db()
+            assert clone.name == "curious-otter"
+        assert operations.resume_run(run=run).name is None
+        run.refresh_from_db()
+        assert run.name is None
+
     @patch("haupt.common.auditor.record")
     def test_copy_run(self, auditor_record):
         run = operations.copy_run(run=self.run)

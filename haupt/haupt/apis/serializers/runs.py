@@ -5,6 +5,7 @@ from rest_framework import fields, serializers
 from rest_framework.exceptions import ValidationError
 
 from clipped.compact.pydantic import ValidationError as PydanticValidationError
+from clipped.utils.names import generate_name
 from haupt.apis.serializers.base.bookmarks_mixin import BookmarkedSerializerMixin
 from haupt.apis.serializers.base.cloning import CloningMixin
 from haupt.apis.serializers.base.is_managed import IsManagedMixin
@@ -361,6 +362,7 @@ class OfflineRunSerializer(
         return attrs
 
     def create(self, validated_data, commit: bool = True):
+        validated_data["name"] = validated_data.get("name") or generate_name()
         try:
             obj = super().create(validated_data)
         except IntegrityError:
