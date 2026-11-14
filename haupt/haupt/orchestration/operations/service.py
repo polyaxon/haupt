@@ -26,9 +26,11 @@ from polyaxon._contexts import (
     refs as ctx_refs,
     sections as ctx_sections,
 )
+from polyaxon._contexts.params import is_template_ref
 from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._polyaxonfile import OperationSpecification
 from polyaxon._polyaxonfile.specs import compose_polyaxonfile, read_polyaxonfile
+from polyaxon._polyaxonfile.specs.libs.engine import render_name_template
 from polyaxon._schemas.types import V1ArtifactsType
 from polyaxon._utils.fqn_utils import get_project_instance, get_run_instance
 from polyaxon.exceptions import PolyaxonSchemaError
@@ -302,6 +304,28 @@ class OperationsService(Service):
             kind=V1RunEdgeKind.BUILD,
         ).save()
 
+    @staticmethod
+    def _render_name(compiled_operation: V1CompiledOperation, params: Dict) -> str:
+        param_specs = compiled_operation.validate_params(
+            params=params, parse_values=True
+        )
+        available = set(params) | {i.name for i in compiled_operation.inputs or []}
+        context = {
+            spec.name: spec.param.value
+            for spec in param_specs
+            if spec.name in available
+            and spec.param.is_literal
+            and spec.param.value is not None
+            and not spec.param.is_template_ref
+        }
+        try:
+            return render_name_template(compiled_operation.name, context)
+        except PolyaxonSchemaError as e:
+            raise PolyaxonSchemaError(
+                f"{e.message} Run names can use literal params and input defaults; "
+                "reference and matrix values are unavailable."
+            )
+
     def init_run(
         self,
         project_id: int,
@@ -382,6 +406,9 @@ class OperationsService(Service):
 
             if pending is None and compiled_operation.is_approved is False:
                 pending = V1RunPending.APPROVAL
+            if is_template_ref(compiled_operation.name):
+                name = name or self._render_name(compiled_operation, params)
+                compiled_operation.name = name
             name = name or compiled_operation.name
             description = description or compiled_operation.description
             tags = tags or compiled_operation.tags

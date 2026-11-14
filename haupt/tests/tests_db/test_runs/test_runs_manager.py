@@ -16,6 +16,15 @@ from polyaxon._utils.fixtures import get_fxt_job_with_inputs
 from polyaxon.schemas import V1CloningKind, V1CompiledOperation, V1Statuses
 
 
+def get_templated_job(name):
+    values = get_fxt_job_with_inputs()
+    values["name"] = name
+    values["component"]["inputs"].append(
+        {"name": "lr", "type": "float", "value": 0.01, "isOptional": True}
+    )
+    return values
+
+
 class TestRunManager(TestCase):
     def setUp(self):
         super().setUp()
@@ -69,6 +78,48 @@ class TestRunManager(TestCase):
         assert operations.resume_run(run=run).name is None
         run.refresh_from_db()
         assert run.name is None
+
+    @patch("haupt.common.auditor.record")
+    def test_name_template_rendered_at_creation(self, auditor_record):
+        for spec_name, name, expected in [
+            ("train-{{ image }}-{{ lr }}", None, "train-foo_bar-0_01"),
+            ("train-{{ nope }}", "baseline", "baseline"),
+        ]:
+            run = operations.init_and_save_run(
+                project_id=self.project.id,
+                op_spec=OperationSpecification.read(
+                    values=get_templated_job(spec_name)
+                ),
+                user_id=self.user.id,
+                name=name,
+            )
+            run.refresh_from_db()
+            assert run.name == expected
+            assert V1CompiledOperation.read(run.content).name == expected
+            assert spec_name in run.raw_content
+
+    @patch("haupt.common.auditor.record")
+    def test_name_template_kept_on_copy_restart_resume(self, auditor_record):
+        run = operations.init_and_save_run(
+            project_id=self.project.id,
+            op_spec=OperationSpecification.read(
+                values=get_templated_job("train-{{ image }}-{{ lr }}")
+            ),
+            user_id=self.user.id,
+        )
+        restarted = operations.restart_run(
+            run=run, content={"params": {"image": {"value": "foo/baz"}}}
+        )
+        assert restarted.params["image"]["value"] == "foo/baz"
+
+        for clone in [
+            operations.copy_run(run=run),
+            restarted,
+            operations.resume_run(run=run),
+        ]:
+            clone.refresh_from_db()
+            assert clone.name == "train-foo_bar-0_01"
+            assert V1CompiledOperation.read(clone.content).name == clone.name
 
     @patch("haupt.common.auditor.record")
     def test_copy_run(self, auditor_record):

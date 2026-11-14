@@ -2764,6 +2764,93 @@ class TestProjectRunsCreateViewV1(BaseTest):
             assert resp.status_code == status.HTTP_201_CREATED
             assert resp.data["name"] == name
 
+    @staticmethod
+    def get_templated_content(name, op=None, component=None):
+        return orjson_dumps(
+            {
+                "version": 1.1,
+                "kind": "operation",
+                "name": name,
+                **(op or {}),
+                "component": {
+                    "run": {"kind": V1RunKind.JOB, "container": {"image": "test"}},
+                    **(component or {}),
+                },
+            }
+        )
+
+    def test_create_renders_name_template(self):
+        content = self.get_templated_content(
+            "run-{{ tag }}-{{ lr }}",
+            op={"params": {"tag": {"value": "v1"}, "lr": {"value": 0.01}}},
+            component={"inputs": [{"name": "lr", "type": "float"}]},
+        )
+        resp = self.client.post(self.url, {"content": content})
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert resp.data["name"] == "run-v1-0_01"
+
+    def test_create_rejects_unrenderable_name_template(self):
+        upstream = RunFactory(project=self.project, user=self.user)
+        lr_input = {"name": "lr", "type": "float", "value": 0.01, "isOptional": True}
+        uuids_input = {
+            "name": "uuids",
+            "type": "str",
+            "isList": True,
+            "value": ["a"],
+            "isOptional": True,
+        }
+        loss_output = {
+            "name": "loss",
+            "type": "float",
+            "value": 0.5,
+            "isOptional": True,
+        }
+        lr_ref = {"ref": f"runs.{upstream.uuid.hex}", "value": "outputs.lr"}
+        uuids_join = {
+            "query": "status:succeeded",
+            "params": {"uuids": {"value": "globals.uuid"}},
+        }
+        for name, op, component, message in [
+            ("x-{{ nope }}", {}, {}, "unavailable variables: nope"),
+            ("x-{{ nope | default('x') }}", {}, {}, "unavailable variables: nope"),
+            (
+                "x-{{ lr }}",
+                {"params": {"lr": lr_ref}},
+                {"inputs": [lr_input]},
+                "unavailable variables: lr",
+            ),
+            (
+                "x-{{ uuids }}",
+                {"joins": [uuids_join]},
+                {"inputs": [uuids_input]},
+                "unavailable variables: uuids",
+            ),
+            (
+                "x-{{ tag }}",
+                {"params": {"tag": {"value": "{{ globals.uuid }}"}}},
+                {},
+                "unavailable variables: tag",
+            ),
+            (
+                "x-{{ loss }}",
+                {},
+                {"outputs": [loss_output]},
+                "unavailable variables: loss",
+            ),
+            ("{{ tag }}", {"params": {"tag": {"value": "/"}}}, {}, "empty run name"),
+            (
+                "{{ tag }}",
+                {"params": {"tag": {"value": "a" * 129}}},
+                {},
+                "longer than 128 characters",
+            ),
+        ]:
+            with self.subTest(name=name, message=message):
+                content = self.get_templated_content(name, op=op, component=component)
+                resp = self.client.post(self.url, {"content": content})
+                assert resp.status_code == status.HTTP_400_BAD_REQUEST
+                assert message in str(resp.data)
+
     def test_create_legacy_component_operation_through_prepare(self):
         content = {
             "version": 1.1,
