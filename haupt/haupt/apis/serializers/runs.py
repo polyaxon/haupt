@@ -450,7 +450,8 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
                 "Managed runs require a content with valid specification"
             )
 
-        project_id = validated_data["project"].id
+        project = validated_data["project"]
+        project_id = project.id
         user = validated_data.get("user")
         name = validated_data.get("name")
         description = validated_data.get("description")
@@ -467,6 +468,10 @@ class OperationCreateSerializer(serializers.ModelSerializer, IsManagedMixin, Tag
                 return operations.init_and_save_run(
                     project_id=project_id,
                     user_id=user.id if user else None,
+                    owner_name=project.owner.name,
+                    project_name=project.name,
+                    project_uuid=project.uuid.hex,
+                    username=user.username if user else None,
                     op_spec=content,
                     name=name,
                     description=description,

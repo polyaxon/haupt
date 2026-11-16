@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -13,6 +14,7 @@ from polyaxon._polyaxonfile import (
     OperationSpecification,
 )
 from polyaxon._utils.fixtures import get_fxt_job_with_inputs
+from polyaxon.exceptions import PolyaxonSchemaError
 from polyaxon.schemas import V1CloningKind, V1CompiledOperation, V1Statuses
 
 
@@ -120,6 +122,61 @@ class TestRunManager(TestCase):
             clone.refresh_from_db()
             assert clone.name == "train-foo_bar-0_01"
             assert V1CompiledOperation.read(clone.content).name == clone.name
+
+    @patch("haupt.common.auditor.record")
+    def test_name_template_renders_globals(self, auditor_record):
+        def create(spec_name, **kwargs):
+            run = operations.init_and_save_run(
+                project_id=self.project.id,
+                op_spec=OperationSpecification.read(
+                    values=get_templated_job(spec_name)
+                ),
+                user_id=self.user.id,
+                **kwargs,
+            )
+            run.refresh_from_db()
+            assert V1CompiledOperation.read(run.content).name == run.name
+            return run
+
+        owner, project = self.project.owner.name, self.project.name
+        run = create(
+            "{{ globals.owner_name }}-{{ globals.project_name }}-{{ lr }}"
+            "-{{ globals.project_unique_name }}-{{ globals.project_uuid }}"
+        )
+        assert run.name == (
+            f"{owner}-{project}-0_01-{owner}_{project}-{self.project.uuid.hex}"
+        )
+
+        # Details passed by the caller are used as given, without a project query
+        run = create(
+            "{{ globals.owner_name }}-{{ globals.project_name }}"
+            "-{{ globals.project_uuid }}-{{ globals.username }}",
+            owner_name="acme",
+            project_name="vision",
+            project_uuid="abc",
+            username="jane",
+        )
+        assert run.name == "acme-vision-abc-jane"
+
+        run = create("{{ globals.uuid }}-{{ globals.run_info }}")
+        assert run.name == f"{run.uuid.hex}-{owner}_{project}_runs_{run.uuid.hex}"
+        # Clones keep the name, with the original's uuid
+        assert operations.restart_run(run=run).name == run.name
+
+        created_at = datetime(2026, 1, 2, tzinfo=timezone.utc)
+        with patch(
+            "haupt.orchestration.operations.service.now", return_value=created_at
+        ):
+            run = create("d{{ globals.created_at.strftime('%Y%m%d') }}")
+        assert run.name == "d20260102"
+
+        # Globals without a value at creation behave like a missing key
+        assert create("u-{{ globals.username | default('none') }}").name == "u-none"
+        for key in ["username", "user_email", "name", "namespace", "iteration"]:
+            with self.assertRaisesRegex(
+                PolyaxonSchemaError, f"has no attribute '{key}'.*Run names can use"
+            ):
+                create("x-{{ globals.%s }}" % key)
 
     @patch("haupt.common.auditor.record")
     def test_copy_run(self, auditor_record):

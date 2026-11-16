@@ -2796,6 +2796,14 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert resp.status_code == status.HTTP_201_CREATED
         assert resp.data["name"] == "a" * 126 + "--"
 
+        content = self.get_templated_content(
+            "{{ globals.project_name }}-{{ globals.uuid }}-{{ lr }}",
+            op={"params": {"lr": {"value": 0.01}}},
+        )
+        resp = self.client.post(self.url, {"content": content})
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert resp.data["name"] == f"{self.project.name}-{resp.data['uuid']}-0_01"
+
     def test_create_rejects_unrenderable_name_template(self):
         upstream = RunFactory(project=self.project, user=self.user)
         lr_input = {"name": "lr", "type": "float", "value": 0.01, "isOptional": True}
@@ -2845,6 +2853,10 @@ class TestProjectRunsCreateViewV1(BaseTest):
                 "unavailable variables: loss",
             ),
             ("{{ tag }}", {"params": {"tag": {"value": "/"}}}, {}, "empty run name"),
+            ("x-{{ globals.namespace }}", {}, {}, "no attribute 'namespace'"),
+            ("x-{{ globals.name }}", {}, {}, "no attribute 'name'"),
+            ("x-{{ globals.user_email }}", {}, {}, "no attribute 'user_email'"),
+            ("x-{{ globals.username }}", {}, {}, "no attribute 'username'"),
         ]:
             with self.subTest(name=name, message=message):
                 content = self.get_templated_content(name, op=op, component=component)

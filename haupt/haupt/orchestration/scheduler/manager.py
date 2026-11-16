@@ -234,6 +234,7 @@ class SchedulingManager:
             return run_edges
 
         runs = []
+        project = run.project
         for hook in hook_ops:
             component_state = None
             if (
@@ -250,8 +251,11 @@ class SchedulingManager:
             hook_run = operations.init_run(
                 project_id=run.project_id,
                 user_id=run.user_id,
+                owner_name=project.owner.name,
+                project_name=project.name,
+                project_uuid=project.uuid.hex,
                 op_spec=hook,
-                supported_owners={run.project.owner.name},
+                supported_owners={project.owner.name},
                 component_state=component_state,
             ).instance
             hook_run.meta_info[META_IS_HOOK] = True
@@ -754,6 +758,9 @@ class SchedulingManager:
                 tuner = operations.init_run(
                     project_id=run.project_id,
                     user_id=run.user_id,
+                    owner_name=run.project.owner.name,
+                    project_name=run.project.name,
+                    project_uuid=run.project.uuid.hex,
                     pipeline_id=run.id,
                     op_spec=op,
                     controller_id=run.controller_id or run.id,

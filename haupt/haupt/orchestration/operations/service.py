@@ -1,5 +1,9 @@
 from collections import namedtuple
 from typing import Dict, List, Optional, Set, Tuple, Union
+import uuid
+
+from django.conf import settings
+from django.utils.timezone import now
 
 from clipped.utils.enums import get_enum_value
 from clipped.utils.lists import to_list
@@ -8,6 +12,7 @@ from haupt.common.service_interface import Service
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
 from haupt.db.managers.statuses import new_run_status
+from polyaxon._compiler.contexts import resolve_globals_contexts
 from polyaxon._constants.metadata import (
     META_COPY_ARTIFACTS,
     META_DESTINATION_IMAGE,
@@ -304,8 +309,51 @@ class OperationsService(Service):
             kind=V1RunEdgeKind.BUILD,
         ).save()
 
+    @classmethod
+    def _get_name_globals(
+        cls,
+        project_id: int,
+        user_id: Optional[int],
+        run_uuid: uuid.UUID,
+        owner_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+        project_uuid: Optional[str] = None,
+        username: Optional[str] = None,
+    ) -> Dict:
+        """Globals for a run name; values that are not set at creation are left out."""
+        if not (owner_name and project_name and project_uuid):
+            projects, fields = Models.Project.objects, ["name", "uuid"]
+            if settings.HAS_ORG_MANAGEMENT:
+                projects = projects.select_related("owner")
+                fields.append("owner__name")
+            project = projects.only(*fields).get(id=project_id)
+            owner_name = project.owner.name
+            project_name = project.name
+            project_uuid = project.uuid.hex
+        run_uuid = run_uuid.hex
+        contexts = resolve_globals_contexts(
+            namespace=None,
+            owner_name=owner_name,
+            project_name=project_name,
+            project_uuid=project_uuid,
+            run_uuid=run_uuid,
+            run_name=None,
+            run_path=run_uuid,
+            iteration=None,
+            created_at=now(),
+            compiled_at=None,
+            username=username,
+        )
+        return {
+            k: v for k, v in contexts[ctx_sections.GLOBALS].items() if v is not None
+        }
+
     @staticmethod
-    def _render_name(compiled_operation: V1CompiledOperation, params: Dict) -> str:
+    def _render_name(
+        compiled_operation: V1CompiledOperation,
+        params: Dict,
+        name_globals: Optional[Dict] = None,
+    ) -> str:
         param_specs = compiled_operation.validate_params(
             params=params, parse_values=True
         )
@@ -318,11 +366,14 @@ class OperationsService(Service):
             and spec.param.value is not None
             and not spec.param.is_template_ref
         }
+        if name_globals:
+            context[ctx_sections.GLOBALS] = name_globals
         try:
             return render_name_template(compiled_operation.name, context)
         except PolyaxonSchemaError as e:
             raise PolyaxonSchemaError(
-                f"{e.message} Run names can use literal params and input defaults; "
+                f"{e.message} Run names can use literal params, input defaults and "
+                "globals that are set when the run is created; "
                 "reference and matrix values are unavailable."
             )
 
@@ -330,6 +381,10 @@ class OperationsService(Service):
         self,
         project_id: int,
         user_id: int,
+        owner_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+        project_uuid: Optional[str] = None,
+        username: Optional[str] = None,
         op_spec: Optional[Union[str, Dict, V1Polyaxonfile]] = None,
         compiled_operation: V1CompiledOperation = None,
         name: Optional[str] = None,
@@ -407,7 +462,21 @@ class OperationsService(Service):
             if pending is None and compiled_operation.is_approved is False:
                 pending = V1RunPending.APPROVAL
             if is_template_ref(compiled_operation.name):
-                name = name or self._render_name(compiled_operation, params)
+                if not name:
+                    name_globals = None
+                    if ctx_sections.GLOBALS in compiled_operation.name:
+                        # The name and the run must share the uuid
+                        kwargs["uuid"] = uuid.uuid4()
+                        name_globals = self._get_name_globals(
+                            project_id,
+                            user_id,
+                            kwargs["uuid"],
+                            owner_name=owner_name,
+                            project_name=project_name,
+                            project_uuid=project_uuid,
+                            username=username,
+                        )
+                    name = self._render_name(compiled_operation, params, name_globals)
                 compiled_operation.name = name
             name = name or compiled_operation.name
             description = description or compiled_operation.description
@@ -456,6 +525,10 @@ class OperationsService(Service):
         self,
         project_id: int,
         user_id: int,
+        owner_name: Optional[str] = None,
+        project_name: Optional[str] = None,
+        project_uuid: Optional[str] = None,
+        username: Optional[str] = None,
         op_spec: Optional[Union[str, Dict, V1Polyaxonfile]] = None,
         compiled_operation: V1CompiledOperation = None,
         name: Optional[str] = None,
@@ -475,6 +548,10 @@ class OperationsService(Service):
         run_init_spec = self.init_run(
             project_id=project_id,
             user_id=user_id,
+            owner_name=owner_name,
+            project_name=project_name,
+            project_uuid=project_uuid,
+            username=username,
             name=name,
             description=description,
             op_spec=op_spec,
