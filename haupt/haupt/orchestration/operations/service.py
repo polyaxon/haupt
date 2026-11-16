@@ -1,4 +1,5 @@
 from collections import namedtuple
+from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple, Union
 import uuid
 
@@ -35,7 +36,10 @@ from polyaxon._contexts.params import is_template_ref
 from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._polyaxonfile import OperationSpecification
 from polyaxon._polyaxonfile.specs import compose_polyaxonfile, read_polyaxonfile
-from polyaxon._polyaxonfile.specs.libs.engine import render_name_template
+from polyaxon._polyaxonfile.specs.libs.engine import (
+    render_name_suffix,
+    render_name_template,
+)
 from polyaxon._schemas.types import V1ArtifactsType
 from polyaxon._utils.fqn_utils import get_project_instance, get_run_instance
 from polyaxon.exceptions import PolyaxonSchemaError
@@ -320,6 +324,8 @@ class OperationsService(Service):
         project_uuid: Optional[str] = None,
         username: Optional[str] = None,
         is_independent: bool = True,
+        iteration: Optional[int] = None,
+        created_at: Optional[datetime] = None,
     ) -> Dict:
         """Globals for a run name; values that are not set at creation are left out."""
         if not (owner_name and project_name and project_uuid):
@@ -340,8 +346,8 @@ class OperationsService(Service):
             run_uuid=run_uuid,
             run_name=None,
             run_path=run_uuid,
-            iteration=None,
-            created_at=now(),
+            iteration=iteration,
+            created_at=created_at or now(),
             compiled_at=None,
             is_independent=is_independent,
             username=username,
@@ -351,11 +357,11 @@ class OperationsService(Service):
         }
 
     @staticmethod
-    def _render_name(
+    def _get_name_context(
         compiled_operation: V1CompiledOperation,
         params: Dict,
         name_globals: Optional[Dict] = None,
-    ) -> str:
+    ) -> Dict:
         param_specs = compiled_operation.validate_params(
             params=params, parse_values=True
         )
@@ -370,8 +376,12 @@ class OperationsService(Service):
         }
         if name_globals:
             context[ctx_sections.GLOBALS] = name_globals
+        return context
+
+    @staticmethod
+    def _render_name(template: str, context: Dict) -> str:
         try:
-            return render_name_template(compiled_operation.name, context)
+            return render_name_template(template, context)
         except PolyaxonSchemaError as e:
             raise PolyaxonSchemaError(
                 f"{e.message} Run names can use literal params, input defaults and "
@@ -388,6 +398,8 @@ class OperationsService(Service):
         project_uuid: Optional[str] = None,
         username: Optional[str] = None,
         run_uuid: Optional[uuid.UUID] = None,
+        created_at: Optional[datetime] = None,
+        name_suffix: Optional[str] = None,
         op_spec: Optional[Union[str, Dict, V1Polyaxonfile]] = None,
         compiled_operation: V1CompiledOperation = None,
         name: Optional[str] = None,
@@ -464,23 +476,41 @@ class OperationsService(Service):
 
             if pending is None and compiled_operation.is_approved is False:
                 pending = V1RunPending.APPROVAL
-            if is_template_ref(compiled_operation.name):
-                if not name:
-                    name_globals = None
-                    if ctx_sections.GLOBALS in compiled_operation.name:
-                        # The name and the run must share the uuid
-                        run_uuid = run_uuid or uuid.uuid4()
-                        name_globals = self._get_name_globals(
-                            project_id,
-                            user_id,
-                            run_uuid,
-                            owner_name=owner_name,
-                            project_name=project_name,
-                            project_uuid=project_uuid,
-                            username=username,
-                            is_independent=not bool(kwargs.get("pipeline_id")),
-                        )
-                    name = self._render_name(compiled_operation, params, name_globals)
+            has_name_template = is_template_ref(compiled_operation.name)
+            # An API name wins over the template
+            name_template = (
+                compiled_operation.name if has_name_template and not name else None
+            )
+            if name_template or name_suffix:
+                templates = f"{name_template or ''}{name_suffix or ''}"
+                name_globals, context = None, {}
+                if ctx_sections.GLOBALS in templates:
+                    # The name and the run must share the uuid
+                    run_uuid = run_uuid or uuid.uuid4()
+                    name_globals = self._get_name_globals(
+                        project_id,
+                        user_id,
+                        run_uuid,
+                        owner_name=owner_name,
+                        project_name=project_name,
+                        project_uuid=project_uuid,
+                        username=username,
+                        is_independent=not bool(kwargs.get("pipeline_id")),
+                        iteration=kwargs.get(META_ITERATION),
+                        created_at=created_at,
+                    )
+                if "{{" in templates or "{%" in templates:
+                    context = self._get_name_context(
+                        compiled_operation, params, name_globals
+                    )
+                if name_template:
+                    name = self._render_name(name_template, context)
+                if name_suffix:
+                    # The source is left as authored: it defines the component state
+                    name = render_name_suffix(
+                        name_suffix, context, name or compiled_operation.name
+                    )
+            if has_name_template or name_suffix:
                 compiled_operation.name = name
             name = name or compiled_operation.name
             description = description or compiled_operation.description
@@ -607,7 +637,10 @@ class OperationsService(Service):
         instance = self.init_run(
             project_id=run.project_id,
             user_id=user_id or run.user_id,
+            # A cleared name is rendered again with the run's own values
             run_uuid=run.uuid,
+            created_at=run.created_at,
+            pipeline_id=run.pipeline_id,
             name=name or run.name,
             description=description or run.description,
             readme=readme or run.readme,

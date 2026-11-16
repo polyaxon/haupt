@@ -162,11 +162,6 @@ class TestRunManager(TestCase):
         assert run.name == f"{run.uuid.hex}-{owner}_{project}_runs_{run.uuid.hex}"
         # Clones keep the name, with the original's uuid
         assert operations.restart_run(run=run).name == run.name
-        # A cleared name is rendered again on resume, with the run's own uuid
-        name = run.name
-        run.name = None
-        run.save(update_fields=["name"])
-        assert operations.resume_run(run=run).name == name
 
         # Same value as at compile time
         assert create("i-{{ globals.is_independent }}").name == "i-True"
@@ -178,7 +173,25 @@ class TestRunManager(TestCase):
             "haupt.orchestration.operations.service.now", return_value=created_at
         ):
             run = create("d{{ globals.created_at.strftime('%Y%m%d') }}")
+            child = create(
+                "{{ globals.uuid }}-{{ globals.created_at.strftime('%Y%m%d') }}"
+                "-{{ globals.is_independent }}",
+                pipeline_id=self.run.id,
+            )
         assert run.name == "d20260102"
+        name = f"{child.uuid.hex}-20260102-False"
+        assert child.name == name
+
+        # A cleared name is rendered again on resume, with the run's own uuid,
+        # creation time and pipeline, not the values at resume time
+        child.name = None
+        child.created_at = created_at
+        child.save(update_fields=["name", "created_at"])
+        with patch(
+            "haupt.orchestration.operations.service.now",
+            return_value=datetime(2026, 3, 4, tzinfo=timezone.utc),
+        ):
+            assert operations.resume_run(run=child).name == name
 
         # Globals without a value at creation behave like a missing key
         assert create("u-{{ globals.username | default('none') }}").name == "u-none"
@@ -187,6 +200,36 @@ class TestRunManager(TestCase):
                 PolyaxonSchemaError, f"has no attribute '{key}'.*Run names can use"
             ):
                 create("x-{{ globals.%s }}" % key)
+
+    @patch("haupt.common.auditor.record")
+    def test_name_suffix(self, auditor_record):
+        def create(spec_name, name_suffix, **kwargs):
+            run = operations.init_run(
+                project_id=self.project.id,
+                op_spec=OperationSpecification.read(
+                    values=get_templated_job(spec_name)
+                ),
+                user_id=self.user.id,
+                name_suffix=name_suffix,
+                **kwargs,
+            ).instance
+            assert V1CompiledOperation.read(run.content).name == run.name
+            return run
+
+        run = create("train", "{{ lr }}-i{{ globals.iteration }}", iteration=2)
+        assert run.name == "train-0_01-i2"
+        # The source is left as authored
+        assert OperationSpecification.read(run.raw_content).name == "train"
+
+        # The suffix follows a rendered or an API name
+        assert create("train-{{ image }}", "abc").name == "train-foo_bar-abc"
+        assert create("train-{{ nope }}", "abc", name="base").name == "base-abc"
+        for name_suffix in (None, ""):
+            assert create("train", name_suffix).name == "train"
+        with self.assertRaisesRegex(
+            PolyaxonSchemaError, "`matrix.nameSuffix` uses unavailable variables: nope"
+        ):
+            create("train", "{{ nope }}")
 
     @patch("haupt.common.auditor.record")
     def test_copy_run(self, auditor_record):

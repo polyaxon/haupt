@@ -1110,6 +1110,10 @@ class SchedulingResolver(resolver.BaseResolver):
             current_run.pending = V1RunPending.APPROVAL
 
     @classmethod
+    def _get_username(cls, run: BaseRun) -> Optional[str]:
+        return None
+
+    @classmethod
     def _get_runs_from_ops(
         cls,
         run: BaseRun,
@@ -1123,6 +1127,12 @@ class SchedulingResolver(resolver.BaseResolver):
             suggestions=suggestions,
         )
 
+        # Without a matrix, children keep the parent's name
+        name_suffix = getattr(compiled_operation.matrix, "name_suffix", "")
+        project = run.project
+        username = None
+        if name_suffix and ctx_sections.GLOBALS in name_suffix:
+            username = cls._get_username(run)
         date_now = now()
         meta_info = cls._pass_down_uploaded_artifacts(run=run)
         component_state = None
@@ -1136,7 +1146,13 @@ class SchedulingResolver(resolver.BaseResolver):
             op_run = operations.init_run(
                 project_id=run.project_id,
                 user_id=run.user_id,
+                owner_name=project.owner.name,
+                project_name=project.name,
+                project_uuid=project.uuid.hex,
+                username=username,
                 run_uuid=run_uuid,
+                # Trials get a short id unless the matrix sets a suffix
+                name_suffix=run_uuid.hex[:8] if name_suffix is None else name_suffix,
                 pipeline_id=run.id,
                 name=run.name,
                 description=run.description,
