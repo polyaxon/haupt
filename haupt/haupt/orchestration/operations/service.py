@@ -9,6 +9,7 @@ from django.utils.timezone import now
 from clipped.utils.enums import get_enum_value
 from clipped.utils.lists import to_list
 from clipped.utils.names import generate_name
+from clipped.utils.strings import is_template_ref
 from haupt.common.service_interface import Service
 from haupt.db.abstracts.runs import BaseRun
 from haupt.db.defs import Models
@@ -32,7 +33,6 @@ from polyaxon._contexts import (
     refs as ctx_refs,
     sections as ctx_sections,
 )
-from polyaxon._contexts.params import is_template_ref
 from polyaxon._flow.polyaxonfile import V1Polyaxonfile
 from polyaxon._polyaxonfile import OperationSpecification
 from polyaxon._polyaxonfile.specs import compose_polyaxonfile, read_polyaxonfile
