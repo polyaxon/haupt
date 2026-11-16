@@ -319,6 +319,7 @@ class OperationsService(Service):
         project_name: Optional[str] = None,
         project_uuid: Optional[str] = None,
         username: Optional[str] = None,
+        is_independent: bool = True,
     ) -> Dict:
         """Globals for a run name; values that are not set at creation are left out."""
         if not (owner_name and project_name and project_uuid):
@@ -342,6 +343,7 @@ class OperationsService(Service):
             iteration=None,
             created_at=now(),
             compiled_at=None,
+            is_independent=is_independent,
             username=username,
         )
         return {
@@ -385,6 +387,7 @@ class OperationsService(Service):
         project_name: Optional[str] = None,
         project_uuid: Optional[str] = None,
         username: Optional[str] = None,
+        run_uuid: Optional[uuid.UUID] = None,
         op_spec: Optional[Union[str, Dict, V1Polyaxonfile]] = None,
         compiled_operation: V1CompiledOperation = None,
         name: Optional[str] = None,
@@ -466,15 +469,16 @@ class OperationsService(Service):
                     name_globals = None
                     if ctx_sections.GLOBALS in compiled_operation.name:
                         # The name and the run must share the uuid
-                        kwargs["uuid"] = uuid.uuid4()
+                        run_uuid = run_uuid or uuid.uuid4()
                         name_globals = self._get_name_globals(
                             project_id,
                             user_id,
-                            kwargs["uuid"],
+                            run_uuid,
                             owner_name=owner_name,
                             project_name=project_name,
                             project_uuid=project_uuid,
                             username=username,
+                            is_independent=not bool(kwargs.get("pipeline_id")),
                         )
                     name = self._render_name(compiled_operation, params, name_globals)
                 compiled_operation.name = name
@@ -493,6 +497,8 @@ class OperationsService(Service):
             kwargs["content"] = compiled_operation.to_json()
         if not name and auto_name:
             name = generate_name()
+        if run_uuid:
+            kwargs["uuid"] = run_uuid
         instance = Models.Run(
             project_id=project_id,
             user_id=user_id,
@@ -601,6 +607,7 @@ class OperationsService(Service):
         instance = self.init_run(
             project_id=run.project_id,
             user_id=user_id or run.user_id,
+            run_uuid=run.uuid,
             name=name or run.name,
             description=description or run.description,
             readme=readme or run.readme,

@@ -162,6 +162,16 @@ class TestRunManager(TestCase):
         assert run.name == f"{run.uuid.hex}-{owner}_{project}_runs_{run.uuid.hex}"
         # Clones keep the name, with the original's uuid
         assert operations.restart_run(run=run).name == run.name
+        # A cleared name is rendered again on resume, with the run's own uuid
+        name = run.name
+        run.name = None
+        run.save(update_fields=["name"])
+        assert operations.resume_run(run=run).name == name
+
+        # Same value as at compile time
+        assert create("i-{{ globals.is_independent }}").name == "i-True"
+        run = create("i-{{ globals.is_independent }}", pipeline_id=self.run.id)
+        assert run.name == "i-False"
 
         created_at = datetime(2026, 1, 2, tzinfo=timezone.utc)
         with patch(

@@ -1132,9 +1132,11 @@ class SchedulingResolver(resolver.BaseResolver):
                 component_state = get_component_version_state(
                     op_spec.component or op_spec
                 )
+            run_uuid = uuid.uuid4()
             op_run = operations.init_run(
                 project_id=run.project_id,
                 user_id=run.user_id,
+                run_uuid=run_uuid,
                 pipeline_id=run.id,
                 name=run.name,
                 description=run.description,
@@ -1148,7 +1150,7 @@ class SchedulingResolver(resolver.BaseResolver):
                 component_state=component_state,
                 meta_info=meta_info,
             ).instance
-            op_run.uuid = uuid.uuid4().hex
+            op_run.uuid = run_uuid.hex
             # Add milliseconds based on position to preserve order
             op_run.created_at = date_now + timedelta(milliseconds=index)
             op_run.updated_at = date_now + timedelta(milliseconds=index)
