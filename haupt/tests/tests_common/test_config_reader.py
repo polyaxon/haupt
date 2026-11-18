@@ -130,3 +130,16 @@ class TestConfigReader(TestCase):
                 )
                 with self.assertRaises(ValidationError):
                     PlatformConfig.from_dict(config.data)
+
+    def test_get_throttle_rates(self):
+        config = ConfigReader.read_configs(
+            [
+                "./tests/tests_common/fixtures_static/configs/non_opt_config_tests.json",
+                {
+                    "POLYAXON_ENVIRONMENT": "testing",
+                    "POLYAXON_THROTTLE_RATES_RUN_CREATE": "600",
+                },
+            ]
+        )
+        config = PlatformConfig.from_dict(config.data)
+        assert config.rest_throttle_rates_run_create == 600

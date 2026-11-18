@@ -83,6 +83,7 @@ class RunDetailView(RunEndpoint, RetrieveEndpoint, DestroyEndpoint, UpdateEndpoi
 class RunCloneView(RunEndpoint, CreateEndpoint):
     serializer_class = RunSerializer
     ALLOWED_METHODS = ["POST"]
+    throttle_scope = "run-create"
     AUDIT_PROJECT_RESOURCES = True
     PROJECT_RESOURCE_KEY = RUN_UUID_KEY
     AUDIT_INSTANCE = True

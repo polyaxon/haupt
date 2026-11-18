@@ -255,6 +255,9 @@ class PlatformConfig(BaseSchemaModel):
     rest_throttle_rates_run: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_RUN", default=400
     )
+    rest_throttle_rates_run_create: Optional[int] = Field(
+        alias="POLYAXON_THROTTLE_RATES_RUN_CREATE", default=240
+    )
     rest_throttle_rates_anon: Optional[int] = Field(
         alias="POLYAXON_THROTTLE_RATES_ANON", default=20
     )

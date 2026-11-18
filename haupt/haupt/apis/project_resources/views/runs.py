@@ -175,6 +175,12 @@ class ProjectRunsListView(
         "POST": OperationCreateSerializer,
     }
 
+    @property
+    def throttle_scope(self):
+        if self.request.method == "POST":
+            return "run-create"
+        return super().throttle_scope
+
     def get_serializer_class(self):
         if self.request.method == "POST":
             return OperationCreateSerializer
