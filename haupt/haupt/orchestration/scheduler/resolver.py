@@ -44,6 +44,7 @@ from polyaxon._constants.metadata import (
     META_IS_EXTERNAL,
     META_PORTS,
     META_REWRITE_PATH,
+    META_SANDBOX,
     META_SSH,
     META_TMUX,
     META_TTL,
@@ -700,6 +701,12 @@ class SchedulingResolver(resolver.BaseResolver):
         # handle ssh plugin
         if self.compiled_operation.plugins and self.compiled_operation.plugins.ssh:
             self.run.meta_info[META_SSH] = True
+        # handle sandbox runtime, ssh also enables it
+        if self.compiled_operation.plugins and (
+            self.compiled_operation.plugins.sandbox
+            or self.compiled_operation.plugins.ssh
+        ):
+            self.run.meta_info[META_SANDBOX] = True
 
     def _persist_resources(self):
         if self.compiled_operation.has_pipeline:
