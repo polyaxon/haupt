@@ -288,6 +288,14 @@ class TestShortcutPolyaxonfileViews(BaseTest):
                 assert runtime.container.image == "busybox:1.36"
                 assert runtime.ports == [8080]
 
+        # Same-layer sandbox plugins also select a service.
+        source = {"container": container, "plugins": {"sandbox": True}}
+        response = self.client.post(self.url, {"content": orjson_dumps(source)})
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        run = Run.objects.get(uuid=response.data["uuid"])
+        assert run.kind == V1RunKind.SERVICE
+        assert self.prepare(run).kind == V1RunKind.SERVICE
+
     def test_dag_through_submit_and_restart(self):
         container = {"image": "busybox:1.36"}
         source = {
