@@ -819,6 +819,8 @@ class SchedulingResolver(resolver.BaseResolver):
             user_id=run.user_id,
         )
         topological_sort = run_config.sort_topologically()
+        project = run.project
+        username = cls._get_username(run)
         # We create ops for each stage
         runs_by_names = {}
         tags_by_names = {}
@@ -864,6 +866,10 @@ class SchedulingResolver(resolver.BaseResolver):
                 runs_by_names[op_name] = operations.init_run(
                     project_id=run.project_id,
                     user_id=run.user_id,
+                    owner_name=project.owner.name,
+                    project_name=project.name,
+                    project_uuid=project.uuid.hex,
+                    username=username,
                     pipeline_id=run.id,
                     op_spec=op_spec,
                     controller_id=run.controller_id or run.id,
@@ -910,9 +916,9 @@ class SchedulingResolver(resolver.BaseResolver):
         runs = Models.Run.objects.bulk_create(
             [runs_by_names[op_name].instance for op_name in runs_by_names]
         )
-        # Extend tuple by run ids
-        for pipeline_run in runs:
-            runs_by_names[pipeline_run.name] = runs_by_names[pipeline_run.name].update(
+        # Extend tuple by run ids; rendered run names can differ from node names
+        for op_name, pipeline_run in zip(runs_by_names, runs):
+            runs_by_names[op_name] = runs_by_names[op_name].update(
                 related_instance=pipeline_run.id,
             )
 
@@ -1130,9 +1136,7 @@ class SchedulingResolver(resolver.BaseResolver):
         # Without a matrix, children keep the parent's name
         name_suffix = getattr(compiled_operation.matrix, "name_suffix", "")
         project = run.project
-        username = None
-        if name_suffix and ctx_sections.GLOBALS in name_suffix:
-            username = cls._get_username(run)
+        username = cls._get_username(run)
         date_now = now()
         meta_info = cls._pass_down_uploaded_artifacts(run=run)
         component_state = None

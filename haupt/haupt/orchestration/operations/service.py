@@ -379,12 +379,14 @@ class OperationsService(Service):
         return context
 
     @staticmethod
-    def _render_name(template: str, context: Dict) -> str:
+    def _render_name(template: str, context: Dict, is_dag_node: bool = False) -> str:
         try:
             return render_name_template(template, context)
         except PolyaxonSchemaError as e:
+            # The name as written identifies the DAG node
+            node = f"DAG operation `{template}`: " if is_dag_node else ""
             raise PolyaxonSchemaError(
-                f"{e.message} Run names can use literal params, input defaults and "
+                f"{node}{e.message} Run names can use literal params, input defaults and "
                 "globals that are set when the run is created; "
                 "reference and matrix values are unavailable."
             )
@@ -504,7 +506,7 @@ class OperationsService(Service):
                         compiled_operation, params, name_globals
                     )
                 if name_template:
-                    name = self._render_name(name_template, context)
+                    name = self._render_name(name_template, context, is_dag_node)
                 if name_suffix:
                     # The source is left as authored: it defines the component state
                     name = render_name_suffix(
