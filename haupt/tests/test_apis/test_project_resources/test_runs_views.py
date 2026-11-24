@@ -2729,9 +2729,7 @@ class TestProjectRunsCreateViewV1(BaseTest):
         assert last_run.pending == V1RunPending.UPLOAD
         assert last_run.meta_info == {"test": "works"}
 
-    @patch.multiple(
-        "clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"]
-    )
+    @patch.multiple("clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"])
     def test_create_generates_missing_name(self):
         op = {
             "version": 1.1,
@@ -3171,9 +3169,7 @@ class TestProjectRunsSyncViewV1(BaseTest):
         ) == datetime_deserialize(data.pop("finished_at"))
         assert xp.project == self.project
 
-    @patch.multiple(
-        "clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"]
-    )
+    @patch.multiple("clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"])
     def test_sync_generates_missing_name(self):
         data = {
             "uuid": uuid.uuid4().hex,

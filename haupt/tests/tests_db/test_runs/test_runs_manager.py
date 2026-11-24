@@ -55,9 +55,7 @@ class TestRunManager(TestCase):
         assert run.cloning_kind is None
         assert run.original is None
 
-    @patch.multiple(
-        "clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"]
-    )
+    @patch.multiple("clipped.utils.names", ADJECTIVES=["curious"], NOUNS=["otter"])
     @patch("haupt.common.auditor.record")
     def test_unnamed_legacy_run_clone_and_resume(self, auditor_record):
         values = get_fxt_job_with_inputs()
