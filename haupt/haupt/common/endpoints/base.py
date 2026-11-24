@@ -1,7 +1,8 @@
 from typing import Optional
+from uuid import UUID
 
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from rest_framework import exceptions
 from rest_framework.generics import GenericAPIView
 
@@ -39,6 +40,7 @@ class BaseEndpoint(
     PROJECT_RESOURCE_KEY = None
 
     CONTEXT_KEYS = ()
+    CONTEXT_UUID_KEYS = ()
     QUERY_CONTEXT_KEYS = ()
     CONTEXT_OBJECTS = ()
 
@@ -141,6 +143,12 @@ class BaseEndpoint(
         if self.AUDIT_PROJECT_RESOURCES:
             assert self.PROJECT_RESOURCE_KEY is not None
             assert self.PROJECT_RESOURCE_KEY in kwargs
+
+        for key in self.CONTEXT_UUID_KEYS:
+            try:
+                UUID(getattr(self, key))
+            except ValueError as exc:
+                raise Http404 from exc
 
     def initialize_object_context(self, request: HttpRequest, *args, **kwargs):
         pass
