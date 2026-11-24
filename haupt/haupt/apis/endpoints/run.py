@@ -26,6 +26,7 @@ class RunEndpoint(ProjectResourceEndpoint):
     permission_classes = PERMISSIONS_MAPPING.get(["RUN_PERMISSION"])
     throttle_scope = "run"
     CONTEXT_KEYS = (OWNER_NAME_KEY, PROJECT_NAME_KEY, RUN_UUID_KEY)
+    CONTEXT_UUID_KEYS = (RUN_UUID_KEY,)
     CONTEXT_OBJECTS = ("run",)
 
     def enrich_queryset(self, queryset):
