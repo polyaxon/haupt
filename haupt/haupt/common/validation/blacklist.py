@@ -1,5 +1,5 @@
 try:
-    from rest_framework.exceptions import ValidationError
+    from django.core.exceptions import ValidationError
 except ImportError:
     raise ImportError("This module depends on django.")
 
