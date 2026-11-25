@@ -72,7 +72,6 @@ def get_scaffold_config(
                 auth=auth,
                 is_local_service=is_local_streams_service,
             ),
-            # get_plugins_location_config(resolver=resolver, cors=cors, auth=auth)
         ]
         config += get_services_definitions(resolver=resolver, cors=cors, auth=auth)
     if api_location_configs:

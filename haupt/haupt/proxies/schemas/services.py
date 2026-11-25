@@ -15,59 +15,6 @@ from polyaxon.api import (
 )
 
 
-PLUGIN_OPTIONS = r"""
-location ~ /{plugin_name}/proxy/([-_.:\w]+)/(.*) {{
-    {cors}
-    {auth}
-    {resolver}
-    rewrite_log on;
-    rewrite ^/{plugin_name}/proxy/([-_.:\w]+)/(.*) /{plugin_name}/proxy/$1/$2 break;
-    proxy_pass http://$1:{port};
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_hide_header X-Frame-Options;
-    proxy_hide_header Content-Security-Policy;
-    proxy_set_header Origin "";
-    proxy_buffering off;
-}}
-"""  # noqa
-
-
-def get_plugin_location_config(
-    name: str, port: int, resolver: str, cors: str, auth: str
-):
-    return get_config(
-        options=PLUGIN_OPTIONS,
-        indent=0,
-        plugin_name=name,
-        port=port,
-        resolver=resolver,
-        cors=cors,
-        auth=auth,
-    )
-
-
-def get_plugins_location_config(
-    resolver: str, cors: str, auth: str, proxy_services=None
-):
-    plugins = []
-
-    if proxy_services:
-        for plugin, config in proxy_services.items():
-            plugins.append(
-                get_plugin_location_config(
-                    name=plugin,
-                    port=config["port"],
-                    resolver=resolver,
-                    cors=cors,
-                    auth=auth,
-                )
-            )
-
-    return plugins
-
-
 SERVICES_OPTIONS = r"""
 location ~ {app}([-_.:\w]+)/([-_.:\w]+)/([-_.:\w]+)/runs/([-_.:\w]+)/([-_.:\w]+)/(.*) {{
     {cors}
