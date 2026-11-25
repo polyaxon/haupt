@@ -8,7 +8,6 @@ listen {port};
 
 SSL_OPTIONS = """
 listen 443 ssl;
-ssl on;
 """
 
 

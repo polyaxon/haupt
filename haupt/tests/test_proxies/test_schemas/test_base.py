@@ -90,7 +90,6 @@ listen 8000;
 
         expected = """
 listen 443 ssl;
-ssl on;
 """  # noqa
         settings.PROXIES_CONFIG.ssl_enabled = True
         assert get_listen_config(is_proxy=True) == expected
