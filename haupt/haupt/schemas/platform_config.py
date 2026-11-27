@@ -41,7 +41,7 @@ from polyaxon.exceptions import PolyaxonSchemaError
 
 
 if TYPE_CHECKING:
-    from clipped.compact.pydantic import ModelField
+    from clipped.compact.pydantic import ValidationInfo
 
 
 class PlatformConfig(BaseSchemaModel):
@@ -347,7 +347,7 @@ class PlatformConfig(BaseSchemaModel):
         "allowed_versions",
         **validation_before,
     )
-    def validate_str_list(cls, v, field: "ModelField"):
+    def validate_str_list(cls, v, field: "ValidationInfo"):
         if not isinstance(v, str):
             return v
         key = cls.get_field_name(field)
@@ -375,7 +375,7 @@ class PlatformConfig(BaseSchemaModel):
         "auth_azuread_options",
         **validation_before,
     )
-    def validate_json_fields(cls, v, field: "ModelField"):
+    def validate_json_fields(cls, v, field: "ValidationInfo"):
         if not isinstance(v, str):
             return v
         key = cls.get_field_name(field)
