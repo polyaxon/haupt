@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 from typing_extensions import Literal
 
 from clipped.compact.pydantic import (
+    ConfigDict,
     Field,
     field_validator,
     validation_always,
@@ -337,8 +338,7 @@ class PlatformConfig(BaseSchemaModel):
         alias=ENV_KEYS_UI_DEFAULT_STREAMS_URL, default=None
     )
 
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 
     @field_validator(
         "extra_apps",

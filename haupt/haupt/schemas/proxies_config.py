@@ -1,7 +1,7 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
-from clipped.compact.pydantic import Field
+from clipped.compact.pydantic import ConfigDict, Field
 from clipped.utils.logging import DEFAULT_LOGS_ROOT
 from polyaxon._contexts import paths as ctx_paths
 from polyaxon._env_vars.keys import (
@@ -144,8 +144,7 @@ class ProxiesConfig(BaseSchemaModel):
         alias=ENV_KEYS_PROXY_FORWARD_PROXY_KIND, default=None
     )
 
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 
     def get_log_level(self):
         log_level = (self.log_level or "warn").lower()
